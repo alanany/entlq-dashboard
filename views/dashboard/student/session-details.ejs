@@ -1,0 +1,279 @@
+<% 
+    // ==========================================================
+    // 💡 1. جزء معالجة البيانات وتحضيرها للتايمر والتنسيق (EJS/Node.js)
+    // ==========================================================
+    let finalISODateTime = ''; 
+    let displayDateTime = '';
+    let isSessionValid = false;
+    
+    // 💡 افتراض مدة الحصة بـ 60 دقيقة في حال لم تكن متاحة في البيانات
+    const sessionDurationMinutes = sessionDetails.duration || 60; 
+
+    if (sessionDetails && sessionDetails.date && sessionDetails.time) {
+        
+        isSessionValid = true;
+        const rawDate = sessionDetails.date; 
+        const sessionTime = sessionDetails.time; 
+        
+        // 1. استخلاص أجزاء التاريخ من التوقيت UTC
+        const dateObj = new Date(rawDate);
+        const year = dateObj.getUTCFullYear();
+        const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getUTCDate()).padStart(2, '0');
+        
+        // 2. دمج التاريخ والوقت في سلسلة ISO لتمثل وقت بدء محلي
+        finalISODateTime = `${year}-${month}-${day}T${sessionTime}:00`; 
+        const displayDateObj = new Date(finalISODateTime);
+
+        // 3. التنسيق العربي للعرض في بطاقة التفاصيل
+        const formattedDate = displayDateObj.toLocaleDateString('ar-SA', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric'
+        });
+        const formattedTime = displayDateObj.toLocaleTimeString('ar-SA', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            hour12: true 
+        });
+        
+        displayDateTime = `${formattedDate} | ${formattedTime}`;
+    }
+%>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>غرفة انتظار الحصة المباشرة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .countdown-segment {
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen overflow-hidden">
+        
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
+                <h2 class="text-xl font-semibold text-gray-800">غرفة انتظار الحصة المباشرة</h2>
+                <a href="" onclick="history.back(); return false;" class="text-sm text-indigo-600 hover:underline flex items-center font-medium">
+                    </i> العودة للتفاصيل 
+                </a>
+            </header>
+
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-indigo-50 p-8 flex items-center justify-center">
+                <div class="max-w-3xl w-full space-y-8 text-center">
+
+                    <div class="bg-indigo-600 text-white p-8 rounded-2xl shadow-xl">
+                        <i data-feather="monitor" class="w-12 h-12 mx-auto mb-4 text-indigo-200"></i>
+                        <h1 class="text-3xl font-extrabold mb-1" id="sessionTopic"> <%= sessionDetails.topic || sessionDetails.courseTitle %> </h1>
+                        <p class="text-indigo-200 text-lg">حصتك في كورس **<span id="sessionCourse"> <%= sessionDetails.courseTitle %></span>** ستبدأ قريباً.</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+                        
+                        <h3 id="timerHeader" class="text-xl font-bold text-gray-700 mb-6 flex items-center justify-center">
+                            <i data-feather="clock" class="ml-2 w-6 h-6 text-indigo-600"></i>
+                            الوقت المتبقي لبدء الحصة:
+                        </h3>
+                        
+                        <div id="countdownTimer" class="flex justify-center gap-4 flex-wrap">
+                            <div class="countdown-segment bg-indigo-50 p-4 rounded-xl min-w-[90px] shadow-sm">
+                                <span id="days" class="text-5xl font-extrabold text-indigo-700 block">00</span>
+                                <span class="text-sm text-gray-600">يوم</span>
+                            </div>
+                            <div class="countdown-segment bg-indigo-50 p-4 rounded-xl min-w-[90px] shadow-sm">
+                                <span id="hours" class="text-5xl font-extrabold text-indigo-700 block">00</span>
+                                <span class="text-sm text-gray-600">ساعة</span>
+                            </div>
+                            <div class="countdown-segment bg-indigo-50 p-4 rounded-xl min-w-[90px] shadow-sm">
+                                <span id="minutes" class="text-5xl font-extrabold text-indigo-700 block">00</span>
+                                <span class="text-sm text-gray-600">دقيقة</span>
+                            </div>
+                            <div class="countdown-segment bg-indigo-50 p-4 rounded-xl min-w-[90px] shadow-sm">
+                                <span id="seconds" class="text-5xl font-extrabold text-indigo-700 block">00</span>
+                                <span class="text-sm text-gray-600">ثانية</span>
+                            </div>
+                        </div>
+                        
+                        <p id="timerMessage" class="text-sm font-medium text-red-600 mt-4 hidden">الزر سينشط قبل 10 دقائق من موعد الحصة.</p>
+                    </div>
+                    
+                    <a href="<%= sessionDetails.link %>" id="joinSessionButton" 
+                       class="w-full inline-flex items-center justify-center px-8 py-4 bg-gray-400 text-white text-xl font-bold rounded-xl shadow-lg transition duration-300 pointer-events-none disabled:opacity-50">
+                        <i data-feather="log-in" class="ml-3 w-6 h-6"></i>
+                        انضم إلى الحصة الآن (غير متاح)
+                    </a>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                            <p class="text-sm font-medium text-gray-500 flex items-center justify-center"><i data-feather="calendar" class="ml-2 w-4 h-4"></i> الموعد والتوقيت</p>
+                            <p class="font-bold text-gray-800 mt-1" id="sessionDateTime"> 
+                                <%= displayDateTime %>
+                            </p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-100">
+                            <p class="text-sm font-medium text-gray-500 flex items-center justify-center"><i data-feather="user" class="ml-2 w-4 h-4"></i> المعلم</p>
+                            <p class="font-bold text-gray-800 mt-1" id="sessionTutor"><%= sessionDetails.tutorName || 'المعلم غير محدد' %></p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script>
+        feather.replace();
+
+        <% if (isSessionValid) { %>
+            
+            // 1. تحديد الوقت المستهدف بالمللي ثانية (من EJS المُعالَج)
+            const sessionTargetDate = new Date('<%= finalISODateTime %>').getTime();
+            const joinBeforeMinutes = 10; 
+            const durationMinutes = <%= sessionDurationMinutes %>; 
+            
+            const joinButton = document.getElementById('joinSessionButton');
+            const timerMessage = document.getElementById('timerMessage');
+            const countdownTimer = document.getElementById('countdownTimer');
+            const timerHeader = document.getElementById('timerHeader');
+            
+            // 💡 متغير المؤقت (تم إزالة const لتفادي خطأ النطاق)
+            let countdownInterval; 
+
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const distanceToStart = sessionTargetDate - now; // المسافة إلى البداية
+                
+                // حساب نهاية الحصة بالمللي ثانية
+                const sessionEndTime = sessionTargetDate + (durationMinutes * 60 * 1000);
+                const distanceToEnd = sessionEndTime - now; // المسافة إلى النهاية
+                
+                // حساب الوقت المتبقي بالدقائق (نستخدمه في منطق تفعيل الزر)
+                const remainingMinutesToStart = distanceToStart / (1000 * 60);
+
+                // ===============================================
+                // منطق تحديد حالة الحصة
+                // ===============================================
+                
+                if (distanceToEnd < 0) {
+                    // ❌ الحالة 1: انتهت الحصة
+                    clearInterval(countdownInterval);
+                    countdownTimer.innerHTML = '<span class="text-2xl font-extrabold text-red-600">انتهت الحصة!</span>';
+                    timerHeader.innerHTML = '<i data-feather="x-circle" class="ml-2 w-6 h-6 text-red-600"></i> انتهت الحصة';
+                    
+                    joinButton.textContent = 'انتهت الحصة';
+                    joinButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'pointer-events-auto', 'animate-pulse');
+                    joinButton.classList.add('bg-red-400', 'pointer-events-none');
+                    timerMessage.classList.add('hidden');
+                    return;
+                    
+                } else if (distanceToStart < 0) {
+                    // 🟢 الحالة 2: الحصة جارية الآن
+                    
+                    const runningDistance = distanceToEnd;
+                    
+                    const oneSecond = 1000;
+                    const oneMinute = oneSecond * 60;
+                    const oneHour = oneMinute * 60;
+                    const oneDay = oneHour * 24;
+
+                    const days = Math.floor(runningDistance / oneDay);
+                    const hours = Math.floor((runningDistance % oneDay) / oneHour);
+                    const minutes = Math.floor((runningDistance % oneHour) / oneMinute);
+                    const seconds = Math.floor((runningDistance % oneMinute) / oneSecond);
+
+                    const formatNumber = (num) => String(num).padStart(2, '0');
+
+                    // تحديث العداد
+                    if (document.getElementById('days')) {
+                        document.getElementById('days').textContent = formatNumber(days);
+                        document.getElementById('hours').textContent = formatNumber(hours);
+                        document.getElementById('minutes').textContent = formatNumber(minutes);
+                        document.getElementById('seconds').textContent = formatNumber(seconds);
+                    }
+                    
+                    // تعديل العنوان ليناسب الحصة الجارية
+                    timerHeader.innerHTML = '<i data-feather="activity" class="ml-2 w-6 h-6 text-green-600"></i> الوقت المتبقي لانتهاء الحصة:';
+                    feather.replace(); 
+
+                    // تفعيل زر الانضمام بشكل كامل وتغيير لونه
+                    joinButton.textContent = 'انضم إلى الحصة الآن (جارية)';
+                    joinButton.classList.remove('bg-gray-400', 'hover:bg-gray-500', 'pointer-events-none');
+                    joinButton.classList.add('bg-green-600', 'hover:bg-green-700', 'pointer-events-auto', 'animate-pulse');
+                    timerMessage.classList.add('hidden');
+                    
+                    return; // إنهاء الدالة لأننا في حالة جارية
+                }
+
+                // 🟡 الحالة 3: الحصة قادمة (الوقت لا يزال قبل البداية)
+                
+                const distance = distanceToStart; // نعود لاستخدام المسافة إلى البداية
+
+                const oneSecond = 1000;
+                const oneMinute = oneSecond * 60;
+                const oneHour = oneMinute * 60;
+                const oneDay = oneHour * 24;
+                
+                const days = Math.floor(distance / oneDay);
+                const hours = Math.floor((distance % oneDay) / oneHour);
+                const minutes = Math.floor((distance % oneHour) / oneMinute);
+                const seconds = Math.floor((distance % oneMinute) / oneSecond);
+                
+                const formatNumber = (num) => String(num).padStart(2, '0');
+
+                // تحديث العداد (للعد التنازلي إلى البداية)
+                if (document.getElementById('days')) {
+                    document.getElementById('days').textContent = formatNumber(days);
+                    document.getElementById('hours').textContent = formatNumber(hours);
+                    document.getElementById('minutes').textContent = formatNumber(minutes);
+                    document.getElementById('seconds').textContent = formatNumber(seconds);
+                }
+                
+                // منطق تفعيل/تعطيل زر الانضمام
+                if (remainingMinutesToStart <= joinBeforeMinutes) {
+                    // تفعيل الزر (10 دقائق أو أقل متبقية)
+                    joinButton.classList.remove('bg-gray-400', 'hover:bg-gray-500', 'pointer-events-none');
+                    joinButton.classList.add('bg-green-600', 'hover:bg-green-700', 'pointer-events-auto');
+                    joinButton.textContent = 'انضم إلى الحصة الآن';
+                    timerMessage.classList.add('hidden');
+                    
+                    if (remainingMinutesToStart <= 5) {
+                         joinButton.classList.add('animate-pulse');
+                    } else {
+                         joinButton.classList.remove('animate-pulse');
+                    }
+                    
+                } else {
+                    // تعطيل الزر (الوقت لا يزال بعيداً)
+                    joinButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'pointer-events-auto', 'animate-pulse');
+                    joinButton.classList.add('bg-gray-400', 'hover:bg-gray-500', 'pointer-events-none');
+                    joinButton.textContent = 'انضم إلى الحصة الآن (غير متاح)';
+                    timerMessage.classList.remove('hidden');
+                }
+            }
+
+            // بدء المؤقت التنازلي وتحديثه كل ثانية
+            countdownInterval = setInterval(updateCountdown, 1000);
+            
+            // تشغيل التحديث الأول فوراً
+            updateCountdown();
+
+        <% } else { %>
+            // إذا لم يتم العثور على بيانات الحصة
+             const countdownTimer = document.getElementById('countdownTimer');
+             if(countdownTimer) {
+                 countdownTimer.innerHTML = '<span class="text-xl text-gray-500 font-medium">لم يتم العثور على بيانات الحصة.</span>';
+             }
+        <% } %>
+    </script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل مستخدم جديد - الأدمن</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        /* ضمان أن نص الزر المختار يظهر باللون الأبيض عند التحديد */
+        input[type="radio"]:checked + label span {
+            color: white !important;
+        }
+        /* تصميم الـ Spinner */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen text-gray-800">
+
+    <div class="w-full max-w-lg">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-indigo-600">أكاديمية انطلق</h1>
+            <p class="mt-2 text-xl text-gray-600">لوحة تحكم الأدمن</p>
+        </div>
+
+        <div class="bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
+            <h2 class="text-2xl font-bold text-center mb-8 flex items-center justify-center text-gray-800">
+                <i data-feather="user-plus" class="ml-3 w-6 h-6 text-indigo-600"></i>
+                إنشاء حساب مستخدم جديد
+            </h2>
+
+            <form id="registerForm" class="space-y-6" onsubmit="handleSubmit(event)">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">تسجيل الدخول كـ</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        
+                        <div class="relative">
+                            <input type="radio" id="role-admin" name="role" value="admin" class="hidden peer" required checked>
+                            <label for="role-admin" class="flex flex-col justify-center items-center py-3 px-4 rounded-lg border border-gray-300 cursor-pointer transition-all duration-200 hover:bg-indigo-50 peer-checked:bg-indigo-600 peer-checked:border-indigo-600 shadow-md">
+                                <span class="font-bold text-lg text-gray-700 peer-checked:text-white">مدير عام / أدمن</span>
+                            </label>
+                        </div>
+                        
+                        <div class="relative">
+                            <input type="radio" id="role-instructor" name="role" value="instructor" class="hidden peer">
+                            <label for="role-instructor" class="flex flex-col justify-center items-center py-3 px-4 rounded-lg border border-gray-300 cursor-pointer transition-all duration-200 hover:bg-indigo-50 peer-checked:bg-indigo-600 peer-checked:border-indigo-600 shadow-md">
+                                <span class="font-bold text-lg text-gray-700 peer-checked:text-white">معلم / مدرب</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">الاسم الكامل</label>
+                    <input id="name" name="name" type="text" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
+                    <input id="email" name="email" type="email" autocomplete="email" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">تعيين كلمة المرور</label>
+                    <input id="password" name="password" type="password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div>
+                    <button id="saveBtn" type="submit" class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                        إنشاء الحساب الآن
+                        <div id="spinner" class="spinner ml-2 hidden"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <p class="mt-6 text-center text-sm text-gray-500">
+            هذه الصفحة متاحة فقط للمديرين/الأدمن الذين قاموا بتسجيل الدخول.
+        </p>
+    </div>
+    
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-[70] space-y-3">
+    </div>
+
+    <script>
+        feather.replace();
+
+        const saveBtn = document.getElementById("saveBtn");
+        const spinner = document.getElementById("spinner");
+        const originalButtonText = saveBtn.textContent.trim(); // حفظ النص الأصلي للزر
+
+        // ----------------- دوال التحكم في حالة الزر -----------------
+
+        /**
+         * تفعيل وضع التحميل (Loading) على الزر.
+         */
+        function startLoading() {
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'جاري الإنشاء...';
+            spinner.classList.remove("hidden");
+        }
+
+        /**
+         * إيقاف وضع التحميل وإعادة الزر للحالة الأصلية.
+         */
+        function stopLoading() {
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalButtonText; // إعادة النص الأصلي
+            spinner.classList.add("hidden");
+        }
+
+        // ----------------- دوال عرض الإشعارات (Toast) -----------------
+
+        /**
+         * عرض إشعار منبثق (Toast Notification)
+         * @param {string} message - نص الرسالة.
+         * @param {string} type - نوع الإشعار: 'success', 'error', 'info'.
+         */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            let bgColor = 'bg-blue-600';
+            let icon = 'info';
+
+            switch (type) {
+                case 'success':
+                    bgColor = 'bg-green-600';
+                    icon = 'check-circle';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-600';
+                    icon = 'alert-triangle';
+                    break;
+                case 'info':
+                default:
+                    bgColor = 'bg-blue-600';
+                    icon = 'info';
+                    break;
+            }
+
+            toast.className = `p-4 max-w-xs text-white ${bgColor} rounded-lg shadow-xl flex items-center transform transition-transform duration-300 translate-x-full`;
+            toast.innerHTML = `
+                <i data-feather="${icon}" class="w-5 h-5 ml-3"></i>
+                <span class="text-sm font-medium">${message}</span>
+                <button onclick="this.closest('div').remove()" class="mr-2 text-white/80 hover:text-white transition-colors">
+                    <i data-feather="x" class="w-4 h-4"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            feather.replace(); 
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                toast.addEventListener('transitionend', () => toast.remove(), {once: true});
+            }, 5000); 
+        }
+
+        // ----------------- دالة الإرسال الرئيسية (Handle Submit) -----------------
+
+        /**
+         * معالجة إرسال النموذج واستدعاء Fetch API.
+         */
+     async function handleSubmit(event) {
+        event.preventDefault(); 
+        
+        const form = event.target;
+        const userData = {
+            // ... (جمع البيانات) ...
+            role: form.querySelector('input[name="role"]:checked').value,
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        };
+
+        startLoading(); // تفعيل وضع التحميل
+
+        try {
+            const response = await fetch('/admin_register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw errorData; 
+            }
+
+          // حالة النجاح:
+            const successData = await response.json();
+            stopLoading();
+            showToast("تم إنشاء الحساب بنجاح! ("  , 'success');
+
+            // ⭐️ إضافة التحويل هنا: نؤخر التحويل قليلاً للسماح للمستخدم بقراءة الـ Toast
+            setTimeout(() => {
+                window.location.href = '/login'; // تحويل المتصفح إلى صفحة تسجيل الدخول
+            }, 800);
+
+        } catch (error) {
+            // معالجة الخطأ
+            stopLoading();
+
+            // 1. محاولة استخلاص رسالة الخطأ الخاصة بالحقول
+            const fieldError = 
+                // نستخدم التتابع الاختياري (?. ) للتحقق من وجود الخصائص قبل قراءتها
+                error?.errors?.email || 
+                error?.errors?.password;
+            
+            // 2. استخدام رسالة الخطأ العامة (message) أو رسالة خطأ افتراضية
+            const generalError = error?.message || "حدث خطأ غير متوقع. يرجى التحقق من اتصال الشبكة.";
+            
+            // 3. الرسالة التي سيتم عرضها في Toast
+            const finalMessage = fieldError || generalError;
+
+            // يمكنك طباعة تفاصيل الخطأ الكامل في الكونسول للمطورين
+            console.error("خطأ الإرسال:", error); 
+            
+            showToast("خطأ: " + finalMessage, 'error');
+        }
+    }
+    </script>
+</body>
+</html>

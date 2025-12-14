@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'منصة انطلق العالمية - تعليم مباشر احترافي' %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .hero-background {
+            background: linear-gradient(135deg, #4f46e5 0%, #a78bfa 100%);
+        }
+        @keyframes slide {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); } 
+        }
+        .auto-slider {
+            display: flex;
+            animation: slide 15s linear infinite; 
+            width: 200%; 
+        }
+        .slide-item {
+            width: 50%; 
+            flex-shrink: 0;
+            padding: 2rem;
+            text-align: right;
+        }
+        /* ستايل مخصص لبطاقة الكورس لجعله أكثر جمالية */
+        .course-card-style {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+        }
+        .course-card-style:hover {
+            transform: translateY(-5px); 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 4px var(--tw-shadow-color-hover); 
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800">
+
+    <header class="sticky top-0 bg-white border-b border-gray-200 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
+            
+            <a href="/admin" class="text-3xl font-extrabold text-indigo-700 flex items-center">
+                <i data-feather="globe" class="ml-2 w-7 h-7"></i> انطلق <span class="text-gray-500 text-sm mr-2">| Global</span>
+            </a>
+            
+            <div class="flex items-center space-x-6 space-x-reverse">
+                <a href="#courses" class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition hidden sm:block">
+                    الكورسات
+                </a>
+                <a href="#features" class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition hidden sm:block">
+                    المميزات
+                </a>
+
+                <div class="border-l pl-4 flex space-x-4 space-x-reverse">
+                    <a href="./student/login" class="text-sm font-semibold text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                        تسجيل الدخول
+                    </a>
+
+                    <a href="/student/register" class="px-5 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-indigo-700 transition">
+                        ابدأ رحلتك
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-background py-24 lg:py-36 text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between gap-12">
+                
+                <div class="lg:w-1/2 text-center lg:text-right space-y-6">
+                    <span class="text-indigo-200 text-sm uppercase tracking-widest font-bold">تعلم. أتقن. انطلق.</span>
+                    <h1 class="text-5xl lg:text-7xl font-black leading-tight text-white">
+                        دراسة فردية، نتائج استثنائية.
+                    </h1>
+                    <p class="text-xl text-indigo-100 max-w-lg mx-auto lg:mx-0">
+                        منصة تعليم مباشر عالمية مصممة لتحقيق أهدافك الأكاديمية والمهنية بدعم من معلمين خبراء.
+                    </p>
+                    <a href="../dashboard/student/register.html" class="inline-flex items-center px-10 py-4 bg-red-400 text-white text-xl font-bold rounded-xl shadow-2xl hover:bg-red-500 transition duration-300 transform hover:scale-105">
+                        <i data-feather="user-plus" class="ml-3 w-6 h-6"></i>
+                        سجل الآن مجاناً
+                    </a>
+                </div>
+
+                <div class="lg:w-1/2">
+                    
+
+  <img src="https://surahquran.com/img/core-img/ghilafquran.png" 
+       class="w-full rounded-lg shadow-2xl"> 
+               
+            </div>
+        </section>
+        
+        <section class="py-12 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div class="stat-item">
+                        <p class="text-4xl font-extrabold text-indigo-700">12K+</p>
+                        <p class="text-sm font-medium text-gray-500 mt-1">طالب حول العالم</p>
+                    </div>
+                    <div class="stat-item">
+                        <p class="text-4xl font-extrabold text-indigo-700">98%</p>
+                        <p class="text-sm font-medium text-gray-500 mt-1">معدل رضا الطلاب</p>
+                    </div>
+                    <div class="stat-item">
+                        <p class="text-4xl font-extrabold text-indigo-700">500+</p>
+                        <p class="text-sm font-medium text-gray-500 mt-1">معلم معتمد</p>
+                    </div>
+                    <div class="stat-item">
+                        <p class="text-4xl font-extrabold text-indigo-700">15+</p>
+                        <p class="text-sm font-medium text-gray-500 mt-1">تخصص أكاديمي</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="max-w-7xl mx-auto border-gray-200">
+
+        <section id="courses" class="py-16 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-extrabold text-gray-900"><%= title || 'الكورسات التي ستنقلك للمستوى التالي' %></h2> 
+                    <p class="mt-3 text-lg text-gray-600">اكتشف تخصصاتنا المتاحة للتدريس الفردي المباشر.</p>
+                </div>
+                
+                <div id="courses-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    
+                    <% if (typeof courses !== 'undefined' && courses.length > 0) { %>
+                        <% courses.slice(0, 6).forEach(function(course) { %>
+                            <div class="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer course-card-style" style="--tw-shadow-color-hover: #<%= course.color_code || '4f46e5' %>">
+                                
+                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROU5z08AlSUkJu-Wfat2rhTCjOFe34GP9gEA&s" alt="<%= course.image_url || 'https://via.placeholder.com/400x200/4f46e5/ffffff?text=Course+Image' %>" 
+                                     alt="<%= course.name %>" 
+                                     class="w-full h-48 object-cover">
+
+                                <div class="p-6 space-y-3">
+                                    <h3 class="text-2xl font-bold text-gray-900"><%= course.name %></h3>
+                                    
+                                    <p class="text-gray-600 line-clamp-3 h-20"><%= course.description %></p>
+                                    
+                                    <a href="/website-course/<%= course.id %>" class="mt-4 block w-full text-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition duration-150">عرض التفاصيل</a>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="md:col-span-3 text-center text-gray-500 py-10">
+                            <i data-feather="alert-triangle" class="w-10 h-10 mx-auto text-yellow-500"></i>
+                            <p class="mt-3">عذراً، لم يتم العثور على أي كورسات حالياً.</p>
+                        </div>
+                    <% } %>
+                    </div>
+                
+                <div class="text-center mt-10">
+                    <a href="/website-courses" class="inline-flex items-center text-lg font-bold text-indigo-600 hover:text-indigo-800">
+                        عرض جميع الكورسات <i data-feather="arrow-left" class="ml-2 w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <hr class="max-w-7xl mx-auto border-gray-200">
+
+        <section id="features" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-extrabold text-gray-900">لماذا يختارنا الطلاب حول العالم؟</h2>
+                    <p class="mt-3 text-lg text-gray-600">مزايا فريدة تضمن لك أفضل تجربة تعلم ممكنة.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    
+                    <div class="text-center p-6 border rounded-xl hover:shadow-xl transition">
+                        <i data-feather="message-circle" class="w-10 h-10 text-red-500 mx-auto mb-3"></i>
+                        <h3 class="font-bold text-xl mb-1">تواصل مباشر</h3>
+                        <p class="text-sm text-gray-600">فصول فردية تفاعلية بالصوت والصورة.</p>
+                    </div>
+                    
+                    <div class="text-center p-6 border rounded-xl hover:shadow-xl transition">
+                        <i data-feather="calendar" class="w-10 h-10 text-indigo-500 mx-auto mb-3"></i>
+                        <h3 class="font-bold text-xl mb-1">جدولة مرنة</h3>
+                        <p class="text-sm text-gray-600">احجز حصصك في أي وقت يناسبك 24/7.</p>
+                    </div>
+                    
+                    <div class="text-center p-6 border rounded-xl hover:shadow-xl transition">
+                        <i data-feather="server" class="w-10 h-10 text-green-500 mx-auto mb-3"></i>
+                        <h3 class="font-bold text-xl mb-1">تسجيل الحصص</h3>
+                        <p class="text-sm text-gray-600">مراجعة كاملة للحصة في أي وقت لاحقاً.</p>
+                    </div>
+
+                    <div class="text-center p-6 border rounded-xl hover:shadow-xl transition">
+                        <i data-feather="compass" class="w-10 h-10 text-yellow-500 mx-auto mb-3"></i>
+                        <h3 class="font-bold text-xl mb-1">خطط مخصصة</h3>
+                        <p class="text-sm text-gray-600">محتوى تعليمي مصمم حسب احتياج الطالب.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-16 bg-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-extrabold text-gray-900 text-center mb-10">ماذا يقول طلابنا؟</h2>
+                
+                <div class="overflow-hidden relative rounded-xl shadow-2xl bg-white">
+                    <div class="auto-slider">
+                        
+                        <div class="slide-item">
+                            <i data-feather="zap" class="w-8 h-8 text-indigo-600 mb-4"></i>
+                            <blockquote class="text-xl italic text-gray-700">
+                                "منصة انطلق غيرت طريقة دراستي للفيزياء تماماً. المعلمون محترفون جداً وشرحهم مبسط وعميق. أوصي بها بشدة!"
+                            </blockquote>
+                            <p class="mt-4 font-bold text-gray-900">سارة، طالبة جامعية - الإمارات</p>
+                            <p class="text-sm text-gray-500">كورس الفيزياء المتقدمة</p>
+                        </div>
+                        
+                        <div class="slide-item">
+                            <i data-feather="zap" class="w-8 h-8 text-indigo-600 mb-4"></i>
+                            <blockquote class="text-xl italic text-gray-700">
+                                "تمكنت من اجتياز اختبار IELTS بفضل جلسات المحادثة المركزة. الجدولة مرنة للغاية ومناسبة لجدولي المزدحم."
+                            </blockquote>
+                            <p class="mt-4 font-bold text-gray-900">أحمد، طالب ثانوي - السعودية</p>
+                            <p class="text-sm text-gray-500">كورس اللغة الإنجليزية الأكاديمية</p>
+                        </div>
+
+                         <div class="slide-item">
+                            <i data-feather="zap" class="w-8 h-8 text-indigo-600 mb-4"></i>
+                            <blockquote class="text-xl italic text-gray-700">
+                                "منصة انطلق غيرت طريقة دراستي للفيزياء تماماً. المعلمون محترفون جداً وشرحهم مبسط وعميق. أوصي بها بشدة!"
+                            </blockquote>
+                            <p class="mt-4 font-bold text-gray-900">سارة، طالبة جامعية - الإمارات</p>
+                            <p class="text-sm text-gray-500">كورس الفيزياء المتقدمة</p>
+                        </div>
+                        
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <section class="py-20 bg-indigo-600 text-white">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-4xl font-extrabold mb-4">لا تؤجل رحلة انطلقك!</h2>
+                <p class="text-lg text-indigo-200 mb-8">ابدأ الآن بتسجيل حساب مجاني واستكشف الكورسات.</p>
+                <a href="register.html" class="px-8 py-3 bg-white text-indigo-600 text-xl font-bold rounded-lg shadow-xl hover:bg-gray-100 transition duration-300">
+                    إنشاء حساب طالب <i data-feather="user-plus" class="ml-2 w-6 h-6 inline-block"></i>
+                </a>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="bg-gray-800 text-white py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm">&copy; 2025 انطلق | Etqan. منصة تعليمية عالمية.</p>
+            <div class="mt-4 flex justify-center gap-6 text-sm">
+                <a href="#" class="hover:text-indigo-400">الشروط والأحكام</a>
+                <a href="#" class="hover:text-indigo-400">تواصل معنا</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

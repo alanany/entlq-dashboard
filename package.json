@@ -1,0 +1,25 @@
+{
+  "name": "education-full-platform",
+  "version": "1.0.0",
+  "main": "index.js",
+   "dependencies": {
+    "bcrypt": "^5.0.0",
+    "cookie-parser": "^1.4.5",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.3",
+    "express": "^4.17.1",
+    "express-validator": "^7.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "method-override": "^3.0.0",
+    "moment": "^2.30.1",
+    "mongoose": "^5.9.23",
+    "nodemon": "^3.1.11",
+    "validator": "^13.1.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

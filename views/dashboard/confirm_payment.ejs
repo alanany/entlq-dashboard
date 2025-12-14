@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الدفع وتأكيد الحجز للطلب #<%= booking._id.toString().slice(-6) %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    
+    <% 
+        // 1. تحديد بيانات الطلب (افتراض: تم عمل Populate للطالب والكورس)
+        const studentName = (booking.student && booking.student.name) || (booking.studentId && booking.studentId.name) || 'طالب غير معروف';
+        const courseTitle = (booking.course && booking.course.title) || (booking.courseId && booking.courseId.title) || 'كورس محذوف';
+        const totalAmount = booking.totalAmount ? booking.totalAmount.toFixed(2) : 'N/A';
+        const isConfirmed = booking.status === 'confirmed';
+        
+        // 2. دالة مساعدة لتحديد شارة الحالة
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'pending': return { text: 'قيد المراجعة', color: 'bg-yellow-100 text-yellow-800' };
+                case 'awaiting_payment': return { text: 'بانتظار الدفع', color: 'bg-blue-100 text-blue-800' };
+                case 'confirmed': return { text: 'مؤكد ومدفوع', color: 'bg-green-100 text-green-800' };
+                case 'rejected': return { text: 'مرفوض', color: 'bg-red-100 text-red-800' };
+                default: return { text: 'غير محدد', color: 'bg-gray-100 text-gray-800' };
+            }
+        }
+        const statusInfo = getStatusBadge(booking.status);
+        
+        // 3. تنسيق تاريخ البدء (للاستخدام في حقل التاريخ)
+        const currentStartDate = booking.startDate ? new Date(booking.startDate).toISOString().split('T')[0] : '';
+    %>
+    
+    <div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        
+        <div class="mb-6">
+            <a  href="#" onclick="history.back(); return false;"   
+               class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center font-medium transition duration-150">
+                <i data-feather="arrow-right" class="mr-1 w-4 h-4"></i> 
+                العودة لطلبات الانضمام
+            </a>
+        </div>
+
+        <div class="mb-8 border-b pb-4">
+            <h1 class="text-3xl font-extrabold text-gray-900 flex items-center">
+                <i data-feather="dollar-sign" class="ml-3 w-7 h-7 <%= isConfirmed ? 'text-green-600' : 'text-indigo-600' %>"></i> 
+                إدارة دفع الطلب رقم #<%= booking._id.toString().slice(-6) %>
+            </h1>
+            <p class="mt-2 text-lg text-gray-600">تأكيد حالة الدفع وتحديد تاريخ بدء الكورس.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2 flex items-center">
+                    <i data-feather="info" class="ml-2 w-5 h-5 text-indigo-500"></i>
+                    بيانات الطلب
+                </h3>
+                <dl class="space-y-3 text-sm">
+                    <div>
+                        <dt class="font-medium text-gray-500">الطالب:</dt>
+                        <dd class="text-gray-900 font-semibold"><%= studentName %></dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">الكورس:</dt>
+                        <dd class="text-indigo-600 font-semibold"><%= courseTitle %></dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">المبلغ المطلوب:</dt>
+                        <dd class="text-2xl font-extrabold text-green-700 mt-1"><%= totalAmount %> ريال</dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">الحالة الحالية:</dt>
+                        <dd>
+                            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full <%= statusInfo.color %>">
+                                <%= statusInfo.text %>
+                            </span>
+                        </dd>
+                    </div>
+                    <% if (booking.startDate) { %>
+                  <div>
+    <label for="startDate" class="block text-base font-medium text-gray-700">تاريخ بدء الكورس <span class="text-red-500">*</span></label>
+    <div class="mt-1">
+        <input type="date" id="startDate" name="startDate" required
+               value="<%= currentStartDate %>"
+               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-base p-2 border">
+        <p class="mt-1 text-sm text-gray-500" id="date-constraint-message">يجب أن يكون التاريخ اليوم أو بعده، والحد الأقصى هو شهر واحد من الآن.</p>
+    </div>
+</div>
+                    <% } %>
+                </dl>
+            </div>
+
+            <div class="lg:col-span-2 bg-white p-8 rounded-xl shadow-xl">
+                
+                <% if (isConfirmed) { %>
+                    <div class="text-center p-6 bg-green-50 border border-green-300 rounded-lg mb-6">
+                        <i data-feather="check-circle" class="w-12 h-12 mx-auto text-green-600 mb-3"></i>
+                        <h2 class="text-2xl font-bold text-green-700 mb-2">تم تأكيد الدفع مسبقاً!</h2>
+                        <p class="text-gray-600">يمكنك تحديث تاريخ البدء أو الملاحظات عبر النموذج أدناه.</p>
+                    </div>
+                <% } %>
+         
+                <form action="/booking/<%= booking._id %>/confirm-payment" method="POST" class="space-y-6">
+                    
+                    <h2 class="text-xl font-bold text-indigo-700 pt-4">إجراء التأكيد</h2>
+
+                    <div>
+                        <label for="startDate" class="block text-base font-medium text-gray-700">تاريخ بدء الكورس <span class="text-red-500">*</span></label>
+                        <div class="mt-1">
+                            <input type="date" id="startDate" name="startDate" required
+                                   value="<%= currentStartDate %>"
+                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-base p-2 border">
+                            <p class="mt-1 text-sm text-gray-500">تاريخ اليوم الذي ستبدأ فيه الدراسة فعلياً.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="paymentStatus" class="block text-base font-medium text-gray-700">حالة الدفع <span class="text-red-500">*</span></label>
+                        <select id="paymentStatus" name="paymentStatus" required
+                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base rounded-md border">
+                            
+                            <option value="pending" <%= booking.status === 'pending' ? 'selected' : '' %>>قيد المراجعة</option>
+                            <option value="awaiting_payment" <%= booking.status === 'awaiting_payment' ? 'selected' : '' %>>بانتظار الدفع</option>
+                            <option value="confirmed" <%= booking.status === 'confirmed' ? 'selected' : '' %>>مدفوع ومؤكد</option>
+                            <option value="rejected" <%= booking.status === 'rejected' ? 'selected' : '' %>>مرفوض (إلغاء الطلب)</option>
+                        </select>
+                        <p class="mt-1 text-sm text-gray-500">اختر "مدفوع ومؤكد" لتأكيد الدفع وبدء الكورس.</p>
+                    </div>
+                    
+                    <div>
+                        <label for="adminNotes" class="block text-base font-medium text-gray-700">ملاحظات المشرف (تظهر لك فقط)</label>
+                        <div class="mt-1">
+                            <textarea id="adminNotes" name="adminNotes" rows="3" 
+                                      class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-base border border-gray-300 rounded-md p-2"><%= booking.adminNotes || '' %></textarea>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t mt-6">
+                        <button type="submit"
+                                class="w-full justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                            حفظ الإجراء وتحديث حالة الطلب
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+
+ <script>
+    feather.replace();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. حساب التاريخ الأدنى (اليوم)
+        const today = new Date();
+        
+        // ضبط الساعة والدقائق والثواني إلى الصفر لتفادي مشكلة فروقات التوقيت 
+        // وتحديد اليوم الحالي كحد أدنى.
+        today.setHours(0, 0, 0, 0); 
+
+        // 2. حساب التاريخ الأقصى (30 يوماً من اليوم)
+        const maxDate = new Date();
+        maxDate.setDate(today.getDate() + 30); // إضافة 30 يوماً
+
+        // 3. تنسيق التواريخ إلى صيغة YYYY-MM-DD التي يقبلها حقل input type="date"
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        const minDateString = formatDate(today);
+        const maxDateString = formatDate(maxDate);
+
+        // 4. تطبيق القيود على حقل تاريخ البداية
+        const startDateInput = document.getElementById('startDate');
+        
+        // 🛑 التعيين للحد الأدنى (min): لا يمكن الاختيار قبل اليوم
+        startDateInput.setAttribute('min', minDateString); 
+        
+        // 🛑 التعيين للحد الأقصى (max): لا يمكن الاختيار بعد شهر
+        startDateInput.setAttribute('max', maxDateString); 
+
+        console.log(`تم تعيين الحد الأدنى: ${minDateString}، والحد الأقصى: ${maxDateString}`);
+    });
+</script>
+</body>
+</html>

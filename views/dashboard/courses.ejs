@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - لوحة التحكم</title> 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen overflow-hidden">
+        
+         <%- include('./_admin_sidebar.ejs', { currentPage: 'courses', user: user }) %>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
+                <h2 class="text-xl font-bold text-gray-800"><%= title %></h2>
+                <a href="/addCourse" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    + دورة جديدة
+                </a>
+            </header>
+
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-wrap gap-4 items-center justify-between">
+                    <div class="flex items-center gap-4 flex-1">
+                        <div class="relative flex-1 max-w-md">
+                            <i data-feather="search" class="absolute top-3 right-3 w-4 h-4 text-gray-400"></i>
+                            <input type="text" placeholder="بحث عن دورة..." class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none">
+                            <option>جميع التصنيفات</option>
+                            <option>برمجة</option>
+                            <option>تسويق</option>
+                            <option>تصميم</option>
+                        </select>
+                        <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none">
+                            <option>الحالة: الكل</option>
+                            <option>منشور</option>
+                            <option>مسودة</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <% if (courses && courses.length > 0) { %>
+                        <% courses.forEach(course => { %>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
+                            <div class="relative h-48 bg-gray-200">
+                            <img src="https://images.unsplash.com/photo-1587620962725-abab7fe55159?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Course" class="w-full h-full object-cover">
+                                
+                                <% 
+                                    const statusClass = course.isPublished ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600';
+                                    const statusText = course.isPublished ? 'منشور' : 'مسودة';
+                                %>
+                                <span class="absolute top-3 right-3 <%= statusClass %> text-xs font-bold px-2 py-1 rounded"><%= statusText %></span>
+                            </div>
+                            <div class="p-5">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold text-lg text-gray-800 group-hover:text-indigo-600 transition-colors"><%= course.title %></h3>
+                                    <span class="text-indigo-600 font-bold">$<%= course.price ? course.price.toFixed(2) : '0.00' %></span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-4 line-clamp-2"><%= course.description %></p>
+                                
+                                <div class="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-4">
+                                    <span class="flex items-center gap-1"><i data-feather="users" class="w-4 h-4"></i> <%= course.studentsCount || 0 %> طالب</span>
+                                    <span class="flex items-center gap-1"><i data-feather="star" class="w-4 h-4 text-yellow-400"></i> <%= course.averageRating || '-' %></span>
+                                </div>
+                                
+                                <div class="mt-4 flex gap-2">
+                                    <a href="/course/<%= course._id %>" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50 text-center">تعديل</a>
+<button onclick="showModal('<%= course._id %>', '<%= course.title %>')" class="p-2 border border-red-100 text-red-600 bg-red-50 rounded-lg hover:bg-red-100">
+        <i data-feather="trash-2" class="w-4 h-4"></i>
+    </button>                                </div>
+                            </div>
+                        </div>
+
+                        <% }); %>
+                    <% } else { %>
+                        <div class="md:col-span-3 text-center py-10 bg-white rounded-xl shadow-sm border border-gray-100">
+                            <i data-feather="alert-circle" class="w-10 h-10 text-gray-400 mx-auto mb-3"></i>
+                            <p class="text-lg font-medium text-gray-600">لا توجد دورات حاليًا.</p>
+                            <a href="/dashboard/add-course" class="mt-4 inline-block text-indigo-600 hover:text-indigo-800 font-medium">ابدأ بإضافة دورتك الأولى.</a>
+                        </div>
+                    <% } %>
+
+                </div>
+            </main>
+        </div>
+    </div>
+    
+   <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden transition-opacity duration-300 opacity-0">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 transform translate-y-0 transition-transform duration-300">
+        <div class="flex flex-col items-center">
+            <i data-feather="alert-triangle" class="w-12 h-12 text-red-500 mb-4"></i>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">تأكيد الحذف</h3>
+            <p class="text-gray-600 text-center mb-6">هل أنت متأكد من حذف الدورة <strong id="courseTitleToDelete" class="text-red-600">""</strong>؟ لا يمكن التراجع عن هذا الإجراء.</p>
+            
+            <input type="hidden" id="courseIdToDelete">
+
+            <div class="flex gap-3 w-full">
+                <button onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors font-medium">إلغاء</button>
+                <button onclick="confirmDeletion()" id="confirmDeleteBtn" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center">
+                    تأكيد الحذف
+                    <div id="deleteSpinner" class="spinner mr-2 hidden"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer" class="fixed bottom-4 right-4 z-[70] space-y-3"></div>
+
+<script>
+    feather.replace();
+
+    // ⭐️ دوال التحكم في حالة الزر والإشعارات (Spinner و Toast) ⭐️
+    // ... (تضمين دالة showToast و start/stop loading functions) ...
+  
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            let bgColor = 'bg-blue-600';
+            let icon = 'info';
+
+            switch (type) {
+                case 'success':
+                    bgColor = 'bg-green-600';
+                    icon = 'check-circle';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-600';
+                    icon = 'alert-triangle';
+                    break;
+                case 'info':
+                default:
+                    bgColor = 'bg-blue-600';
+                    icon = 'info';
+                    break;
+            }
+
+            toast.className = `p-4 max-w-xs text-white ${bgColor} rounded-lg shadow-xl flex items-center transform transition-transform duration-300 translate-x-full`;
+            toast.innerHTML = `
+                <i data-feather="${icon}" class="w-5 h-5 ml-3"></i>
+                <span class="text-sm font-medium">${message}</span>
+                <button onclick="this.closest('div').remove()" class="mr-2 text-white/80 hover:text-white transition-colors">
+                    <i data-feather="x" class="w-4 h-4"></i>
+                </button>
+            `;
+            container.appendChild(toast);
+            feather.replace(); 
+            
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                toast.addEventListener('transitionend', () => toast.remove(), {once: true});
+            }, 5000); 
+        }
+
+
+    const deleteModal = document.getElementById('deleteModal');
+    const courseIdInput = document.getElementById('courseIdToDelete');
+    const courseTitleDisplay = document.getElementById('courseTitleToDelete');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const deleteSpinner = document.getElementById('deleteSpinner');
+    const originalDeleteButtonText = 'تأكيد الحذف';
+
+    // ------------------- منطق الـ Modal -------------------
+
+    function showModal(id, title) {
+        courseIdInput.value = id;
+        courseTitleDisplay.textContent = title;
+        
+        deleteModal.classList.remove('hidden', 'opacity-0');
+        setTimeout(() => {
+            deleteModal.classList.add('opacity-100');
+        }, 10);
+    }
+
+    function closeModal() {
+        deleteModal.classList.remove('opacity-100');
+        deleteModal.addEventListener('transitionend', function handler() {
+            deleteModal.classList.add('hidden');
+            deleteModal.removeEventListener('transitionend', handler);
+        });
+    }
+
+    function startDeleteLoading() {
+        confirmDeleteBtn.disabled = true;
+        deleteSpinner.classList.remove('hidden');
+        confirmDeleteBtn.innerHTML = `جاري الحذف... ${deleteSpinner.outerHTML}`;
+        deleteSpinner.classList.remove('hidden');
+    }
+
+    function stopDeleteLoading() {
+        confirmDeleteBtn.disabled = false;
+        deleteSpinner.classList.add('hidden');
+        confirmDeleteBtn.innerHTML = originalDeleteButtonText;
+    }
+
+    // ------------------- دالة الحذف الرئيسية -------------------
+
+    async function confirmDeletion() {
+        const courseId = courseIdInput.value;
+        startDeleteLoading();
+
+        try {
+            const response = await fetch(`/course/${courseId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'فشل في حذف الدورة.');
+            }
+
+            // 1. إغلاق الـ Modal وإظهار إشعار النجاح
+            closeModal();
+            showToast(data.message || 'تم حذف الدورة بنجاح.', 'success');
+
+            // 2. إعادة تحميل الصفحة بعد 1.5 ثانية لرؤية التغيير
+               setTimeout(() => {
+                window.location.reload(); // تحويل المتصفح إلى صفحة تسجيل الدخول
+            }, 800);
+
+        } catch (error) {
+            console.error("خطأ الحذف:", error);
+            showToast(error.message || 'حدث خطأ غير متوقع أثناء الحذف.', 'error');
+            stopDeleteLoading();
+        }
+    }
+
+</script>
+
+</body>
+</html>

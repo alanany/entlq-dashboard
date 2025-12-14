@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طلبات الانضمام للكورسات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen">
+    
+    <% 
+        // 💡 بيانات مثال (Mock Data) للاختبار
+      
+
+        // 💡 دالة الحصول على بيانات الشارة (Badge)
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'pending': return { text: 'قيد المراجعة', color: 'bg-yellow-100 text-yellow-800' };
+                case 'confirmed': return { text: 'تمت الموافقة', color: 'bg-indigo-100 text-indigo-800' };
+                case 'paid': return { text: 'تم الدفع', color: 'bg-green-600 text-white' };
+                case 'rejected': return { text: 'مرفوض', color: 'bg-red-100 text-red-800' };
+                case 'awaiting_payment': return { text: 'بانتظار الدفع', color: 'bg-blue-100 text-blue-800' };
+                default: return { text: 'غير معروف', color: 'bg-gray-100 text-gray-800' };
+            }
+        }
+
+        // 💡 حساب الإحصائيات (Stats)
+        const stats = {
+            totalRequests: allRequests.length,
+            pending: allRequests.filter(r => r.status === 'pending').length,
+            awaiting_payment: allRequests.filter(r => r.status === 'awaiting_payment').length,
+            accepted: allRequests.filter(r => r.status === 'confirmed' || r.status === 'paid').length,
+            rejected: allRequests.filter(r => r.status === 'rejected').length,
+        };
+
+        // 💡 دالة تحديد الإجراء المطلوب
+        function getAction(request) {
+            const id = request._id;
+            const status = request.status;
+            
+    return `<a href="/request-details/${id}" class="text-indigo-600 hover:text-indigo-900 flex items-center">
+                            <i data-feather="eye" class="w-4 h-4 ml-1"></i> عرض التفاصيل
+                        </a>`;
+/*
+  if (status === 'awaiting_payment' || status === 'confirmed') {
+                return `<a href="/student/pay/${id}" class="text-green-600 hover:text-green-900 ml-2 flex items-center">
+                            <i data-feather="credit-card" class="w-4 h-4 ml-1"></i> إتمام الدفع / بدء الدراسة
+                        </a>`;
+            } else if (status === 'pending') {
+                return `<button onclick="cancelRequest('${id}')" class="text-red-600 hover:text-red-900 disabled:opacity-50 flex items-center">
+                            <i data-feather="x-circle" class="w-4 h-4 ml-1"></i> إلغاء الطلب
+                        </button>`;
+            } else {
+                return `<a href="/request-details/${id}" class="text-indigo-600 hover:text-indigo-900 flex items-center">
+                            <i data-feather="eye" class="w-4 h-4 ml-1"></i> عرض التفاصيل
+                        </a>`;
+            }
+*/
+          
+        }
+    %>
+
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+
+        <div class="mb-4">
+            <a href="/" class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center font-medium transition duration-150">
+                <i data-feather="arrow-right" class="mr-1 w-4 h-4"></i> 
+                العودة للصفحة السابقة
+            </a>
+        </div>
+
+        <div class="mb-8 border-b pb-4">
+            <h1 class="text-3xl font-extrabold text-gray-900 flex items-center">
+                <i data-feather="file-text" class="ml-3 w-7 h-7 text-indigo-600"></i> 
+                طلبات الانضمام للكورسات
+            </h1>
+            <p class="mt-2 text-lg text-gray-600">تتبع حالة طلبات الانضمام التي قمت بإرسالها والإجراءات المطلوبة.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-5 rounded-xl shadow-lg border-t-4 border-indigo-500">
+                <p class="text-sm font-medium text-gray-500">إجمالي الطلبات</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">
+                    <%= stats.totalRequests %>
+                </p>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-lg border-t-4 border-yellow-500">
+                <p class="text-sm font-medium text-gray-500">قيد المراجعة / بانتظار الدفع</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">
+                    <%= stats.pending + stats.awaiting_payment %>
+                </p>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-lg border-t-4 border-green-500">
+                <p class="text-sm font-medium text-gray-500">طلبات مقبولة / مدفوعة</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">
+                    <%= stats.accepted %>
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-2xl border border-gray-200">
+            
+            <div class="p-4 border-b border-gray-200">
+                <nav class="-mb-px flex space-x-4 space-x-reverse" aria-label="Tabs">
+                    
+                    <button onclick="showTab('all')" id="tab-all"
+                            class="tab-button group inline-flex items-center px-4 py-2 border-b-2 font-semibold text-sm transition-all duration-200 
+                                   border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                        <i data-feather="grid" class="ml-2 w-4 h-4"></i>
+                        <span>الكل</span>
+                        <span class="mr-2.5 bg-indigo-100 text-indigo-600 rounded-full px-2 py-0.5 text-xs font-bold">
+                            <%= stats.totalRequests %>
+                        </span>
+                    </button>
+                    
+                    <button onclick="showTab('pending')" id="tab-pending"
+                            class="tab-button group inline-flex items-center px-4 py-2 border-b-2 font-medium text-sm transition-all duration-200 
+                                   border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                        <i data-feather="clock" class="ml-2 w-4 h-4 group-hover:text-yellow-500"></i>
+                        <span>قيد المراجعة</span>
+                        <span class="mr-2.5 bg-yellow-100 text-yellow-800 rounded-full px-2 py-0.5 text-xs font-bold">
+                            <%= stats.pending %>
+                        </span>
+                    </button>
+                    
+                    <button onclick="showTab('awaiting_payment')" id="tab-awaiting_payment"
+                            class="tab-button group inline-flex items-center px-4 py-2 border-b-2 font-medium text-sm transition-all duration-200 
+                                   border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                        <i data-feather="dollar-sign" class="ml-2 w-4 h-4 group-hover:text-blue-500"></i>
+                        <span>بانتظار الدفع</span>
+                        <span class="mr-2.5 bg-blue-100 text-blue-800 rounded-full px-2 py-0.5 text-xs font-bold">
+                            <%= stats.awaiting_payment %>
+                        </span>
+                    </button>
+                    
+                    <button onclick="showTab('confirmed,paid')" id="tab-accepted"
+                            class="tab-button group inline-flex items-center px-4 py-2 border-b-2 font-medium text-sm transition-all duration-200 
+                                   border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                        <i data-feather="check-square" class="ml-2 w-4 h-4 group-hover:text-green-500"></i>
+                        <span>المقبولة والمدفوعة</span>
+                        <span class="mr-2.5 bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs font-bold">
+                            <%= stats.accepted %>
+                        </span>
+                    </button>
+
+                    <button onclick="showTab('rejected')" id="tab-rejected"
+                            class="tab-button group inline-flex items-center px-4 py-2 border-b-2 font-medium text-sm transition-all duration-200 
+                                   border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                        <i data-feather="slash" class="ml-2 w-4 h-4 group-hover:text-red-500"></i>
+                        <span>المرفوضة</span>
+                        <span class="mr-2.5 bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs font-bold">
+                            <%= stats.rejected %>
+                        </span>
+                    </button>
+                </nav>
+            </div>
+            
+            <div class="flex flex-col">
+                <div class="-my-2 overflow-x-auto">
+                    <div class="py-2 align-middle inline-block min-w-full">
+                        <div class="overflow-hidden sm:rounded-bl-lg sm:rounded-br-lg">
+                            
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            الكورس
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            تاريخ الطلب
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            المبلغ الإجمالي
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            الحالة
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            التفاصيل
+                                        </th>
+                                    </tr>
+                                </thead>
+                                
+                                <tbody class="bg-white divide-y divide-gray-200" id="requestsTableBody">
+                                    
+                                    <% if (allRequests.length > 0) { %>
+                                        <% allRequests.forEach(function(request) { 
+                                            const badge = getStatusBadge(request.status); 
+                                            const tabClasses = request.status === 'paid' ? 'status-paid status-accepted' : `status-${request.status}`;
+                                        %>
+                                            <tr class="request-row <%= tabClasses %>">
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-indigo-700"><%= request.courseId.title %></div>
+                                                    <div class="text-xs text-gray-500"><%= request.courseId.category.name %></div>
+                                                </td>
+                                                
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900"><%= new Date(request.createdAt).toLocaleDateString('ar-EG') %></div>
+                                                </td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900 font-semibold"><%= request.totalAmount.toFixed(2) %> ريال</div>
+                                                </td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= badge.color %>">
+                                                        <%= badge.text %>
+                                                    </span>
+                                                </td>
+
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <%- getAction(request) %>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                                <i data-feather="inbox" class="w-8 h-8 mx-auto mb-2 text-gray-400"></i>
+                                                <p>لا توجد طلبات انضمام حالية.</p>
+                                            </td>
+                                        </tr>
+                                    <% } %>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        </div>
+
+    <script>
+        // تهيئة أيقونات Feather
+        feather.replace();
+
+        // ------------------ وظائف علامات التبويب (Tabs) ------------------
+        function showTab(status) {
+            const allRows = document.querySelectorAll('.request-row');
+            const tabButtons = document.querySelectorAll('.tab-button');
+            
+            // 1. إزالة التنسيق النشط وتعيين التنسيق العادي لجميع الأزرار
+            tabButtons.forEach(btn => {
+                // إزالة التنسيق النشط
+                btn.classList.remove('border-indigo-600', 'text-indigo-600', 'font-semibold');
+                // إضافة التنسيق العادي
+                btn.classList.add('border-transparent', 'text-gray-500', 'font-medium', 'hover:border-gray-300', 'hover:text-gray-700');
+                
+                // إعادة تطبيق لون العداد الأصلي (غير النشط)
+                const countSpan = btn.querySelector('span:last-child');
+                if (countSpan) {
+                    countSpan.classList.remove('bg-indigo-100', 'text-indigo-600');
+                    if (btn.id === 'tab-pending') {
+                        countSpan.classList.add('bg-yellow-100', 'text-yellow-800');
+                    } else if (btn.id === 'tab-awaiting_payment') {
+                        countSpan.classList.add('bg-blue-100', 'text-blue-800');
+                    } else if (btn.id === 'tab-accepted') {
+                        countSpan.classList.add('bg-green-100', 'text-green-800');
+                    } else if (btn.id === 'tab-rejected') {
+                        countSpan.classList.add('bg-red-100', 'text-red-800');
+                    } else if (btn.id === 'tab-all') {
+                        countSpan.classList.add('bg-indigo-100', 'text-indigo-600'); 
+                    }
+                }
+            });
+
+            // 2. تفعيل الزر الحالي وتعديل لونه
+            const currentTabId = 'tab-' + status.replace(',', ''); 
+            const currentTabButton = document.getElementById(currentTabId);
+            
+            if (currentTabButton) {
+                // إضافة التنسيق النشط
+                currentTabButton.classList.add('border-indigo-600', 'text-indigo-600', 'font-semibold');
+                // إزالة التنسيق العادي
+                currentTabButton.classList.remove('border-transparent', 'text-gray-500', 'font-medium', 'hover:border-gray-300', 'hover:text-gray-700');
+                
+                // تعديل لون عداد التبويب النشط إلى اللون الرئيسي (النيلي)
+                const activeCountSpan = currentTabButton.querySelector('span:last-child');
+                if (activeCountSpan) {
+                    // إزالة جميع ألوان الحالة الأخرى
+                    activeCountSpan.classList.remove('bg-yellow-100', 'text-yellow-800', 'bg-blue-100', 'text-blue-800', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+                    // تطبيق اللون النشط الرئيسي
+                    activeCountSpan.classList.add('bg-indigo-100', 'text-indigo-600'); 
+                }
+            }
+
+            // 3. عرض أو إخفاء صفوف الجدول بناءً على الحالة
+            const statusArray = status.split(',');
+            
+            allRows.forEach(row => {
+                if (status === 'all') {
+                    row.style.display = '';
+                } else {
+                    let shouldShow = false;
+                    for (const s of statusArray) {
+                        if (row.classList.contains('status-' + s)) {
+                            shouldShow = true;
+                            break;
+                        }
+                    }
+                    row.style.display = shouldShow ? '' : 'none';
+                }
+            });
+        }
+        
+        // تفعيل علامة التبويب "الكل" عند التحميل
+        document.addEventListener('DOMContentLoaded', () => {
+            showTab('all');
+        });
+
+        // ------------------ دالة الإلغاء (Backend Integration Placeholder) ------------------
+        function cancelRequest(requestId) {
+            if (confirm(`هل أنت متأكد من إلغاء طلب الانضمام رقم ${requestId}؟`)) {
+                // محاكاة الإلغاء مؤقتاً
+                console.log(`إرسال طلب إلغاء للطلب ID: ${requestId}`);
+                alert('تم إلغاء الطلب (محاكاة). سيتم تحديث الصفحة.');
+                window.location.reload();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جدول حصصي القادمة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    
+    <div class="mb-6">
+        <a href="#" onclick="history.back(); return false;" 
+           class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center font-medium transition duration-150">
+            <i data-feather="arrow-right" class="mr-1 w-4 h-4"></i> 
+            العودة للصفحة السابقة
+        </a>
+    </div>
+
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-8 flex items-center border-b pb-4">
+        <i data-feather="clock" class="ml-3 w-8 h-8 text-indigo-600"></i>
+        جدول حصصي القادمة والجارية
+    </h1>
+
+    <% 
+        // ----------------------------------------------------
+        // الدوال المساعدة ومنطق تجميع وفرز الحصص
+        // ----------------------------------------------------
+        
+        // دالة للمقارنة بين التواريخ دون احتساب الوقت
+        const isSameDay = (date1, date2) => {
+            return date1.getFullYear() === date2.getFullYear() &&
+                   date1.getMonth() === date2.getMonth() &&
+                   date1.getDate() === date2.getDate();
+        };
+
+        // جمع كل الحصص من كل الحجوزات مع courseTitle
+        let allSessions = [];
+        if (bookings) {
+            bookings.forEach(booking => {
+                const courseTitle = booking.courseId?.title || 'كورس غير معروف';
+                (booking.sessions || []).forEach(session => {
+                    allSessions.push({ session, courseTitle });
+                });
+            });
+        }
+
+        // فلترة الحصص: تجاهل المنتهية، نحتفظ بالقادمة والجارية فقط
+        const upcomingSessions = allSessions.filter(item => {
+            const session = item.session;
+            if (!session.date || !session.time || session.time.indexOf(':') === -1) return false;
+
+            const dateObj = new Date(session.date);
+            if (isNaN(dateObj.getTime())) return false;
+            
+            const [hour, minute] = session.time.split(':').map(Number);
+            const sessionStart = new Date(dateObj.getTime());
+            sessionStart.setHours(hour, minute, 0, 0);
+
+            const now = new Date();
+            const sessionEnd = new Date(sessionStart.getTime() + 60*60*1000); // مدة الحصة ساعة
+
+            return sessionEnd >= now; // أي حصة لم تنتهِ بعد
+        });
+
+        // فرز الحصص حسب التاريخ والوقت (الأقرب أولاً)
+        upcomingSessions.sort((a, b) => {
+            const sa = new Date(a.session.date); 
+            const ta = a.session.time.split(':'); sa.setHours(parseInt(ta[0]), parseInt(ta[1]), 0, 0);
+            const sb = new Date(b.session.date);
+            const tb = b.session.time.split(':'); sb.setHours(parseInt(tb[0]), parseInt(tb[1]), 0, 0);
+            return sa.getTime() - sb.getTime();
+        });
+    %>
+
+    <% if (upcomingSessions.length === 0) { %>
+        <div class="p-10 text-center bg-white rounded-xl shadow-lg border-2 border-dashed border-gray-300">
+            <i data-feather="inbox" class="w-12 h-12 mx-auto text-gray-400 mb-3"></i>
+            <p class="text-lg font-bold text-gray-600">لا توجد لديك حصص قادمة أو جارية حالياً.</p>
+        </div>
+    <% } else { %>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+       <%
+// ----------------------------------------------------
+// دالة مساعدة للتأكد من المقارنة باليوم فقط
+// يجب أن تكون هذه الدالة معرفة في مكان ما في ملفك الجافاسكريبت
+function isSameDay(d1, d2) {
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+}
+// ----------------------------------------------------
+
+upcomingSessions.forEach((item, index) => { 
+    const session = item.session;
+    const courseTitle = item.courseTitle;
+    const bookingId = item.bookingId; // افتراض توفر هذا الـ ID
+
+    // التحقق من صلاحية البيانات
+    if (!session || !session.date || !session.time) return; 
+
+    const dateObj = new Date(session.date);
+    const dateDisplay = dateObj.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' });
+    const timeDisplay = session.time || 'لم يحدد';
+
+    const [hour, minute] = session.time.split(':').map(Number);
+    
+    // إنشاء كائنات التاريخ للوقت الدقيق
+    const sessionStart = new Date(dateObj.getTime());
+    sessionStart.setHours(hour, minute, 0, 0); // ضبط وقت البدء
+    const sessionEnd = new Date(sessionStart.getTime() + 60*60*1000); // نهاية الجلسة (بافتراض ساعة)
+    const now = new Date();
+
+    let statusLabel = 'قادمة';
+    let statusColor = 'bg-indigo-100 text-indigo-700 font-semibold';
+    let cardBorder = 'border-indigo-300';
+    let canJoin = false;
+    let buttonText = 'عرض التفاصيل';
+
+    // 1. حالة جارية
+    if (sessionStart <= now && sessionEnd > now) {
+        statusLabel = 'جارية الآن';
+        statusColor = 'bg-red-600 text-white font-extrabold shadow-md animate-pulse';
+        cardBorder = 'border-red-600 shadow-xl ring-4 ring-red-300';
+        canJoin = true;
+        buttonText = 'انضم لغرفة الحصة';
+    } 
+    // 2. حالة قادمة اليوم
+    else if (isSameDay(dateObj, now)) {
+        statusLabel = 'تبدأ اليوم';
+        statusColor = 'bg-green-100 text-green-700 font-bold';
+        cardBorder = 'border-green-500';
+        // لا يمكن الانضمام إلا إذا كانت قريبة جداً من موعد البدء (يمكن تعديل هذا المنطق)
+        // لكننا نجعل زر الانضمام يظهر عادةً في نفس اليوم للتسهيل.
+        canJoin = true; 
+        buttonText = 'عرض رابط الانضمام';
+    }
+    // 3. حالة انتهت (اختياري، إذا كنت تظهر الجلسات المنتهية)
+    else if (sessionEnd < now) {
+         statusLabel = 'انتهت';
+         statusColor = 'bg-gray-300 text-gray-700 font-medium';
+         cardBorder = 'border-gray-300';
+         canJoin = false;
+         buttonText = 'تفاصيل الجلسة';
+    }
+    // 4. حالة قادمة (أيام أخرى)
+    else {
+         canJoin = false;
+         buttonText = 'عرض التفاصيل';
+    }
+%>
+
+        <div class="bg-white p-5 rounded-xl shadow-md border-2 <%= cardBorder %> transition-shadow duration-300 hover:shadow-lg">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b">
+                <h3 class="text-lg font-extrabold <%= statusLabel === 'جارية الآن' ? 'text-pink-600' : 'text-indigo-700' %>">
+                    <%=  index + 1 %> حصة 
+                </h3>
+                <span class="px-3 py-1 text-xs rounded-full <%= statusColor %>">
+                    <%= statusLabel %>
+                </span>
+            </div>
+
+            <dl class="space-y-3 text-sm">
+                <div class="pb-2">
+                    <dt class="font-medium text-gray-500">الكورس:</dt>
+                    <dd class="text-gray-900 font-bold text-base flex items-center">
+                        <i data-feather="book" class="inline w-4 h-4 ml-1 text-gray-500"></i>
+                        <%= courseTitle %>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-gray-500">التاريخ:</dt>
+                    <dd class="text-gray-900 font-semibold flex items-center">
+                        <i data-feather="calendar" class="inline w-4 h-4 ml-1 text-gray-500"></i>
+                        <%= dateDisplay %>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-gray-500">الوقت:</dt>
+                    <dd class="text-gray-900 font-semibold flex items-center">
+                        <i data-feather="clock" class="inline w-4 h-4 ml-1 text-gray-500"></i>
+                        <%= timeDisplay %>
+                    </dd>
+                </div>
+            </dl>
+
+            <% if ( canJoin) { %>
+                <a href="<%= session.link %>" target="_blank"
+                   class="block mt-4 text-center text-white font-bold py-2 rounded-lg transition duration-200 
+                          <%= statusLabel === 'جارية الآن' ? 'bg-pink-600 hover:bg-pink-700 shadow-md' : 'bg-green-600 hover:bg-green-700' %>
+                          flex items-center justify-center">
+                    <i data-feather="<%= statusLabel === 'جارية الآن' ? 'monitor' : 'video' %>" class="w-4 h-4 inline ml-2"></i>
+                    <%= statusLabel === 'جارية الآن' ? 'انضمام الآن!' : 'الانضمام للجلسة' %>
+                </a>
+            <% } else { %>
+                 <button disabled class="block mt-4 text-center text-gray-500 font-bold py-2 rounded-lg bg-gray-200 cursor-not-allowed">
+                    الرابط متاح في يوم الحصة
+                </button>
+            <% } %>
+
+        </div>
+
+        <% }) %>
+    </div>
+
+    <% } %>
+</div>
+
+<script>
+    feather.replace();
+</script>
+
+</body>
+</html>

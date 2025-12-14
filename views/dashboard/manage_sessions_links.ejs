@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة روابط حصص الطلب #<%= booking._id.toString().slice(-6) %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    
+    <% 
+        const studentName = booking.studentId?.name || 'طالب غير معروف';
+        const courseTitle = booking.courseId?.title || 'كورس محذوف';
+        const totalSessions = booking.numberOfSessionsPerMonth || 0; 
+        const scheduledSessions = booking.sessions || [];
+
+        // تحويل مصفوفة sessions إلى مصفوفة قابلة للعرض
+        const sessionsData = scheduledSessions.map((session, index) => ({
+            number: index + 1,
+            date: session.date ? new Date(session.date).toLocaleDateString('ar-EG') : 'غير مجدول',
+            time: session.time || 'غير مجدول',
+            link: session.link || '', // جلب الرابط المخزن
+            index: index,
+            status: session.status || 'pending'
+        }));
+
+        const isFullyScheduled = scheduledSessions.length === totalSessions;
+    %>
+    
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        
+        <div class="mb-6">
+            <a href="#" onclick="history.back(); return false;" 
+                class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center font-medium transition duration-150">
+                <i data-feather="arrow-right" class="mr-1 w-4 h-4"></i> 
+                العودة لطلبات الانضمام
+            </a>
+        </div>
+
+        <div class="mb-8 border-b pb-4">
+            <h1 class="text-3xl font-extrabold text-gray-900 flex items-center">
+                <i data-feather="link" class="ml-3 w-7 h-7 text-purple-600"></i> 
+                إدارة روابط حصص: <%= courseTitle %>
+            </h1>
+            <p class="mt-2 text-lg text-gray-600">إضافة أو تعديل روابط Zoom للحصص المُجدولة.</p>
+        </div>
+
+      
+
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2 flex items-center">
+                    <i data-feather="info" class="ml-2 w-5 h-5 text-indigo-500"></i>
+                    ملخص الطلب
+                </h3>
+                <dl class="space-y-3 text-sm">
+                    <div>
+                        <dt class="font-medium text-gray-500">الطالب:</dt>
+                        <dd class="text-gray-900 font-semibold"><%= studentName %></dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">الكورس:</dt>
+                        <dd class="text-indigo-600 font-semibold"><%= courseTitle %></dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">عدد الحصص المطلوب:</dt>
+                        <dd class="text-2xl font-extrabold text-blue-700 mt-1"><%= totalSessions %></dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-gray-500">الحصص المُجدولة:</dt>
+                        <dd class="<%= isFullyScheduled ? 'text-green-600' : 'text-red-600' %> font-semibold">
+                            <%= scheduledSessions.length %>/<%= totalSessions %>
+                            (<%= isFullyScheduled ? 'اكتملت الجدولة ✅' : 'الجدولة غير مكتملة ⚠️' %>)
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="lg:col-span-3 bg-white p-8 rounded-xl shadow-xl">
+                
+                <h2 class="text-xl font-bold text-purple-700 mb-6">إضافة روابط Zoom</h2>
+
+                <% if (scheduledSessions.length === 0) { %>
+                    <div class="p-6 bg-red-100 border border-red-300 rounded-lg text-red-800 text-center">
+                        <i data-feather="alert-octagon" class="w-6 h-6 mx-auto mb-2"></i>
+                        <p class="font-bold">لا يمكن إضافة الروابط بعد.</p>
+                        <p>يجب أولاً إتمام **جدولة الحصص** (التاريخ والوقت) قبل إضافة روابط Zoom.</p>
+                    </div>
+                <% } else { %>
+
+                    <form action="/booking/<%= booking._id %>/update-links" method="POST" class="space-y-6">
+                        
+                        <% sessionsData.forEach((session, i) => { %>
+                            <% 
+                                const isCompleted = session.status === 'completed'; 
+                                const isDisabled = isCompleted; // تعطيل الحقول إذا كانت مكتملة
+                            %>
+                            <div class="p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50 grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
+                                    
+                                <div class="md:col-span-2">
+                                    <span class="text-lg font-bold text-gray-800">حصة رقم <%= session.number %></span>
+                                    <p class="text-xs text-gray-500 mt-1"><%= session.date %> @ <%= session.time %></p>
+                                    
+                                    <input type="hidden" name="sessions[<%= session.index %>][_id]" value="<%= scheduledSessions[i]._id %>">
+                                    <input type="hidden" name="sessions[<%= session.index %>][date]" value="<%= scheduledSessions[i].date ? new Date(scheduledSessions[i].date).toISOString() : '' %>">
+                                    <input type="hidden" name="sessions[<%= session.index %>][time]" value="<%= scheduledSessions[i].time %>">
+                                    <input type="hidden" name="sessions[<%= session.index %>][status]" value="<%= session.status %>">
+                                </div>
+
+                                <div class="md:col-span-3">
+                                    <label for="link_<%= i %>" class="block text-sm font-medium text-gray-700 mb-1">رابط Zoom / Teams</label>
+                                <input type="url" id="link_<%= i %>" name="sessions[<%= session.index %>][link]"
+                                            placeholder="https://zoom.us/j/..."
+                                            value="<%= session.link %>" required
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-base p-2 border 
+                                            <%= isDisabled ? 'bg-gray-200 cursor-not-allowed' : '' %>"
+                                            dir="ltr"
+                                            <%= isDisabled ? 'disabled' : '' %>> 
+                                </div>
+
+                                <div class="md:col-span-2 text-center flex flex-col items-center justify-center">
+                                    <% if (isCompleted) { %>
+                                        <div class="text-sm font-bold text-green-700 bg-green-100 p-2 rounded-lg w-full flex items-center justify-center">
+                                            <i data-feather="archive" class="ml-1 w-4 h-4"></i> مكتملة ومؤرشفة
+                                        </div>
+                                    <% } else { %>
+                                        <span class="text-sm font-bold text-yellow-600">قيد الانتظار ⏳</span>
+                                    <% } %>
+                                </div>
+
+                            </div>
+                        <% }) %>
+                        
+                        <div class="pt-6 border-t mt-8">
+                            <button type="submit"
+                                    class="w-full justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150">
+                                حفظ الروابط وتحديث الطلب
+                            </button>
+                        </div>
+
+                    </form>
+
+                <% } %>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    feather.replace();
+    // تم إزالة منطق Modal الحذف
+</script>
+</body>
+</html>

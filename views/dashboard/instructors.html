@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المدربين - لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-white border-l border-gray-200 hidden md:flex flex-col">
+            <div class="h-16 flex items-center justify-center border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-indigo-600">أكاديمية انطلق</h1>
+            </div>
+            
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <a href="/" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
+                    <i data-feather="home" class="ml-3 w-5 h-5"></i> الرئيسية
+                </a>
+                <a href="requests.html" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
+                    <i data-feather="list" class="ml-3 w-5 h-5"></i> طلبات الاشتراك
+                </a>
+                <a href="/courses" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
+                    <i data-feather="book-open" class="ml-3 w-5 h-5"></i> الدورات
+                </a>
+                <a href="students.html" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
+                    <i data-feather="users" class="ml-3 w-5 h-5"></i> الطلاب
+                </a>
+                <a href="instructors.html" class="flex items-center px-4 py-3 bg-indigo-50 text-indigo-600 rounded-lg">
+                    <i data-feather="award" class="ml-3 w-5 h-5"></i> <span class="font-bold">المدربين</span>
+                </a>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center px-8">
+                <h2 class="text-xl font-bold text-gray-800">إدارة المدربين</h2>
+            </header>
+
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
+                
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    
+                    <div class="p-4 border-b border-gray-100 flex justify-between items-center flex-wrap gap-4">
+                        
+                        <div class="flex items-center gap-4">
+                            <div class="relative">
+                                <i data-feather="search" class="absolute top-2.5 right-3 w-4 h-4 text-gray-400"></i>
+                                <input type="text" placeholder="بحث باسم المدرب أو البريد..." class="w-64 pr-10 pl-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <button onclick="showAddInstructorModal()" class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+                            <i data-feather="user-plus" class="ml-2 w-5 h-5"></i>
+                            إضافة مدرب جديد
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right">
+                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-medium">
+                                <tr>
+                                    <th class="px-6 py-3">الاسم</th>
+                                    <th class="px-6 py-3">البريد الإلكتروني</th>
+                                    <th class="px-6 py-3">عدد الدورات</th>
+                                    <th class="px-6 py-3">الحالة</th>
+                                    <th class="px-6 py-3">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
+                                
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium">أحمد يوسف</td>
+                                    <td class="px-6 py-4">ahmed.y@academy.com</td>
+                                    <td class="px-6 py-4">2 دورة</td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">نشط</span>
+                                    </td>
+                                    <td class="px-6 py-4 flex gap-2">
+                                        <button onclick="showEditInstructorModal('أحمد يوسف', 'ahmed.y@academy.com', '0501234567')" class="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100" title="تعديل">
+                                            <i data-feather="edit" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="confirmAction('حظر', 'أحمد يوسف')" class="text-orange-600 hover:text-orange-800 p-1 rounded hover:bg-orange-100" title="حظر">
+                                            <i data-feather="user-x" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="confirmAction('حذف', 'أحمد يوسف')" class="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-100" title="حذف">
+                                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 font-medium">منى زكريا</td>
+                                    <td class="px-6 py-4">mona.z@academy.com</td>
+                                    <td class="px-6 py-4">1 دورة</td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">محظور</span>
+                                    </td>
+                                    <td class="px-6 py-4 flex gap-2">
+                                        <button onclick="showEditInstructorModal('منى زكريا', 'mona.z@academy.com', '0559876543')" class="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100" title="تعديل">
+                                            <i data-feather="edit" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="confirmAction('تفعيل', 'منى زكريا')" class="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-100" title="تفعيل">
+                                            <i data-feather="user-check" class="w-4 h-4"></i>
+                                        </button>
+                                        <button onclick="confirmAction('حذف', 'منى زكريا')" class="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-100" title="حذف">
+                                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="addInstructorModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
+            
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
+                <h3 class="text-xl font-bold text-indigo-600">إضافة مدرب جديد</h3>
+                <button onclick="hideAddInstructorModal()" class="text-gray-400 hover:text-red-500">
+                    <i data-feather="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <form id="newInstructorForm" class="space-y-4">
+                
+                <div>
+                    <label for="instructorName" class="block text-sm font-medium text-gray-700">الاسم الكامل</label>
+                    <input type="text" id="instructorName" name="instructorName" required 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="instructorEmail" class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
+                    <input type="email" id="instructorEmail" name="instructorEmail" required 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="instructorPhone" class="block text-sm font-medium text-gray-700">رقم الهاتف (اختياري)</label>
+                    <input type="tel" id="instructorPhone" name="instructorPhone" 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="instructorPassword" class="block text-sm font-medium text-gray-700">تعيين كلمة المرور الأولية</label>
+                    <input type="password" id="instructorPassword" name="instructorPassword" required 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                        تسجيل المدرب
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="editInstructorModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
+            
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
+                <h3 class="text-xl font-bold text-blue-600">تعديل بيانات المدرب</h3>
+                <button onclick="hideEditInstructorModal()" class="text-gray-400 hover:text-red-500">
+                    <i data-feather="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <form id="editInstructorForm" class="space-y-4">
+                
+                <div>
+                    <label for="editInstructorName" class="block text-sm font-medium text-gray-700">الاسم الكامل</label>
+                    <input type="text" id="editInstructorName" name="editInstructorName" required 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="editInstructorEmail" class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
+                    <input type="email" id="editInstructorEmail" name="editInstructorEmail" required 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="editInstructorPhone" class="block text-sm font-medium text-gray-700">رقم الهاتف</label>
+                    <input type="tel" id="editInstructorPhone" name="editInstructorPhone" 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="editInstructorPassword" class="block text-sm font-medium text-gray-700">كلمة المرور الجديدة (اترك فارغاً لعدم التغيير)</label>
+                    <input type="password" id="editInstructorPassword" name="editInstructorPassword" 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        حفظ التعديلات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+
+        // ------------------ وظائف إضافة مدرب ------------------
+        function showAddInstructorModal() {
+            document.getElementById('addInstructorModal').classList.remove('hidden');
+            document.getElementById('addInstructorModal').classList.add('flex');
+        }
+
+        function hideAddInstructorModal() {
+            document.getElementById('addInstructorModal').classList.add('hidden');
+            document.getElementById('addInstructorModal').classList.remove('flex');
+            document.getElementById('newInstructorForm').reset();
+        }
+
+        document.getElementById('addInstructorModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideAddInstructorModal();
+            }
+        });
+
+        document.getElementById('newInstructorForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('instructorName').value;
+            alert(`تم محاولة تسجيل مدرب جديد: ${name}.\n(هذه مجرد محاكاة)`);
+            hideAddInstructorModal();
+        });
+        
+        // ------------------ وظائف تعديل مدرب ------------------
+        function showEditInstructorModal(name, email, phone) {
+            document.getElementById('editInstructorName').value = name;
+            document.getElementById('editInstructorEmail').value = email;
+            document.getElementById('editInstructorPhone').value = phone;
+            document.getElementById('editInstructorPassword').value = '';
+
+            document.getElementById('editInstructorModal').classList.remove('hidden');
+            document.getElementById('editInstructorModal').classList.add('flex');
+        }
+
+        function hideEditInstructorModal() {
+            document.getElementById('editInstructorModal').classList.add('hidden');
+            document.getElementById('editInstructorModal').classList.remove('flex');
+        }
+        
+        document.getElementById('editInstructorModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideEditInstructorModal();
+            }
+        });
+
+        document.getElementById('editInstructorForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('editInstructorName').value;
+            alert(`تم حفظ التعديلات للمدرب: ${name}.\n(هذه مجرد محاكاة)`);
+            hideEditInstructorModal();
+        });
+
+
+        // ------------------ وظائف الحظر والحذف ------------------
+        function confirmAction(action, instructorName) {
+            if (confirm(`هل أنت متأكد من رغبتك في ${action} المدرب ${instructorName}؟`)) {
+                alert(`تم تنفيذ إجراء: ${action} على المدرب ${instructorName}. (محاكاة)`);
+            }
+        }
+    </script>
+</body>
+</html>

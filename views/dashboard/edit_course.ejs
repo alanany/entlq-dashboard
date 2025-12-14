@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* لضمان ظهور الأيقونات بشكل صحيح عند تحميل الصفحات بالـ ajax */
+        [data-feather] { display: inline-block; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-white border-l border-gray-200 hidden md:flex flex-col">
+            <div class="h-16 flex items-center justify-center border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-indigo-600">أكاديمية انطلق</h1>
+            </div>
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <a href="/" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
+                    <i data-feather="home" class="ml-3 w-5 h-5"></i> الرئيسية
+                </a>
+                <a href="/dashboard/courses" class="flex items-center px-4 py-3 bg-indigo-50 text-indigo-600 rounded-lg">
+                    <i data-feather="book-open" class="ml-3 w-5 h-5"></i> الدورات
+                </a>
+                <a href="students.html" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
+                    <i data-feather="users" class="ml-3 w-5 h-5"></i> الطلاب
+                </a>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
+                <div class="flex items-center gap-2 text-gray-500">
+                    <a href="/dashboard/courses" class="hover:text-indigo-600">الدورات</a>
+                    <span>/</span>
+                    <span class="text-gray-800 font-bold">تعديل الدورة: <%= course.title %></span>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm">حفظ كمسودة</button>
+                    <button id="updateBtn" type="submit" form="courseForm" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-sm flex items-center transition-colors">
+                        تحديث الدورة
+                        <div id="spinner" class="spinner mr-2 hidden"></div>
+                    </button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
+                <div class="max-w-4xl mx-auto">
+                    <form id="courseForm" onsubmit="handleSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        <div class="md:col-span-2 space-y-6">
+                            
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                <h3 class="font-bold text-lg mb-4 text-gray-800">المعلومات الأساسية</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">عنوان الدورة</label>
+                                        <input type="text" id="title" name="title" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="مثال: تعلم التصميم الجرافيكي من الصفر" value="<%= course.title %>">
+                                    </div>
+                                    <div>
+                                        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">وصف قصير</label>
+                                        <textarea id="description" name="description" rows="4" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="اكتب نبذة مختصرة تجذب الطلاب..."><%= course.description %></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-bold text-lg text-gray-800">المنهج الدراسي</h3>
+                                    <button type="button" onclick="addSection()" class="text-sm text-indigo-600 font-medium hover:underline">+ إضافة قسم جديد</button>
+                                </div>
+                                
+                                <div id="curriculumContainer" class="space-y-3">
+                                    <% if (course.curriculum && course.curriculum.length > 0) { %>
+                                        <% course.curriculum.forEach((section, sectionIdx) => { %>
+                                            <div class="section-item border border-gray-200 rounded-lg p-4 bg-gray-50" data-section-index="<%= sectionIdx + 1 %>">
+                                                <div class="flex justify-between items-center mb-3">
+                                                    <input type="text" name="sectionTitle_<%= sectionIdx + 1 %>" placeholder="عنوان القسم" class="font-bold text-gray-700 bg-transparent border-none focus:outline-none focus:ring-0 w-full ml-4" value="<%= section.title %>">
+                                                    <div class="flex items-center gap-2">
+                                                        <button type="button" onclick="removeElement(this)" class="text-gray-400 hover:text-red-500"><i data-feather="trash" class="w-4 h-4"></i></button>
+                                                        <i data-feather="move" class="w-4 h-4 text-gray-400 cursor-move"></i>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="lessons-container space-y-2 pl-4 border-r-2 border-gray-200 mr-2 pr-4">
+                                                    <% if (section.lessons && section.lessons.length > 0) { %>
+                                                        <% section.lessons.forEach((lesson, lessonIdx) => { %>
+                                                            <div class="lesson-item flex items-center justify-between bg-white p-2 rounded border border-gray-100" data-lesson-index="<%= lessonIdx + 1 %>">
+                                                                <div class="flex items-center gap-2 w-full">
+                                                                    <i data-feather="play-circle" class="w-4 h-4 text-gray-400 flex-shrink-0"></i>
+                                                                    <input type="text" name="section_<%= sectionIdx + 1 %>_lessonTitle_<%= lessonIdx + 1 %>" placeholder="عنوان الدرس" required class="text-sm border-none focus:outline-none focus:ring-0 w-full" value="<%= lesson.title %>">
+                                                                </div>
+                                                                <button type="button" onclick="removeElement(this)" class="text-gray-400 hover:text-red-500 flex-shrink-0 mr-2"><i data-feather="trash" class="w-3 h-3"></i></button>
+                                                            </div>
+                                                        <% }); %>
+                                                    <% } %>
+                                                    <button type="button" onclick="addLesson(this)" class="w-full py-2 border border-dashed border-gray-300 rounded text-gray-500 text-sm hover:bg-gray-100 mt-2">+ إضافة درس</button>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                <h3 class="font-bold text-sm mb-3 text-gray-800">صورة الغلاف</h3>
+                                
+                                <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer">
+                                    <% if (course.coverImageURL) { %>
+                                        <img src="<%= course.coverImageURL %>" alt="صورة الغلاف الحالية" class="mb-2 w-full h-auto max-h-32 object-contain rounded">
+                                        <span class="text-xs text-gray-500 mb-2">تغيير الصورة:</span>
+                                    <% } else { %>
+                                        <i data-feather="image" class="w-8 h-8 text-gray-400 mb-2"></i>
+                                    <% } %>
+                                    <span class="text-xs text-gray-500">اسحب الصورة هنا أو اضغط للرفع</span>
+                                    <input type="file" id="coverImage" name="coverImage" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                    <input type="hidden" name="existingCoverImageURL" value="<%= course.coverImageURL || '' %>">
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                <h3 class="font-bold text-sm mb-3 text-gray-800">إعدادات الدورة</h3>
+                                <div class="space-y-3">
+                                    
+                                    <%
+                                        // دالة مُساعدة لاستخراج السعر حسب نوع الخيار (type)
+                                        const getPricingOptionPrice = (course, type) => {
+                                            if (course.pricingOptions && Array.isArray(course.pricingOptions)) {
+                                                const option = course.pricingOptions.find(opt => opt.type === type);
+                                                return option ? option.price : '';
+                                            }
+                                            return '';
+                                        };
+                                    %>
+                                    <div class="mb-3">
+                                         <label class="block text-xs font-bold text-gray-800 mb-2">خيارات التسعير (SAR)</label>
+                                         <div class="grid grid-cols-3 gap-4">
+                                             
+                                             <div>
+                                                 <label for="price30min" class="block text-xs font-medium text-gray-700 mb-1">سعر حصة (30 دقيقة)</label>
+                                                 <input type="number" id="price30min" name="price30min" required min="1" 
+                                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                                        value="<%= course['pricingOptions'][0]['price'] %>">
+                                             </div>
+
+                                             <div>
+                                                 <label for="price40min" class="block text-xs font-medium text-gray-700 mb-1">سعر حصة (40 دقيقة)</label>
+                                                 <input type="number" id="price40min" name="price40min" required min="1" 
+                                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                                       value="<%= course['pricingOptions'][1]['price'] %>">
+                                             </div>
+                                             
+                                             <div>
+                                                 <label for="price60min" class="block text-xs font-medium text-gray-700 mb-1">سعر حصة (60 دقيقة)</label>
+                                                 <input type="number" id="price60min" name="price60min" required min="1" 
+                                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                                       value="<%= course['pricingOptions'][2]['price'] %>">
+                                             </div>
+                                         </div>
+                                    </div>
+                                    <div>
+                                        <label for="level" class="block text-xs font-medium text-gray-700 mb-1">المستوى</label>
+                                        <select id="level" name="level" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                                            <option value="beginner" <%= course.level === 'beginner' ? 'selected' : '' %>>مبتدئ</option>
+                                            <option value="intermediate" <%= course.level === 'intermediate' ? 'selected' : '' %>>متوسط</option>
+                                            <option value="advanced" <%= course.level === 'advanced' ? 'selected' : '' %>>متقدم</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-6">
+                                        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">القسم الرئيسي</label>
+                                        <select id="category" name="category" required 
+                                                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                            
+                                            <option value="" disabled>-- اختر قسماً --</option>
+                                            
+                                            <% if (categories && categories.length > 0) { %>
+                                                <% categories.forEach(category => { 
+                                                    const isSelected = course.category && (course.category.toString() === category._id.toString());
+                                                %>
+                                                    <option 
+                                                        value="<%= category._id %>" 
+                                                        <%= isSelected ? 'selected' : '' %>
+                                                    >
+                                                        <%= category.name %>
+                                                    </option>
+                                                <% }); %>
+                                            <% } else { %>
+                                                 <option value="" disabled>لا توجد أقسام متاحة</option>
+                                            <% } %>
+                                            
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-[70] space-y-3"></div>
+
+    <script>
+        feather.replace();
+
+        const form = document.getElementById("courseForm");
+        const updateBtn = document.getElementById("updateBtn");
+        const originalButtonText = 'تحديث الدورة'; 
+        
+        let sectionCounter = <%= course.curriculum ? course.curriculum.length : 0 %>; 
+
+        // ----------------- دوال التحكم في حالة الزر والإشعارات -----------------
+        
+        function startLoading() {
+            updateBtn.disabled = true;
+            updateBtn.innerHTML = 'جاري التحديث... <div class="spinner mr-2"></div>';
+        }
+
+        function stopLoading() {
+            updateBtn.disabled = false;
+            updateBtn.innerHTML = originalButtonText;
+            feather.replace(); 
+        }
+
+        function showToast(message, type = 'info', duration = 4000) {
+            const toastContainer = document.getElementById('toastContainer');
+            let bgColor, icon;
+            switch (type) {
+                case 'success':
+                    bgColor = 'bg-green-600';
+                    icon = 'check-circle';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-600';
+                    icon = 'x-octagon';
+                    break;
+                case 'info':
+                default:
+                    bgColor = 'bg-blue-500';
+                    icon = 'info';
+                    break;
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-lg shadow-xl text-white ${bgColor} flex items-center transition-all duration-300 transform translate-x-0 opacity-100 max-w-sm w-full`;
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            
+            toast.innerHTML = `
+                <i data-feather="${icon}" class="w-5 h-5 ml-3 flex-shrink-0"></i>
+                <span class="text-sm font-medium">${message}</span>
+            `;
+
+            toastContainer.appendChild(toast);
+            feather.replace();
+
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(0)';
+            }, 50);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.addEventListener('transitionend', () => {
+                    toast.remove();
+                });
+            }, duration);
+        }
+
+        // ----------------- دوال المنهج الدراسي -----------------
+
+        function createSectionTemplate(initialTitle = `القسم ${sectionCounter + 1}:`) {
+            sectionCounter++; 
+            const sectionIndex = sectionCounter;
+            
+            return `
+                <div class="section-item border border-gray-200 rounded-lg p-4 bg-gray-50" data-section-index="${sectionIndex}">
+                    <div class="flex justify-between items-center mb-3">
+                        <input type="text" name="sectionTitle_${sectionIndex}" placeholder="عنوان القسم" class="font-bold text-gray-700 bg-transparent border-none focus:outline-none focus:ring-0 w-full ml-4" value="${initialTitle}">
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="removeElement(this)" class="text-gray-400 hover:text-red-500"><i data-feather="trash" class="w-4 h-4"></i></button>
+                            <i data-feather="move" class="w-4 h-4 text-gray-400 cursor-move"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="lessons-container space-y-2 pl-4 border-r-2 border-gray-200 mr-2 pr-4">
+                        <button type="button" onclick="addLesson(this)" class="w-full py-2 border border-dashed border-gray-300 rounded text-gray-500 text-sm hover:bg-gray-100 mt-2">+ إضافة درس</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createLessonTemplate(sectionIndex, lessonIndex, initialTitle = "") {
+            return `
+                <div class="lesson-item flex items-center justify-between bg-white p-2 rounded border border-gray-100" data-lesson-index="${lessonIndex}">
+                    <div class="flex items-center gap-2 w-full">
+                        <i data-feather="play-circle" class="w-4 h-4 text-gray-400 flex-shrink-0"></i>
+                        <input type="text" name="section_${sectionIndex}_lessonTitle_${lessonIndex}" placeholder="عنوان الدرس" required class="text-sm border-none focus:outline-none focus:ring-0 w-full" value="${initialTitle}">
+                    </div>
+                    <button type="button" onclick="removeElement(this)" class="text-gray-400 hover:text-red-500 flex-shrink-0 mr-2"><i data-feather="trash" class="w-3 h-3"></i></button>
+                </div>
+            `;
+        }
+
+        function addSection() {
+            const container = document.getElementById('curriculumContainer');
+            const template = createSectionTemplate(`القسم ${sectionCounter + 1}:`);
+            container.insertAdjacentHTML('beforeend', template);
+            feather.replace();
+        }
+
+        function addLesson(button) {
+            const sectionDiv = button.closest('.section-item');
+            const sectionIndex = sectionDiv.dataset.sectionIndex;
+            const lessonsContainer = sectionDiv.querySelector('.lessons-container');
+            
+            const currentLessons = lessonsContainer.querySelectorAll('.lesson-item').length;
+            const lessonIndex = currentLessons + 1;
+            
+            const template = createLessonTemplate(sectionIndex, lessonIndex);
+            
+            button.insertAdjacentHTML('beforebegin', template);
+            feather.replace();
+        }
+
+        function removeElement(button) {
+            const elementToRemove = button.closest('.section-item') || button.closest('.lesson-item');
+            if (elementToRemove) {
+                elementToRemove.remove();
+            }
+        }
+
+        // ----------------- دالة الإرسال الرئيسية (Handle Submit) -----------------
+
+        async function handleSubmit(event) {
+            event.preventDefault(); 
+            
+            startLoading();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // ⭐️ بناء مصفوفة pricingOptions من الحقول الثلاثة ⭐️
+            const price30min = parseFloat(formData.get('price30min'));
+            const price40min = parseFloat(formData.get('price40min'));
+            const price60min = parseFloat(formData.get('price60min'));
+      const pricingOptions1 = [
+        { duration: 30, price: parseFloat(formData.get('price30min')) },
+        { duration: 40, price: parseFloat(formData.get('price40min')) },
+        { duration: 60, price: parseFloat(formData.get('price60min')) },
+    ];
+            
+            // ⭐️ نهاية بناء مصفوفة pricingOptions ⭐️
+
+            const courseData = {
+                title: formData.get('title'),
+                description: formData.get('description'),
+                level: formData.get('level'),
+                category: formData.get('category'),
+                pricingOptions: pricingOptions1,
+                curriculum: []
+            };
+
+            const sections = document.querySelectorAll('#curriculumContainer .section-item');
+            
+            sections.forEach(sectionDiv => {
+                const sectionData = {
+                    title: sectionDiv.querySelector('input[type="text"]').value.trim(), 
+                    lessons: []
+                };
+
+                const lessonInputs = sectionDiv.querySelectorAll('.lessons-container .lesson-item input[type="text"]');
+                
+                lessonInputs.forEach(input => {
+                    if(input.value.trim() !== "") {
+                        sectionData.lessons.push({
+                            title: input.value.trim(),
+                        });
+                    }
+                });
+                
+                if (sectionData.title || sectionData.lessons.length > 0) {
+                     courseData.curriculum.push(sectionData);
+                }
+            });
+            
+            const courseId = "<%= course._id %>"; 
+            const endpoint = `/edit-course/${courseId}`; 
+
+            console.log("البيانات المرسلة للتحديث:", courseData); 
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(courseData) 
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw errorData; 
+                }
+
+                const successData = await response.json();
+                stopLoading();
+                showToast("تم تحديث الدورة بنجاح!", 'success');
+                
+                setTimeout(() => { 
+                    window.location.href = '/courses'; 
+                }, 1000); 
+
+            } catch (error) {
+                stopLoading();
+                console.error("خطأ التحديث:", error); 
+                const errorMessage = error?.message || "حدث خطأ أثناء التحديث. يرجى مراجعة البيانات.";
+                showToast("خطأ: " + errorMessage, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+              feather.replace();
+              const container = document.getElementById('curriculumContainer');
+              if (container.children.length === 0 && sectionCounter === 0) {
+                  addSection();
+              }
+        });
+    </script>
+</body>
+</html>
