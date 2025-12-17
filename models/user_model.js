@@ -50,11 +50,13 @@ const userSchema = new mongoose.Schema({
 
 
 // fire a function before doc saved to db
-userSchema.pre('save', async function(next) {
-  const salt = await bcrypt.genSalt();
-  this.password = await bcrypt.hash(this.password, salt);
+
+userSchema.pre('save', function(next) {
+  if (!this.isModified('password')) return next();
+  this.password = bcrypt.hashSync(this.password, 10);
   next();
 });
+
 
 const User = mongoose.model('user', userSchema);
 

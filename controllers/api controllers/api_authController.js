@@ -33,7 +33,7 @@ console.log('requestData',requestData);
     }
 
     // 4. إذا تم العثور على المستخدم، مقارنة كلمة المرور
-    const auth = await bcrypt.compare(password, user.password);
+    const auth =  bcrypt.compareSync(password, user.password);
 
     if (!auth) {
       // 5. حالة: كلمة المرور غير صحيحة
@@ -49,11 +49,11 @@ console.log('requestData',requestData);
 
     const token = await generateJWT(user); // ✅ افتراضياً لا تمرر next هنا
     user.token = token;
-    
+      await user.save();
     // 4. تجهيز الاستجابة (حذف كلمة المرور)
     const userObj = user.toObject();
     delete userObj.password; 
-    await user.save();
+  
 
 
     // إرسال استجابة النجاح
