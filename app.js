@@ -1,14 +1,16 @@
 const express = require('express');
 const authRoutes = require('./routes/authRoutes');
 const cookieParser = require('cookie-parser');
-const { requireAuth, checkUser } = require('./middleware/authMiddleware');
+const {  checkUser } = require('./middleware/authMiddleware');
 const connectMango = require('./middleware/mongo_connect');
 const app = express();
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const studentDashboardRoutes = require('./routes/studentDashboardRoutes');
-// ⭐️ إضافة وحدة 'path' ⭐️
+const ApiCoursesRouter = require('./routes/api routes/api_coursesRoutes ');
 const path = require('path'); 
 const methodOverride = require('method-override');
+const ApiAuthRouter = require('./routes/api routes/api_authRoutes');
+
 
 // ⭐️ الإعداد الصحيح لمجلد العرض ⭐️
 // يتم تعيين مجلد 'views' كمسار افتراضي للـ EJS
@@ -20,7 +22,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 app.use(express.json());
 app.use(cookieParser());
-
+const cors = require('cors');
+const multer = require('multer'); // ⭐️ استيراد Multer
 // ⭐️ تعيين مجلد public للملفات الثابتة (CSS/JS/صور) ⭐️
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -45,3 +48,9 @@ app.get('*', checkUser);
 app.use(authRoutes);
 app.use(dashboardRoutes);
 app.use(studentDashboardRoutes);
+// api routes
+app.use( ApiAuthRouter);
+app.use(ApiCoursesRouter);
+
+
+

@@ -1,3 +1,5 @@
+const { json } = require("express");
+
 class AppError extends Error {
   constructor() {
     super();
@@ -7,7 +9,7 @@ class AppError extends Error {
     this.statusCode = statusCode;
         this.status = status;
 
-return this;
+return json({message: this.message, statusCode: this.statusCode, status: this.status});
   }
 }
 module.exports =new AppError();  

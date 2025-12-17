@@ -232,9 +232,24 @@ if (nearestSession && nearestSession.sessionDetails && nearestSession.sessionDet
     </script>
 <% } else { %>
     <!-- لا توجد حصص اليوم -->
-    <div class="bg-white bg-opacity-50 p-6 rounded-2xl shadow-lg border-t-4 border-gray-400 text-center">
-        <p class="text-lg text-gray-600">لا توجد لديك حصص قادمة مؤكدة اليوم.</p>
-        <a href="/student/courses_list" class="mt-4 inline-block text-indigo-600 hover:underline font-medium">تصفح الكورسات المتاحة</a>
+   <div class="bg-white p-8 rounded-2xl shadow-2xl border-t-8 border-indigo-500 text-center ring-2 ring-indigo-100 transition duration-300 hover:shadow-indigo-300/50">
+        
+        <i data-feather="calendar-off" class="w-12 h-12 mx-auto mb-4 text-indigo-600"></i>
+        
+        <p class="text-2xl font-extrabold text-gray-800 mb-2">
+            لا توجد حصص مُجدولة لك اليوم
+        </p>
+        
+        <p class="text-lg text-gray-600 mb-6">
+            اطمئن، يمكنك مراجعة جدولك الكامل للحصص القادمة.
+        </p>
+        
+        <a href="/student/my-sessions" 
+           class="mt-4 inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl text-lg font-bold hover:bg-indigo-700 transition duration-300 shadow-md shadow-indigo-500/30">
+            <i data-feather="list" class="ml-2 w-5 h-5"></i>
+            عرض الجدول والتحقق من المواعيد
+        </a>
+        
     </div>
 <% } %>
 
