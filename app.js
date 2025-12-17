@@ -11,7 +11,6 @@ const path = require('path');
 const methodOverride = require('method-override');
 const ApiAuthRouter = require('./routes/api routes/api_authRoutes');
 
-
 // ⭐️ الإعداد الصحيح لمجلد العرض ⭐️
 // يتم تعيين مجلد 'views' كمسار افتراضي للـ EJS
 app.set("views", path.join(__dirname, 'views')); 
