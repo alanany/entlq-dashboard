@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات الحساب - لوحة المعلم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        .input-field { 
+            width: 100%; 
+            background-color: #ffffff; 
+            border: 1px solid #e2e8f0; 
+            padding: 1rem; 
+            border-radius: 1rem; 
+            outline: none; 
+            transition: all 0.3s;
+            font-size: 0.875rem;
+        }
+        .input-field:focus { border-color: #4f46e5; ring: 2px; ring-color: #4f46e5; }
+    </style>
+</head>
+<body class="pb-10">
+
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="history.back()" class="p-2 hover:bg-gray-100 rounded-full transition">
+                    <i data-feather="arrow-right" class="w-5 h-5 text-gray-600"></i>
+                </button>
+                <h1 class="text-lg font-bold text-gray-900">إعدادات الحساب الشخصي</h1>
+            </div>
+            <i data-feather="settings" class="text-indigo-600"></i>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 py-10">
+        
+        <div class="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 overflow-hidden">
+            <div class="p-8 md:p-12">
+                
+                <div class="flex flex-col items-center mb-10">
+                    <div class="relative group">
+                        <div class="w-24 h-24 bg-indigo-100 rounded-3xl flex items-center justify-center text-indigo-600 font-black text-3xl border-4 border-white shadow-lg">
+                            أ
+                        </div>
+                        <button class="absolute -bottom-2 -right-2 bg-white p-2 rounded-xl shadow-md border border-gray-100 text-gray-500 hover:text-indigo-600 transition">
+                            <i data-feather="camera" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <p class="mt-4 text-xs font-bold text-gray-400">تحديث صورة الملف الشخصي</p>
+                </div>
+
+                <form action="/teacher/update-profile" method="POST" class="space-y-6">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-black text-gray-500 mb-2 mr-2 uppercase tracking-widest">الاسم الكامل</label>
+                            <div class="relative">
+                                <i data-feather="user" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                <input type="text" name="name" value="أحمد محمد علي" class="input-field pr-12" placeholder="أدخل اسمك الثلاثي">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-gray-500 mb-2 mr-2 uppercase tracking-widest">رقم الجوال</label>
+                            <div class="relative">
+                                <i data-feather="phone" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                <input type="tel" name="phone" value="0512345678" class="input-field pr-12 text-left" dir="ltr" placeholder="05XXXXXXXX">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black text-gray-500 mb-2 mr-2 uppercase tracking-widest text-indigo-600">رابط زووم الشخصي (الثابت)</label>
+                        <div class="relative">
+                            <i data-feather="video" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400"></i>
+                            <input type="url" name="zoom_link" value="https://zoom.us/j/1234567890" 
+                                   class="input-field pr-12 text-left border-indigo-100 bg-indigo-50/30 focus:bg-white" 
+                                   dir="ltr" placeholder="https://zoom.us/j/...">
+                        </div>
+                        <p class="mt-2 text-[10px] text-gray-400 mr-2 italic">سيتم استخدام هذا الرابط تلقائياً عند بدء أي حصة مباشرة ما لم يتم تغييره.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black text-gray-500 mb-2 mr-2 uppercase tracking-widest">ملاحظات / نبذة تعريفية</label>
+                        <textarea name="bio" rows="4" class="input-field resize-none" 
+                                  placeholder="اكتب نبذة عنك أو ملاحظات تظهر في صفحتك الشخصية للطلاب..."></textarea>
+                    </div>
+
+                    <div class="pt-6">
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3">
+                            حفظ التعديلات
+                            <i data-feather="check-circle" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center">
+            <button class="text-xs font-bold text-gray-400 hover:text-red-500 transition flex items-center gap-2 mx-auto">
+                <i data-feather="lock" class="w-3 h-3"></i>
+                تغيير كلمة المرور
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

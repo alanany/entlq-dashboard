@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>جدول المعلم | <%= teacher.name %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .fc-header-toolbar { padding: 1rem; }
+        .fc-event { cursor: pointer; border-radius: 8px; border: none; padding: 2px 5px; }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <div class="max-w-7xl mx-auto p-6">
+        <div class="bg-white rounded-3xl p-6 shadow-sm mb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-black text-slate-800">جدول الحصص الأسبوعي</h1>
+                <p class="text-slate-500 font-bold">المعلم: <span class="text-indigo-600"><%= teacher.name %></span></p>
+            </div>
+            <a href="/admin/teachers" class="bg-slate-100 text-slate-600 px-5 py-2 rounded-2xl font-bold hover:bg-slate-200 transition-all">رجوع</a>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl p-4 border border-slate-100">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+<style>
+    /* تحسين شكل الحدث داخل التقويم */
+    .fc-event {
+        border: none !important;
+        padding: 4px 8px !important;
+        border-radius: 12px !important; /* حواف دائرية جداً */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: transform 0.2s ease;
+    }
+    .fc-event:hover {
+        transform: scale(1.02);
+    }
+    /* جعل الخطوط باهتة قليلاً لراحة العين */
+    .fc-timegrid-slot {
+        height: 3.5rem !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+    /* إخفاء حدود الجدول الخارجية لجعل التصميم عائم (Floating) */
+    .fc-theme-standard td, .fc-theme-standard th {
+        border: 1px solid #f1f5f9;
+    }
+    .fc-col-header-cell {
+        background-color: #f8fafc;
+        padding: 12px 0 !important;
+        color: #64748b;
+        font-weight: 800;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            locale: 'ar',
+            direction: 'rtl',
+            slotMinTime: '08:00:00',
+            slotMaxTime: '23:00:00',
+            allDaySlot: false,
+            slotEventOverlap: false, // يمنع تداخل الحصص بصرياً ليسهل رؤيتها
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            buttonText: {
+                today: 'اليوم',
+                month: 'شهر',
+                week: 'أسبوع',
+                day: 'يوم'
+            },
+            
+            // جلب البيانات مع تطبيق الألوان
+            eventSources: [{
+                url: '/teacher/events/<%= teacher._id %>',
+                method: 'GET',
+                success: function(content) {
+                    // content هو مصفوفة الحصص القادمة من السيرفر
+                    return content.map(event => {
+                        // تخصيص الألوان بناءً على الحالة (Status)
+                        if (event.status === 'completed') {
+                            event.backgroundColor = '#dcfce7'; // أخضر فاتح
+                            event.textColor = '#166534';      // أخضر غامق
+                            event.borderColor = '#22c55e';
+                        } else if (event.status === 'pending') {
+                            event.backgroundColor = '#e0e7ff'; // أزرق فاتح
+                            event.textColor = '#3730a3';      // أزرق غامق
+                            event.borderColor = '#6366f1';
+                        } else {
+                            event.backgroundColor = '#fef2f2'; // أحمر فاتح
+                            event.textColor = '#991b1b';      // أحمر غامق
+                            event.borderColor = '#ef4444';
+                        }
+                        return event;
+                    });
+                }
+            }],
+
+            eventDidMount: function(info) {
+                // إضافة Tooltip أنيق باستخدام خاصية title
+                info.el.title = `الكورس: ${info.event.extendedProps.courseTitle || 'غير محدد'}`;
+                
+                // إضافة نقطة ملونة صغيرة قبل النص
+                let dot = document.createElement('span');
+                dot.className = "inline-block w-2 h-2 rounded-full ml-2 bg-current";
+                info.el.querySelector('.fc-event-title').prepend(dot);
+            }
+        });
+        
+        calendar.render();
+    });
+</script>
+  
+</body>
+</html>

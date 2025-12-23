@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الطلاب المشتركين</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: #4f46e5; color: white; }
+        @media (max-width: 1024px) { .sidebar-hidden { transform: translateX(100%); } }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside id="sidebar" class="fixed inset-y-0 right-0 z-50 w-64 bg-white border-l border-gray-200 transition-transform duration-300 lg:translate-x-0 lg:static sidebar-hidden">
+            <div class="h-16 flex items-center justify-center border-b border-gray-100">
+                <span class="text-xl font-extrabold text-indigo-600">لوحة المعلم</span>
+            </div>
+            <nav class="p-4 space-y-2">
+                <a href="/teacher/dashboard" class="sidebar-item flex items-center px-4 py-3 text-gray-600 rounded-xl transition-all">
+                    <i data-feather="grid" class="ml-3 w-5 h-5"></i> الرئيسية
+                </a>
+                <a href="/teacher/courses" class="sidebar-item flex items-center px-4 py-3 text-gray-600 rounded-xl transition-all">
+                    <i data-feather="book" class="ml-3 w-5 h-5"></i> دوراتي
+                </a>
+                <a href="/teacher/students" class="sidebar-item active flex items-center px-4 py-3 rounded-xl transition-all">
+                    <i data-feather="users" class="ml-3 w-5 h-5"></i> الطلاب المشتركين
+                </a>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 shrink-0">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                    <i data-feather="menu"></i>
+                </button>
+                <h2 class="text-lg font-bold text-gray-800">إدارة الطلاب</h2>
+                <div class="flex items-center gap-2">
+                    <span class="bg-green-100 text-green-700 text-[10px] font-bold px-3 py-1 rounded-full">120 طالب نشط</span>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-4 md:p-8">
+                <div class="max-w-7xl mx-auto">
+                    
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+                        <div class="relative w-full md:w-96">
+                            <input type="text" id="studentSearch" onkeyup="searchStudent()"
+                                   class="w-full bg-gray-50 border-none p-3 pr-10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                                   placeholder="ابحث عن اسم الطالب أو البريد...">
+                            <i data-feather="search" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                        </div>
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <select class="flex-1 md:w-40 bg-gray-50 border-none px-4 py-3 rounded-xl text-sm outline-none">
+                                <option value="">كل الكورسات</option>
+                                <option value="1">تأسيس النحو</option>
+                                <option value="2">البلاغة</option>
+                            </select>
+                            <button class="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">
+                                <i data-feather="download" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-gray-50 text-gray-500">
+                                    <tr>
+                                        <th class="px-6 py-4 font-bold uppercase tracking-wider">الطالب</th>
+                                        <th class="px-6 py-4 font-bold uppercase tracking-wider">الكورس المشترك</th>
+                                        <th class="px-6 py-4 font-bold uppercase tracking-wider text-center">نسبة الإنجاز</th>
+                                        <th class="px-6 py-4 font-bold uppercase tracking-wider">تاريخ الاشتراك</th>
+                                        <th class="px-6 py-4 font-bold uppercase tracking-wider">الحالة</th>
+                                        <th class="px-6 py-4 font-bold uppercase tracking-wider">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentTableBody" class="divide-y divide-gray-50">
+                                    <tr class="hover:bg-gray-50 transition group">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-xs">سم</div>
+                                                <div>
+                                                    <p class="font-bold text-gray-900">سارة محمد علي</p>
+                                                    <p class="text-[10px] text-gray-400">sara@example.com</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-gray-600 font-medium">تأسيس النحو الشامل</td>
+                                        <td class="px-6 py-4">
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5 max-w-[100px] mx-auto">
+                                                <div class="bg-green-500 h-1.5 rounded-full" style="width: 85%"></div>
+                                            </div>
+                                            <p class="text-[10px] text-center mt-1 text-gray-400">85%</p>
+                                        </td>
+                                        <td class="px-6 py-4 text-gray-500 text-xs">2025/12/10</td>
+                                        <td class="px-6 py-4">
+                                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-bold">نشط</span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg" title="تعديل"><i data-feather="edit-3" class="w-4 h-4"></i></button>
+                                                <button class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="إيقاف"><i data-feather="slash" class="w-4 h-4"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="hover:bg-gray-50 transition group">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-9 h-9 bg-orange-100 rounded-full flex items-center justify-center text-orange-700 font-bold text-xs">فا</div>
+                                                <div>
+                                                    <p class="font-bold text-gray-900">فهد العتيبي</p>
+                                                    <p class="text-[10px] text-gray-400">fahd@example.com</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-gray-600 font-medium">البلاغة الواضحة</td>
+                                        <td class="px-6 py-4">
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5 max-w-[100px] mx-auto">
+                                                <div class="bg-indigo-500 h-1.5 rounded-full" style="width: 30%"></div>
+                                            </div>
+                                            <p class="text-[10px] text-center mt-1 text-gray-400">30%</p>
+                                        </td>
+                                        <td class="px-6 py-4 text-gray-500 text-xs">2025/12/15</td>
+                                        <td class="px-6 py-4">
+                                            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-bold">جديد</span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"><i data-feather="edit-3" class="w-4 h-4"></i></button>
+                                                <button class="p-2 text-red-500 hover:bg-red-50 rounded-lg"><i data-feather="slash" class="w-4 h-4"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-between">
+                        <p class="text-xs text-gray-500">عرض 1-10 من أصل 120 طالب</p>
+                        <div class="flex gap-1">
+                            <button class="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"><i data-feather="chevron-right" class="w-4 h-4"></i></button>
+                            <button class="p-2 bg-indigo-600 text-white border border-indigo-600 rounded-lg text-xs px-4 font-bold">1</button>
+                            <button class="p-2 bg-white border border-gray-200 rounded-lg text-xs px-4 font-bold hover:bg-gray-50">2</button>
+                            <button class="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"><i data-feather="chevron-left" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('sidebar-hidden');
+        }
+
+        // دالة بحث بسيطة
+        function searchStudent() {
+            const input = document.getElementById('studentSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#studentTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(input) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل معلم جديد | منصة التعليم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        .input-group:focus-within label { color: #4f46e5; }
+        .input-group:focus-within .icon-box { background-color: #4f46e5; color: white; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-4xl w-full bg-white rounded-[3rem] shadow-2xl shadow-indigo-100 overflow-hidden flex flex-col md:flex-row">
+        
+        <div class="md:w-5/12 bg-indigo-600 p-10 text-white flex flex-col justify-between relative">
+            <div class="relative z-10">
+                <h2 class="text-3xl font-black mb-4">انضم إلينا كمعلم متميز</h2>
+                <p class="text-indigo-100 text-sm leading-relaxed opacity-80">ابتدئ رحلتك في تعليم آلاف الطلاب، وأدر حصصك وتقاريرك بكل سهولة وذكاء.</p>
+            </div>
+            
+            <div class="relative z-10 mt-10 md:mt-0">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center"><i data-feather="check" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-bold">إدارة حصص مباشرة (Zoom)</span>
+                </div>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center"><i data-feather="check" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-bold">تقارير أداء فورية للطلاب</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center"><i data-feather="check" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-bold">سحب أرباحك بكل سهولة</span>
+                </div>
+            </div>
+
+            <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="md:w-7/12 p-8 md:p-12">
+            <div class="mb-8">
+                <h1 class="text-2xl font-black text-gray-900">إنشاء حساب جديد</h1>
+                <p class="text-xs text-gray-400 mt-2 font-bold">لديك حساب بالفعل؟ <a href="login.html" class="text-indigo-600 hover:underline">تسجيل الدخول</a></p>
+            </div>
+
+            <form action="/auth/register" method="POST" class="space-y-5">
+                
+                <div class="input-group">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 mr-1">الاسم الكامل</label>
+                    <div class="relative">
+                        <div class="icon-box absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center transition-all">
+                            <i data-feather="user" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="fullname" required
+                               class="w-full bg-gray-50 border-none pr-14 pl-4 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                               placeholder="أدخل اسمك الثلاثي">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 mr-1">رقم الجوال</label>
+                    <div class="relative">
+                        <div class="icon-box absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center transition-all">
+                            <i data-feather="phone" class="w-4 h-4"></i>
+                        </div>
+                        <input type="tel" name="phone" required dir="ltr"
+                               class="w-full bg-gray-50 border-none pr-14 pl-4 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-right"
+                               placeholder="05XXXXXXXX">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 mr-1">كلمة المرور</label>
+                    <div class="relative">
+                        <div class="icon-box absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center transition-all">
+                            <i data-feather="lock" class="w-4 h-4"></i>
+                        </div>
+                        <input type="password" name="password" required
+                               class="w-full bg-gray-50 border-none pr-14 pl-4 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                               placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="block text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2 mr-1">رابط زووم الشخصي (اختياري)</label>
+                    <div class="relative">
+                        <div class="icon-box absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-indigo-50 text-indigo-400 rounded-xl flex items-center justify-center transition-all">
+                            <i data-feather="video" class="w-4 h-4"></i>
+                        </div>
+                        <input type="url" name="zoom_link" dir="ltr"
+                               class="w-full bg-indigo-50/30 border-none pr-14 pl-4 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-right placeholder:text-indigo-200"
+                               placeholder="https://zoom.us/j/...">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 px-1">
+                    <input type="checkbox" id="terms" required class="w-4 h-4 accent-indigo-600 rounded">
+                    <label for="terms" class="text-[10px] text-gray-400 font-medium">أوافق على <a href="#" class="text-indigo-600 underline">شروط المنصة</a> وسياسة الخصوصية.</label>
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-3 mt-4">
+                    إنشاء حسابي الآن
+                    <i data-feather="arrow-left" class="w-5 h-5"></i>
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
