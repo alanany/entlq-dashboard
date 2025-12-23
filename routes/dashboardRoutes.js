@@ -34,4 +34,8 @@ dashboardRoutes.post('/booking/:id/update-links', courseController.postUpdateSes
 dashboardRoutes.get('/admin/students', courseController.getManageStudents);
 dashboardRoutes.get('/booking/:bookingId/session/:sessionId/complete', courseController.markSessionAsComplete);
 dashboardRoutes.get('/admin/reports', courseController.adminReportPage);
+dashboardRoutes.get('/admin/teachers', courseController.adminTeachersPage);
+dashboardRoutes.post('/admin/teachers/update/:id', courseController.updateTeacher);
+dashboardRoutes.post('/admin/teachers/add', courseController.addTeacher);
+dashboardRoutes.post('/admin/check-teacher-conflict', courseController.checkConflict);
 module.exports = dashboardRoutes;

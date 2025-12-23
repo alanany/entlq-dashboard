@@ -99,12 +99,9 @@ const register = asyncWrapper(async (req, res, next) => {
         status: httpStatus.SUCCESS,
         message: "تم التسجيل بنجاح.",
         statusCode: 201, 
-        data: { 
-            user: userObj,
-      
-        } 
+        user: userObj, 
     });
-
+  return;
 });
 
 const logOut = async (req, res, next) => {

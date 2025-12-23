@@ -164,15 +164,17 @@ function closeLogoutModal() {
                     <div><p class="text-gray-500 text-sm">قيد المراجعة</p><p class="text-2xl font-bold"><%= pendingCount %></p></div>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                    <div class="p-3 bg-orange-50 text-orange-600 rounded-full"><i data-feather="alert-triangle" class="w-6 h-6"></i></div>
-                    <div><p class="text-gray-500 text-sm">بانتظار الدفع</p><p class="text-2xl font-bold"><%= awaitingCount %></p></div>
-                </div>
+             
 
                 <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
                     <div class="p-3 bg-green-50 text-green-600 rounded-full"><i data-feather="check-circle" class="w-6 h-6"></i></div>
                     <div><p class="text-gray-500 text-sm">تم الموافقة</p><p class="text-2xl font-bold"><%= confirmedCount %></p></div>
                 </div>
+   <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
+                    <div class="p-3 bg-orange-50 text-orange-600 rounded-full"><i data-feather="alert-triangle" class="w-6 h-6"></i></div>
+                    <div><p class="text-gray-500 text-sm"> الاشتراكات قريبة الانتهاء </p><p class="text-2xl font-bold"><%= awaitingCount %></p></div>
+                </div>
+
             </div>
 
             <!-- جدول الطلبات -->
@@ -187,10 +189,11 @@ function closeLogoutModal() {
                         </div>
                         <select id="statusFilter" class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none">
                             <option value="all">الحالة: الكل</option>
-                            <option value="pending">قيد المراجعة</option>
-                            <option value="awaiting_payment">بانتظار الدفع</option>
-                            <option value="confirmed">تم الموافقة</option>
+                            <option value="pending">قيد المراجعة</option> <option value="confirmed">تم الموافقة</option>
                             <option value="rejected">مرفوض</option>
+                            
+                            <option value="awaiting_payment"> الاشتراكات قريبة الانتهاء </option>
+                           
                         </select>
                     </div>
                 </div>
@@ -292,7 +295,7 @@ function closeLogoutModal() {
                 <td class="px-6 py-4">${managePaymentButton}</td>
                 <td class="px-6 py-4 flex gap-2">
                     ${schedule}
-                    ${addLinks}
+                   
                 </td>
             </tr>`;
     }

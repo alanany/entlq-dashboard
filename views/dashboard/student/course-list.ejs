@@ -4,219 +4,278 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>قائمة الكورسات المتاحة</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+    </style>
 </head>
+
 <body class="bg-gray-50 text-gray-800">
-    <div class="flex h-screen overflow-hidden">
-        
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-                <h2 class="text-xl font-semibold text-gray-800">استكشاف الكورسات المتاحة</h2>
-                <a href="#" onclick="history.back(); return false;" class="text-sm text-indigo-600 hover:underline flex items-center font-medium">
-                    <i data-feather="arrow-right" class="mr-1 w-4 h-4"></i> العودة للرئيسية
-                </a>
-            </header>
 
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
-                <div class="max-w-7xl mx-auto space-y-8"> 
-                    
-                    <div class="bg-white p-5 rounded-xl shadow-md border border-gray-100">
-                        <h1 class="text-2xl font-extrabold text-indigo-700 mb-4">البحث عن الكورسات</h1>
-                        <div class="flex flex-col md:flex-row gap-4">
-                            
-                            <div class="flex-1 relative">
-                                <input type="text" id="globalSearch" placeholder="ابحث باسم الكورس، أو كلمة مفتاحية..."
-                                       class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
-                                       onkeyup="filterCourses()">
-                                <i data-feather="search" class="w-5 h-5 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2"></i>
-                            </div>
+<div class="flex min-h-screen overflow-hidden">
 
-                            <button id="toggleFilter" 
-                                    class="px-5 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition flex items-center justify-center border border-gray-300"
-                                    onclick="toggleAdvancedFilter()">
-                                <i data-feather="filter" class="w-5 h-5 ml-2"></i> 
-                                فلاتر متقدمة
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 
+        flex flex-col sm:flex-row gap-3 sm:gap-0
+        items-start sm:items-center justify-between 
+        px-4 sm:px-8 py-4">
+
+            <h2 class="text-xl font-semibold text-gray-800">
+                استكشاف الكورسات المتاحة
+            </h2>
+
+            <a href="#" onclick="history.back(); return false;"
+               class="text-sm text-indigo-600 hover:underline flex items-center font-medium">
+                <i data-feather="arrow-right" class="ml-1 w-4 h-4"></i>
+                العودة للرئيسية
+            </a>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-8">
+
+            <div class="max-w-7xl mx-auto space-y-8">
+
+                <!-- Search -->
+                <div class="bg-white p-5 rounded-xl shadow-md border">
+                    <h1 class="text-2xl font-extrabold text-indigo-700 mb-4">
+                        البحث عن الكورسات
+                    </h1>
+
+                    <div class="flex flex-col lg:flex-row gap-4">
+
+                        <div class="flex-1 relative">
+                            <input type="text"
+                                   id="globalSearch"
+                                   placeholder="ابحث باسم الكورس أو كلمة مفتاحية..."
+                                   onkeyup="filterCourses()"
+                                   class="w-full pl-12 pr-4 py-3 border rounded-lg
+                                   focus:ring-indigo-500 focus:border-indigo-500">
+
+                            <i data-feather="search"
+                               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                        </div>
+
+                        <button onclick="toggleAdvancedFilter()"
+                                class="w-full lg:w-auto px-5 py-3 bg-gray-100
+                                border rounded-lg font-medium hover:bg-gray-200
+                                flex items-center justify-center">
+                            <i data-feather="filter" class="ml-2 w-5 h-5"></i>
+                            فلاتر متقدمة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Advanced Filters -->
+                <div id="advancedFilterArea"
+                     class="hidden bg-white p-6 rounded-xl shadow-lg border">
+
+                    <h3 class="text-lg font-semibold mb-4 border-b pb-2">
+                        خيارات التصفية
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                        <div>
+                            <label class="block text-sm font-medium mb-2">التصنيف</label>
+                        <select id="categoryFilter"
+        onchange="filterCourses()"
+        class="w-full border rounded-lg">
+
+    <option value="">جميع التصنيفات</option>
+
+    <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+        <% categories.forEach(function(cat) { %>
+            <option value="<%= cat.slug %>">
+                <%= cat.name %>
+            </option>
+        <% }); %>
+    <% } %>
+
+</select>
+
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-2">المستوى</label>
+                            <select id="levelFilter"
+                                    onchange="filterCourses()"
+                                    class="w-full border rounded-lg">
+                                <option value="">جميع المستويات</option>
+                                <option value="beginner">مبتدئ</option>
+                                <option value="intermediate">متوسط</option>
+                                <option value="advanced">متقدم</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-end">
+                            <button onclick="resetFilters()"
+                                    class="w-full px-4 py-2 bg-red-100 text-red-700
+                                    rounded-lg hover:bg-red-200 font-medium">
+                                إعادة تعيين
                             </button>
                         </div>
                     </div>
-                    
-                    <div id="advancedFilterArea" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-100 transition-all duration-300">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">خيارات التصفية</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">التصنيف</label>
-                                <select id="categoryFilter" class="w-full border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" onchange="filterCourses()">
-                                    <option value="">جميع التصنيفات</option>
-                                    <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
-                                        <% categories.forEach(function(cat) { %>
-                                            <option value="<%= cat.slug %>"><%= cat.name %></option>
-                                        <% }); %>
-                                    <% } %>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">المستوى</label>
-                                <select id="levelFilter" class="w-full border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" onchange="filterCourses()">
-                                    <option value="">جميع المستويات</option>
-                                    <option value="beginner">مبتدئ</option>
-                                    <option value="intermediate">متوسط</option>
-                                    <option value="advanced">متقدم</option>
-                                </select>
-                            </div>
-                            
-                            <div class="flex items-end">
-                                <button type="button" 
-                                        class="w-full px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium transition"
-                                        onclick="resetFilters()">
-                                    إعادة تعيين
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                </div>
 
-                    <div class="lg:grid lg:grid-cols-12 lg:gap-8">
-                        
-                        <aside class="lg:col-span-3 mb-8 lg:mb-0 p-6 bg-white rounded-xl shadow-lg border border-gray-100 sticky top-20 h-fit">
-                            <h2 class="text-xl font-bold text-gray-800 mb-5 border-b pb-3">فلاتر أساسية</h2>
-                            
-                            <div class="text-sm text-gray-600">
-                                <p class="mb-2"><i data-feather="book-open" class="w-4 h-4 ml-1 inline-block text-indigo-500"></i> عدد الكورسات المعروضة: <span id="courseCount">0</span></p>
-                                <p><i data-feather="bar-chart-2" class="w-4 h-4 ml-1 inline-block text-indigo-500"></i> أعلى تقييم: 4.9</p>
-                            </div>
-                        </aside>
+                <div class="lg:grid lg:grid-cols-12 lg:gap-8">
 
-                        <div class="lg:col-span-9">
-                            <p class="text-lg text-gray-600 border-b pb-2 mb-6">اختر الكورس الذي يناسب خطتك التعليمية:</p>
+                    <!-- Sidebar -->
+                    <aside class="hidden lg:block lg:col-span-3 bg-white p-6
+                    rounded-xl shadow border sticky top-24 h-fit">
 
-                            <div class="lg:col-span-9">
-                <div id="course-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    
-                    <% if (typeof courses !== 'undefined' && courses.length > 0) { %>
-                        <% courses.forEach(function(course) { %>
-                            <div class="bg-white rounded-xl overflow-hidden cursor-pointer course-card-style">
-                                
-                                <img src="https://mta.sa/wp-content/uploads/2024/02/12-9-16.png" alt="<%= course.image_url || 'https://via.placeholder.com/400x200/4f46e5/ffffff?text=Course+Image' %>" 
-                                     alt="<%= course.name %>" 
-                                     class="w-full h-40 object-cover">
+                        <h2 class="text-xl font-bold mb-4 border-b pb-3">
+                            فلاتر أساسية
+                        </h2>
 
-                                <div class="p-5 space-y-3">
-                                    
-                                    <% if (course.category_name) { %>
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                            <%= course.category_name %>
-                                        </span>
-                                    <% } %>
+                        <p class="text-sm mb-2">
+                            <i data-feather="book-open"
+                               class="inline w-4 h-4 ml-1 text-indigo-500"></i>
+                            عدد الكورسات: <span id="courseCount">0</span>
+                        </p>
 
-                                    <h3 class="text-xl font-bold text-gray-900 line-clamp-2"><%= course.name %></h3>
-                                    
-                                    <p class="text-gray-600 text-sm line-clamp-3 h-16"><%= course.description %></p>
-                                    
-                                    <div class="flex items-center mt-2">
-                                        <i data-feather="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
-                                        <span class="text-sm font-medium text-gray-700 mr-1"><%= course.rating || 'N/A' %></span>
-                                        <span class="text-xs text-gray-500 mr-2">(<%= course.reviews_count || 0 %> تقييم)</span>
+                        <p class="text-sm">
+                            <i data-feather="bar-chart-2"
+                               class="inline w-4 h-4 ml-1 text-indigo-500"></i>
+                            أعلى تقييم: 4.9
+                        </p>
+                    </aside>
+
+                    <!-- Courses -->
+                    <div class="lg:col-span-9">
+
+                        <p class="text-lg text-gray-600 border-b pb-2 mb-6">
+                            اختر الكورس الذي يناسب خطتك التعليمية
+                        </p>
+
+                        <div id="course-list-container"
+                             class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+
+                            <% if (courses?.length) { %>
+                                <% courses.forEach(course => { %>
+
+                                    <div class="course-card bg-white rounded-xl overflow-hidden
+                                    shadow hover:shadow-xl transition-all duration-300 flex flex-col"
+                                    data-name="<%= course.name %>"
+                                    data-category="<%= course.category_slug || '' %>"
+                                    data-level="<%= course.level || '' %>">
+
+                                      <img src="https://mta.sa/wp-content/uploads/2024/02/12-9-16.png" alt="<%= course.image_url || 'https://via.placeholder.com/400x200/4f46e5/ffffff?text=Course+Image' %>"
+                                             class="w-full h-40 sm:h-44 object-cover">
+
+                                        <div class="p-4 sm:p-5 space-y-3 flex flex-col h-full">
+
+                                            <% if (course.category_name) { %>
+                                                <span class="text-xs bg-indigo-100 text-indigo-700
+                                                px-2 py-1 rounded-full w-fit">
+                                                    <%= course.category_name %>
+                                                </span>
+                                            <% } %>
+
+                                            <h3 class="font-bold text-lg line-clamp-2">
+                                                <%= course.name %>
+                                            </h3>
+
+                                            <p class="text-sm text-gray-600 line-clamp-3">
+                                                <%= course.description %>
+                                            </p>
+
+                                            <div class="flex items-center text-sm">
+                                                <i data-feather="star"
+                                                   class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                                <span class="mr-1 font-medium">
+                                                    <%= course.rating || 'N/A' %>
+                                                </span>
+                                                <span class="text-xs text-gray-500">
+                                                    (<%= course.reviews_count || 0 %>)
+                                                </span>
+                                            </div>
+
+                                            <a href="/website-course/<%= course.id %>"
+                                               class="mt-auto text-center py-2 bg-indigo-600
+                                               text-white rounded-lg hover:bg-indigo-700
+                                               font-medium text-sm">
+                                                عرض تفاصيل الكورس
+                                            </a>
+                                        </div>
                                     </div>
-                                    
-                                    <a href="/website-course/<%= course.id %>" class="mt-4 block w-full text-center py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium text-sm transition duration-150">عرض تفاصيل الكورس</a>
+
+                                <% }) %>
+                            <% } else { %>
+
+                                <div class="col-span-full text-center text-gray-500 py-12">
+                                    <i data-feather="inbox"
+                                       class="w-10 h-10 mx-auto mb-3"></i>
+                                    لا توجد كورسات متاحة
                                 </div>
-                            </div>
-                        <% }); %>
-                    <% } else { %>
-                        <div class="col-span-full text-center text-gray-500 py-10">
-                            <i data-feather="inbox" class="w-10 h-10 mx-auto text-gray-400"></i>
-                            <p class="mt-3 text-lg">عذراً، لا تتوفر كورسات حالياً تطابق معايير البحث.</p>
+
+                            <% } %>
+
                         </div>
-                    <% } %>
-                    </div>
-            </div>
-                            <div id="noResults" class="hidden col-span-3 text-center text-gray-500 py-10 mt-8">
-                                <i data-feather="inbox" class="w-10 h-10 mx-auto text-gray-400"></i>
-                                <p class="mt-3 text-lg">لا توجد نتائج مطابقة لمعايير البحث.</p>
-                            </div>
+
+                        <div id="noResults"
+                             class="hidden text-center text-gray-500 py-12">
+                            <i data-feather="inbox"
+                               class="w-10 h-10 mx-auto mb-3"></i>
+                            لا توجد نتائج مطابقة
                         </div>
 
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
-    
-    <script>
-        // ----------------------------------------------------
-        // 2. كود JavaScript للفلترة الديناميكية
-        // ----------------------------------------------------
-        
-        feather.replace();
+</div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // تحديث العدد عند تحميل الصفحة
-            updateCount(); 
+<script>
+    feather.replace();
+
+    document.addEventListener('DOMContentLoaded', updateCount);
+
+    function updateCount() {
+        const visible = document.querySelectorAll('.course-card:not([style*="display: none"])').length;
+        document.getElementById('courseCount').textContent = visible;
+        document.getElementById('noResults').classList.toggle('hidden', visible > 0);
+    }
+
+    function toggleAdvancedFilter() {
+        document.getElementById('advancedFilterArea').classList.toggle('hidden');
+    }
+
+    function filterCourses() {
+        const search = document.getElementById('globalSearch').value.toLowerCase();
+        const category = document.getElementById('categoryFilter')?.value || '';
+        const level = document.getElementById('levelFilter')?.value || '';
+
+        document.querySelectorAll('.course-card').forEach(card => {
+            const name = card.dataset.name;
+            const cat = card.dataset.category;
+            const lvl = card.dataset.level;
+
+            const show =
+                name.includes(search) &&
+                (!category || cat === category) &&
+                (!level || lvl === level);
+
+            card.style.display = show ? '' : 'none';
         });
 
-        // تحديث عدد الكورسات المعروضة
-        function updateCount() {
-            const visibleCount = document.querySelectorAll('.course-card:not([style*="display: none"])').length;
-            document.getElementById('courseCount').textContent = visibleCount;
+        updateCount();
+    }
 
-            const noResults = document.getElementById('noResults');
-            noResults.classList.toggle('hidden', visibleCount > 0);
-        }
+    function resetFilters() {
+        globalSearch.value = '';
+        categoryFilter && (categoryFilter.value = '');
+        levelFilter && (levelFilter.value = '');
+        filterCourses();
+        advancedFilterArea.classList.add('hidden');
+    }
+</script>
 
-        // تبديل عرض الفلاتر المتقدمة
-        function toggleAdvancedFilter() {
-            const filterArea = document.getElementById('advancedFilterArea');
-            filterArea.classList.toggle('hidden');
-        }
-
-        // دالة الفلترة الرئيسية
-        function filterCourses() {
-            const searchText = document.getElementById('globalSearch').value.toLowerCase().trim();
-            const category = document.getElementById('categoryFilter')?.value || '';
-            const level = document.getElementById('levelFilter')?.value || '';
-            const cards = document.querySelectorAll('.course-card');
-
-            cards.forEach(card => {
-                const courseName = card.getAttribute('data-name'); // تم تحويلها إلى lowercase في EJS
-                const courseCategory = card.getAttribute('data-category');
-                const courseLevel = card.getAttribute('data-level');
-                
-                let passesSearch = courseName.includes(searchText);
-                let passesCategory = !category || courseCategory === category;
-                let passesLevel = !level || courseLevel === level;
-                
-                // إظهار أو إخفاء البطاقة بناءً على جميع الفلاتر
-                if (passesSearch && passesCategory && passesLevel) {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            updateCount();
-        }
-        
-        // إعادة تعيين الفلاتر
-        function resetFilters() {
-            document.getElementById('globalSearch').value = '';
-            
-            // إعادة تعيين الـ Selects
-            if (document.getElementById('categoryFilter')) {
-                document.getElementById('categoryFilter').value = '';
-            }
-            if (document.getElementById('levelFilter')) {
-                document.getElementById('levelFilter').value = '';
-            }
-            
-            filterCourses(); // تطبيق الفلترة بعد إعادة التعيين
-            // إخفاء منطقة الفلاتر المتقدمة بعد إعادة التعيين
-            document.getElementById('advancedFilterArea').classList.add('hidden'); 
-        }
-
-    </script>
 </body>
 </html>

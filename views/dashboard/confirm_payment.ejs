@@ -80,17 +80,36 @@
                             </span>
                         </dd>
                     </div>
-                    <% if (booking.startDate) { %>
+                 
                   <div>
-    <label for="startDate" class="block text-base font-medium text-gray-700">تاريخ بدء الكورس <span class="text-red-500">*</span></label>
-    <div class="mt-1">
-        <input type="date" id="startDate" name="startDate" required
-               value="<%= currentStartDate %>"
-               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-base p-2 border">
-        <p class="mt-1 text-sm text-gray-500" id="date-constraint-message">يجب أن يكون التاريخ اليوم أو بعده، والحد الأقصى هو شهر واحد من الآن.</p>
+    <label for="startDate" class="block text-base font-medium text-gray-700"> إختيار المعلم  <span class="text-red-500">*</span></label>
+    <div class="space-y-1">
+    <label for="teacher" class="text-[10px] font-black text-slate-400 mr-2 uppercase">إختيار المعلم <span class="text-red-500">*</span></label>
+    <div class="relative">
+       <select id="teacherId" name="teacherId" required
+  class="w-full bg-slate-50 border-none p-4 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none appearance-none cursor-pointer">
+
+  <option value="" disabled <%= !booking.teacherId ? 'selected' : '' %>>
+    اختر المعلم
+  </option>
+
+  <% teachers.forEach(teacher => { %>
+    <option 
+      value="<%= teacher._id %>"
+      <%= booking.teacherId && booking.teacherId.toString() === teacher._id.toString() ? 'selected' : '' %>
+    >
+      <%= teacher.name %>
+    </option>
+  <% }); %>
+</select>
+
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+            <i data-feather="chevron-down" class="w-4 h-4"></i>
+        </div>
     </div>
 </div>
-                    <% } %>
+</div>
+                   
                 </dl>
             </div>
 
@@ -104,7 +123,7 @@
                     </div>
                 <% } %>
          
-                <form action="/booking/<%= booking._id %>/confirm-payment" method="POST" class="space-y-6">
+                <form  class="space-y-6"  onsubmit="submitForm(event)">
                     
                     <h2 class="text-xl font-bold text-indigo-700 pt-4">إجراء التأكيد</h2>
 
@@ -131,10 +150,8 @@
                         <p class="mt-1 text-sm text-gray-500">اختر "مدفوع ومؤكد" لتأكيد الدفع وبدء الكورس.</p>
                     </div>
                     
-                    <div>
-                        <label for="adminNotes" class="block text-base font-medium text-gray-700">ملاحظات المشرف (تظهر لك فقط)</label>
-                        <div class="mt-1">
-                            <textarea id="adminNotes" name="adminNotes" rows="3" 
+                    <div> <div class="mt-1">
+                            <textarea id="adminNotes" name="adminNotes" rows="3" value="<%= booking.adminNotes || '' %>
                                       class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-base border border-gray-300 rounded-md p-2"><%= booking.adminNotes || '' %></textarea>
                         </div>
                     </div>
@@ -152,6 +169,7 @@
         </div>
 
     </div>
+<div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
  <script>
     feather.replace();
@@ -190,6 +208,75 @@
 
         console.log(`تم تعيين الحد الأدنى: ${minDateString}، والحد الأقصى: ${maxDateString}`);
     });
+
+async function submitForm(event) {
+  event.preventDefault();
+
+  try {
+    const startDate = document.getElementById('startDate').value;
+    const paymentStatus = document.getElementById('paymentStatus').value;
+    const adminNotes = document.getElementById('adminNotes').value || '';
+    const teacherId = document.getElementById('teacherId').value;
+
+    // ✅ تحقق مبدئي
+    if (!teacherId) {
+      showToast('يرجى إسناد الطلب للمعلم', 'error');
+      return;
+    }
+
+    const url = `/booking/<%= booking._id %>/confirm-payment`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        startDate,
+        paymentStatus,
+        adminNotes,
+        teacherId
+      })
+    });
+
+    // ✅ اقرأ الـ body مرة واحدة فقط
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'حدث خطأ غير متوقع');
+    }
+
+    // ✅ نجاح
+    showToast(data.message || 'تم الحفظ بنجاح', 'success');
+
+    // ✅ تحويل بعد النجاح
+    setTimeout(() => {
+      window.location.href = '/subscriptions';
+    }, 800);
+
+  } catch (error) {
+    showToast(error.message || 'حدث خطأ في الاتصال بالخادم', 'error');
+  }
+}
+
+    function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+
+  const toast = document.createElement('div');
+  toast.className = `
+    px-4 py-3 rounded-xl text-white shadow-lg text-sm font-bold
+    ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}
+  `;
+
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
 </script>
 </body>
 </html>

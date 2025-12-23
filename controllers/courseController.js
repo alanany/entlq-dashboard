@@ -4,6 +4,7 @@ const Category = require('../models/category_model.js');
 const Course = require('../models/course_model.js');
 const User = require('../models/user_model.js');
 const Subscription= require('../models/subscription_model.js');
+const bcrypt = require('bcryptjs');
 const getAdminDashboard = async (req, res) => {
     
     // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
@@ -300,42 +301,79 @@ console.log("Bookings:", subscription);
 }
 // مثال لكود Express/Mongoose في متحكم (Controller)
 const confirmBookingPayment = async (req, res) => {
-    try {
-        const bookingId = req.params.id;
-        const { startDate, paymentStatus, adminNotes } = req.body;
+  try {
+    console.log('BODY:', req.body);
 
-        const updateData = {
-            startDate: startDate,
-            status: paymentStatus,
-            adminNotes: adminNotes,
-            // إذا كان مؤكد، يمكنك إضافة تاريخ التأكيد هنا
-            confirmedAt: paymentStatus === 'confirmed' ? new Date() : undefined 
-        };
+    const bookingId = req.params.id;
+    const { startDate, paymentStatus, teacherId } = req.body;
 
-        await Subscription.findByIdAndUpdate(bookingId, updateData, { new: true });
-        
-        // إرسال إشعار للطالب إذا تم التأكيد
-        if (paymentStatus === 'confirmed') {
-             // ... منطق إرسال رسالة أو إشعار للطالب بأن حجزه قد تم تأكيده وتاريخ البدء
-        }
-
-        res.redirect('/subscriptions'); // العودة إلى صفحة الطلبات الرئيسية
-    } catch (error) {
-        // ... التعامل مع الأخطاء
+    // ✅ تحقق من البيانات
+    if (!startDate || !paymentStatus  || !teacherId) {
+      return res.status(400).json({
+        success: false,
+        message: 'يرجى تعبئة جميع الحقول'
+      });
     }
+
+    // ✅ تجهيز بيانات التحديث
+    const updateData = {
+      startDate,
+      status: paymentStatus,
+      teacherId
+    };
+
+    // إضافة تاريخ التأكيد فقط عند التأكيد
+    if (paymentStatus === 'confirmed') {
+      updateData.confirmedAt = new Date();
+      updateData.sessions = [];
+    }
+
+    // ✅ التحديث
+    const updatedSubscription = await Subscription.findByIdAndUpdate(
+      bookingId,
+ { $set: updateData }, // استخدام $set لضمان تحديث الحقول المحددة فقط
+      { new: true }
+    );
+
+    if (!updatedSubscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'الحجز غير موجود'
+      });
+    }
+
+    // ✅ منطق الإشعارات (اختياري)
+    if (paymentStatus === 'confirmed') {
+      // sendNotificationToStudent(...)
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'تم تأكيد الدفع بنجاح'
+    });
+
+  } catch (error) {
+    console.error('CONFIRM PAYMENT ERROR:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'حدث خطأ أثناء تأكيد الدفع'
+    });
+  }
 };
+
 
 const getManagePayment = async (req, res) => {
     try {
         const booking = await Subscription.findById(req.params.id)
             .populate('studentId') // تأكد من populate للطالب
             .populate('courseId'); // تأكد من populate للكورس
-            
+           const teachers = await User.find({ role: 'teacher', status: 'active' }); 
         if (!booking) {
             return res.status(404).render('404'); 
         }
 
-        res.render('dashboard/confirm_payment', { booking: booking }); 
+        res.render('dashboard/confirm_payment', { booking: booking , teachers: teachers }); 
         // 💡 تأكد أن اسم ملف EJS هو 'manage_payment.ejs'
         
     } catch (error) {
@@ -350,7 +388,7 @@ const getScheduleSessions = async (req, res) => {
         const bookingId = req.params.id;
         const booking = await Subscription.findById(bookingId)
             .populate('studentId') 
-            .populate('courseId');
+            .populate('courseId').populate('teacherId');
 console.log(booking);
         if (!booking) {
             return res.status(404).send('Booking not found.');
@@ -572,10 +610,157 @@ const markSessionAsComplete = async (req, res, next) => {
  const adminReportPage = async(req, res) => {
   res.render('../views/dashboard/reports', { title: 'التقارير الموقع'});
 }
+
+
+// controllers/adminController.js
+ // افترضنا أن اسم الموديل User
+
+const adminTeachersPage = async (req, res) => {
+    try {
+        // جلب المستخدمين الذين لديهم رتبة معلم فقط
+        const teachers = await User.find({ role: 'teacher' })
+                                   .sort({ createdAt: -1 });
+res.render('../views/dashboard/teachers', {
+            teachers: teachers,
+            user: req.user // بيانات الأدمن الحالي (للسيدبار)
+        });
+        // رندر الصفحة وإرسال البيانات
+     
+    } catch (err) {
+        console.error("Error fetching teachers:", err);
+        res.status(500).render('error', { message: "حدث خطأ أثناء جلب بيانات المعلمين" });
+    }
+};
 // ... (بقية وظائف المتحكم) ...
-module.exports = {
-    adminReportPage,getAdminDashboard,getAdminSubscription,
-    getAddCourse,
+const updateTeacher = async (req, res) => {
+    try {
+        const teacherId = req.params.id;
+        const updates = {
+            name: req.body.name,
+            zoom_link: req.body.zoom_link,
+            phone_number: req.body.phone_number,
+            notes: req.body.notes,
+            hour_rate: req.body.hour_rate
+        };
+
+        // تحديث المستخدم في قاعدة البيانات
+        const updatedUser = await User.findByIdAndUpdate(teacherId, updates, { new: true });
+console.log(updatedUser);
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, message: 'المعلم غير موجود' });
+        }
+
+        res.json({ success: true, message: 'تم تحديث البيانات بنجاح' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'خطأ داخلي في السيرفر' });
+    }
+};
+// تأكد من مسار موديل المستخدم
+
+// إضافة معلم جديد
+const addTeacher = async (req, res) => {
+    try {
+        const { name, phone_number, zoom_link, hour_rate, notes, email } = req.body;
+        const defaultPassword = 'password123';
+
+        // 1. التحقق من عدم وجود حساب بنفس الإيميل (اختياري لكن مهم)
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: 'البريد الإلكتروني مستخدم بالفعل' });
+        }
+
+        // 3. تشفير كلمة المرور
+        // 2. إنشاء كائن المعلم الجديد مع تحديد الرتبة
+        const newTeacher = new User({
+            name,
+            phone_number,
+            zoom_link,
+            hour_rate,
+            notes,
+            email,      // إذا كنت ستضيف إيميل في الفورم
+            password: defaultPassword,   // يفضل وضع كلمة مرور افتراضية أو استقبالها
+            role: 'teacher', // تعيين الرتبة تلقائياً
+            status: 'active' // الحالة الافتراضية
+        });
+
+        // 3. حفظ في قاعدة البيانات
+        await newTeacher.save();
+
+        res.status(201).json({ 
+            success: true, 
+            message: 'تم إضافة المعلم بنجاح' 
+        });
+
+    } catch (error) {
+        console.error("Error adding teacher:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'حدث خطأ أثناء حفظ البيانات' 
+        });
+    }
+};
+
+// تعديل معلم موجود
+
+
+
+const checkConflict = async (req, res) => {
+    try {
+        const { teacherId, date, time, bookingId } = req.body;
+        
+        // 1. تحويل الوقت الجديد إلى دقائق (مثلاً 18:30 تصبح 1110 دقيقة)
+        const [hours, minutes] = time.split(':').map(Number);
+        const newStartTotal = hours * 60 + minutes;
+        const sessionDuration = 60; // مدة الحصة بالدقائق
+        const newEndTotal = newStartTotal + sessionDuration;
+
+        // 2. جلب جميع حجوزات هذا المعلم في هذا التاريخ تحديداً
+        const targetDate = new Date(date);
+        const startOfDay = new Date(targetDate.setHours(0,0,0,0));
+        const endOfDay = new Date(targetDate.setHours(23,59,59,999));
+
+        const bookings = await Subscription.find({
+            teacherId: teacherId,
+            _id: { $ne: bookingId }, // استثناء الحجز الحالي
+            "sessions.date": { $gte: startOfDay, $lte: endOfDay }
+        });
+
+        // 3. فحص التداخل يدوياً لضمان الدقة
+        let hasConflict = false;
+        
+        for (const booking of bookings) {
+            for (const session of booking.sessions) {
+                // فحص الحصص التي في نفس اليوم وليست ملغاة
+                if (session.date.toDateString() === startOfDay.toDateString() && session.status !== 'missed') {
+                    
+                    const [sHours, sMinutes] = session.time.split(':').map(Number);
+                    const existStart = sHours * 60 + sMinutes;
+                    const existEnd = existStart + sessionDuration;
+
+                    // معادلة التداخل: (البداية الجديدة < نهاية القديمة) و (النهاية الجديدة > بداية القديمة)
+                    if (newStartTotal < existEnd && newEndTotal > existStart) {
+                        hasConflict = true;
+                        break;
+                    }
+                }
+            }
+            if (hasConflict) break;
+        }
+
+        if (hasConflict) {
+            return res.json({ conflict: true, message: "⚠️ تعارض زمني: يوجد حصة أخرى في هذا الوقت" });
+        }
+
+        res.json({ conflict: false });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+module.exports = {checkConflict,
+    adminReportPage,getAdminDashboard,getAdminSubscription,addTeacher,
+    getAddCourse,adminTeachersPage,updateTeacher,
     addCourse,
     getAllCourses,
     getEditCourse,
@@ -587,5 +772,6 @@ module.exports = {
     getScheduleSessions,
     postUpdateSessions,
     getManageSessionsLinks,
-    postUpdateSessionsLinks,getManageStudents,markSessionAsComplete
+    postUpdateSessionsLinks,getManageStudents,markSessionAsComplete,
+  
 };

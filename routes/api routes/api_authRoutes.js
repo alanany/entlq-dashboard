@@ -10,7 +10,7 @@ ApiAuthRouter.post("/api/v1/login", upload.none(), ApiAuthController.login);
 ApiAuthRouter.post(
   "/api/v1/register",
   upload.none(),
-  validationAnyRequestExpect(["role"]),
+  validationAnyRequestExpect(["name",'password','phone_number','country_code','email','gender']),
   ApiAuthController.register
 );
 

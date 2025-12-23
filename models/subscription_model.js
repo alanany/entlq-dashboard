@@ -10,8 +10,18 @@ const bookingSchema = new mongoose.Schema({
     sessions: [{
         date: { type: Date, required: true },
         time: { type: String, required: true },
+          endtime: { type: String },
         link: { type: String } ,
         attended: { type: Boolean, default: false },
+// تقرير أداء الطالب في هذه الحصة
+        report: {
+            level: { type: String, enum: ['A', 'B', 'C'] }, // التقييم (ممتاز، متوسط، ضعيف)
+            content: { type: String },                      // ما تم إنجازه
+            instructions: { type: String },                 // توجيهات للطالب
+            homeworkFile: { type: String },                 // اسم ملف الواجب المرفوع
+            submittedAt: { type: Date }                     // وقت إرسال التقرير
+        },
+
         status: { type: String, enum: ['pending', 'completed', 'missed'], default: 'pending' }
         // يمكنك إضافة رابط الجلسة هنا لاحقًا
     }],
@@ -42,6 +52,11 @@ const bookingSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0
+    },
+    teacherId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user', // افترض أن لديك موديل User
+       
     },
     status: { // حالة الحجز (بانتظار الدفع، مؤكد، ملغي، مكتمل)
         type: String,

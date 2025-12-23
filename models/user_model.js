@@ -12,21 +12,19 @@ const userSchema = new mongoose.Schema({
   },
   country_code: {
     type: String,
-    required: [true, 'Please enter a country code'],
   },
   gender: {
     type: String,
-    required: [true, 'Please enter a gender'],
   },
   phone_number: {
     type: String,
-    required: [true, 'Please enter a phone number'],
   },
    name: {
     type: String,
-    required: [true, 'Please enter your name'],
   },
-
+zoom_link: {
+    type: String,
+  },  
   password: {
     type: String,
     required: [true, 'Please enter a password'],
@@ -42,6 +40,13 @@ const userSchema = new mongoose.Schema({
     enum: ['active', 'banned'],
     default: 'active'
   },
+  hour_rate: {
+    type: Number,
+  },
+  image: {
+    type: String,
+  },
+notes: { type: String },
     token: {
       type: String,
     }

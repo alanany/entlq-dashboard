@@ -17,7 +17,9 @@
         const totalSessions = booking.numberOfSessionsPerMonth || 5; 
         const existingSessions = booking.sessions || [];
         const courseStartDate = booking.startDate ? new Date(booking.startDate) : null;
-        
+        const teacherId=booking.teacherId;
+        const sessionDuration=booking.selectedPriceOption;
+        const teacherName = booking.teacherId?.name || 'معلم غير معروف';
         // حساب تاريخ الحد الأقصى: شهر واحد بعد تاريخ البداية
         let maxDateLimit = null;
         if (courseStartDate) {
@@ -82,9 +84,23 @@
                         <dt class="font-medium text-gray-500">الكورس:</dt>
                         <dd class="text-indigo-600 font-semibold"><%= courseTitle %></dd>
                     </div>
+                     <div>
+                        <dt class="font-medium text-gray-500">اسم المعلم :</dt>
+                        <dd class="text-indigo-600 font-semibold"><%= teacherName %></dd>
+                    </div>
+   <a href="/teacher/calendar/<%= teacherId._id %>" 
+   class="inline-flex items-center px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all group" 
+   title="عرض جدول المواعيد">
+    <i data-feather="calendar" class="w-4 h-4 ml-1"></i>
+    <span class="text-xs font-bold">الجدول</span>
+</a>
                     <div>
                         <dt class="font-medium text-gray-500">عدد الحصص المطلوب:</dt>
                         <dd class="text-2xl font-extrabold text-blue-700 mt-1"><%= totalSessions %></dd>
+                    </div>
+                      <div>
+                        <dt class="font-medium text-gray-500">مدة كل حصة :  :</dt>
+                        <dd class="text-2xl font-extrabold text-blue-700 mt-1"><%= sessionDuration %> دقيقة</dd>
                     </div>
                     <% if (courseStartDate) { %>
                     <div>
@@ -143,32 +159,42 @@
                             <div class="md:col-span-1">
                                 <label for="date_<%= i %>" class="block text-sm font-medium text-gray-700 mb-1">التاريخ</label>
                                 <input type="date" id="date_<%= i %>" name="sessions[<%= i %>][date]" <%= inputState %>
-                                        value="<%= sessionData.date %>"
+                                        value="<%= sessionData.date %>" 
                                         class="schedule-date-input block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-base p-2 border <%= inputClass %>"
-                                        min="<%= minDateString %>"
+                                        min="<%= minDateString %>" onchange="checkAvailability(<%= i %>)"
                                         max="<%= maxDateString %>">
                             </div>
 
                             <div class="md:col-span-1">
                                 <label for="time_<%= i %>" class="block text-sm font-medium text-gray-700 mb-1">الوقت</label>
                                 <input type="time" id="time_<%= i %>" name="sessions[<%= i %>][time]" <%= inputState %>
-                                        value="<%= sessionData.time %>"
+                                        value="<%= sessionData.time %>" onchange="checkAvailability(<%= i %>)"
                                         class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-base p-2 border <%= inputClass %>">
                             </div>
-                            
-                            <div class="md:col-span-2 text-left">
-                                <% if (!isCompleted&&sessionData.status !== 'pending') { %>
-                                    <button type="button" 
-                                            data-session-id="<%= sessionData._id %>" 
-                                            data-session-index="<%= i %>"
-                                            class="open-modal-btn w-full justify-center py-2 px-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
-                                        <i data-feather="check" class="ml-1 w-4 h-4 inline"></i> تأكيد الانتهاء
-                                    </button>
-                                <% } else if(isCompleted) { %>
-                                    <span class="text-sm text-green-600 font-bold">تم تأكيد الحضور</span>
-                                <% } else %>
-                                    <span >    </span>
-                            </div>
+                            <p id="error_<%= i %>" class="text-[10px] text-red-600 font-bold mt-1 hidden"></p>
+                          <div class="md:col-span-2 text-left">
+    <% 
+        // 1. تحويل تاريخ الجلسة إلى كائن تاريخ (افترضنا أن الحقل اسمه sessionData.date)
+        const sessionDate = new Date(sessionData.date); 
+        const now = new Date();
+        const isPast = now > sessionDate; // هل الوقت الحالي تجاوز وقت الجلسة؟
+    %>
+
+    <% if (isCompleted) { %>
+        <span class="text-sm text-green-600 font-bold">تم تأكيد الحضور</span>
+
+    <% } else if (isPast) { %>
+        <button type="button" 
+                data-session-id="<%= sessionData._id %>" 
+                data-session-index="<%= i %>"
+                class="open-modal-btn w-full justify-center py-2 px-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
+            <i data-feather="check" class="ml-1 w-4 h-4 inline"></i> تأكيد الانتهاء
+        </button>
+
+    <% } else { %>
+        <span class="text-sm text-gray-400 italic">بانتظار موعد الجلسة</span>
+    <% } %>
+</div>
 
                         </div>
 
@@ -223,7 +249,57 @@
 <script>
     feather.replace();
 
+async function checkAvailability(index) {
+    const dateInput = document.getElementById(`date_${index}`);
+    const timeInput = document.getElementById(`time_${index}`);
+    const errorSpan = document.getElementById(`error_${index}`);
+    const submitBtn = document.querySelector('button[type="submit"]');
+
+    const date = dateInput.value;
+    const time = timeInput.value;
+    const teacherId = '<%= booking.teacherId?._id || booking.teacherId %>';
+    const bookingId = '<%= booking._id %>';
+
+    if (!date || !time) return;
+
+    try {
+        const response = await fetch('/admin/check-teacher-conflict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ teacherId, date, time, bookingId })
+        });
+
+        const result = await response.json();
+
+        if (result.conflict) {
+            // إبراز الخطأ ومنع الحفظ
+            errorSpan.innerText = "⚠️ " + result.message;
+            errorSpan.classList.remove('hidden');
+            dateInput.classList.add('border-red-500', 'bg-red-50');
+            timeInput.classList.add('border-red-500', 'bg-red-50');
+            
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            // إزالة الخطأ
+            errorSpan.classList.add('hidden');
+            dateInput.classList.remove('border-red-500', 'bg-red-50');
+            timeInput.classList.remove('border-red-500', 'bg-red-50');
+            
+            // التحقق من عدم وجود أخطاء أخرى قبل تفعيل الزر
+            const hasOtherErrors = Array.from(document.querySelectorAll('[id^="error_"]'))
+                                       .some(span => !span.classList.contains('hidden'));
+            if (!hasOtherErrors) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+    } catch (err) {
+        console.error("Connection Error:", err);
+    }
+}
     document.addEventListener('DOMContentLoaded', () => {
+
 
         const modal = document.getElementById('confirmationModal');
         const openButtons = document.querySelectorAll('.open-modal-btn');

@@ -10,7 +10,7 @@ const ApiCoursesRouter = require('./routes/api routes/api_coursesRoutes ');
 const path = require('path'); 
 const methodOverride = require('method-override');
 const ApiAuthRouter = require('./routes/api routes/api_authRoutes');
-
+const teacherDashboardRoutes = require('./routes/teacher_dashboard_routes');
 // ⭐️ الإعداد الصحيح لمجلد العرض ⭐️
 // يتم تعيين مجلد 'views' كمسار افتراضي للـ EJS
 app.set("views", path.join(__dirname, 'views')); 
@@ -47,6 +47,7 @@ app.get('*', checkUser);
 app.use(authRoutes);
 app.use(dashboardRoutes);
 app.use(studentDashboardRoutes);
+app.use(teacherDashboardRoutes);
 // api routes
 app.use( ApiAuthRouter);
 app.use(ApiCoursesRouter);
