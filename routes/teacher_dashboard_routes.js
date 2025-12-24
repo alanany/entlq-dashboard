@@ -16,5 +16,7 @@ teacherdashboardRoutes.get('/teacher/schedule',checkUser,requireAuth, teacherCon
 // routes/teacher.js
 teacherdashboardRoutes.get('/teacher/session/:bookingId/:sessionIndex',checkUser,requireAuth,  teacherController.getSessionPage);
 teacherdashboardRoutes.post('/teacher/save-session-report',checkUser,requireAuth, teacherController.saveSessionReport);
-
+teacherdashboardRoutes.get('/teacher/finanical_page',checkUser,requireAuth, teacherController.finanical_page);
+teacherdashboardRoutes.get('/teacher/settings',checkUser,requireAuth, teacherController.settings_page);
+teacherdashboardRoutes.post('/teacher/update',checkUser,requireAuth, teacherController.postUpdateProfile);
 module.exports = teacherdashboardRoutes;

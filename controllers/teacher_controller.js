@@ -105,7 +105,13 @@ const teacherHome = async (req, res) => {
 const login_get = (req, res) => {
   res.render("../views/dashboard/login");
 };
-
+const finanical_page = (req, res) => {
+  res.render("../views/dashboard/teacher/teacher_financial.ejs");
+};
+const settings_page = (req, res) => {
+  const teacher = req.user;
+  res.render("../views/dashboard/teacher/teacher_settings.ejs", { teacher });
+};
 const registerTeacher = async (req, res) => {
   // استخراج البيانات من جسم الطلب
   const {
@@ -187,7 +193,35 @@ console.log(req.body);
     });
   }
 };
+const postUpdateProfile = async (req, res) => {
+    try {
+     const email = req.user.email;
+        const { name, zoom_link, bio } = req.body;
+        const updateData = { name, zoom_link, bio,email };
+console.log(req.body);
+console.log(req.user.zoom_link);
 
+        // إذا قام المعلم برفع صورة جديدة
+        if (req.file) {
+            updateData.avatar = req.file.filename;
+        }
+        if(zoom_link!==req.user.zoom_link){
+          console.log(zoom_link,'تغيير اللينك ');
+          await Subscription.updateMany(
+    { teacherId: req.user._id },
+    { $set: { "sessions.$[elem].link": zoom_link } },
+    { arrayFilters: [{ "elem.status": "pending" }] } // يطبق التحديث فقط على الحصص المعلقة
+);
+        }
+
+        await User.findByIdAndUpdate(req.user._id, updateData);
+        
+        res.redirect('/teacher/home');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("حدث خطأ أثناء التحديث");
+    }
+};
 
 const loginTeacher = async (req, res) => {
    
@@ -398,4 +432,4 @@ const saveSessionReport = async (req, res) => {
 };
 
 module.exports = { signup_get, login_get, loginTeacher, registerTeacher,teacherHome ,  getTeacherCalendarPage,
-   getSchedule, getTeacherEvents, getSessionPage, saveSessionReport };
+settings_page,finanical_page,   getSchedule, getTeacherEvents, getSessionPage, saveSessionReport,postUpdateProfile };

@@ -53,14 +53,14 @@
                     <p class="mt-4 text-xs font-bold text-gray-400">تحديث صورة الملف الشخصي</p>
                 </div>
 
-                <form action="/teacher/update-profile" method="POST" class="space-y-6">
+                <form action="/teacher/update" method="POST" class="space-y-6">
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-xs font-black text-gray-500 mb-2 mr-2 uppercase tracking-widest">الاسم الكامل</label>
                             <div class="relative">
                                 <i data-feather="user" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                                <input type="text" name="name" value="أحمد محمد علي" class="input-field pr-12" placeholder="أدخل اسمك الثلاثي">
+                                <input type="text" name="name" value=<%= teacher.name  %> class="input-field pr-12" placeholder="أدخل اسمك الثلاثي">
                             </div>
                         </div>
 
@@ -68,7 +68,7 @@
                             <label class="block text-xs font-black text-gray-500 mb-2 mr-2 uppercase tracking-widest">رقم الجوال</label>
                             <div class="relative">
                                 <i data-feather="phone" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                                <input type="tel" name="phone" value="0512345678" class="input-field pr-12 text-left" dir="ltr" placeholder="05XXXXXXXX">
+                                <input type="tel" name="phone" value= <%= teacher.phone_number  %> class="input-field pr-12 text-left" dir="ltr" placeholder="05XXXXXXXX">
                             </div>
                         </div>
                     </div>
@@ -77,7 +77,7 @@
                         <label class="block text-xs font-black text-gray-500 mb-2 mr-2 uppercase tracking-widest text-indigo-600">رابط زووم الشخصي (الثابت)</label>
                         <div class="relative">
                             <i data-feather="video" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400"></i>
-                            <input type="url" name="zoom_link" value="https://zoom.us/j/1234567890" 
+                            <input type="url" name="zoom_link" value=<%= teacher.zoom_link  %>
                                    class="input-field pr-12 text-left border-indigo-100 bg-indigo-50/30 focus:bg-white" 
                                    dir="ltr" placeholder="https://zoom.us/j/...">
                         </div>

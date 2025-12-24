@@ -3,322 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>طلبات الاشتراك - لوحة التحكم</title>
+    <title>إدارة الاشتراكات | أكاديمية انطلق</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .critical-pulse { animation: pulse-bg 2s infinite; }
+        @keyframes pulse-bg {
+            0% { background-color: rgba(254, 226, 226, 0.4); }
+            50% { background-color: rgba(254, 202, 202, 0.7); }
+            100% { background-color: rgba(254, 226, 226, 0.4); }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
 <div class="flex h-screen overflow-hidden">
+          <%- include('./_admin_sidebar.ejs', { currentPage: 'courses', user: user }) %>
 
-    <!-- Sidebar -->
-    <aside class="w-64 bg-white border-l border-gray-200 hidden md:flex flex-col">
-            <div class="h-16 flex items-center justify-center border-b border-gray-200">
-                <h1 class="text-2xl font-bold text-indigo-600">أكاديمية انطلق</h1>
-            </div>
-            
-            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                <a href="/" class="flex items-center px-4 py-3 bg-indigo-50 text-indigo-600 rounded-lg transition-colors">
-                    <i data-feather="home" class="ml-3 w-5 h-5"></i>
-                    <span class="font-bold">الرئيسية</span>
-                </a>
-                
-                <p class="px-4 text-xs font-semibold text-gray-400 mt-4 mb-2">الإدارة</p>
-                <a href="/courses" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                    <i data-feather="book-open" class="ml-3 w-5 h-5"></i>
-                    <span>الدورات التدريبية</span>
-                </a>
-                          </a>
-                 <a href="/subscriptions" 
-   class="sidebar-link flex items-center px-4 py-3 rounded-lg text-gray-700 transition duration-150 ease-in-out hover:bg-indigo-50 hover:text-indigo-600 font-medium">
-    
-   <i data-feather="list" class="ml-3 w-5 h-5"></i> <span >طلبات الاشتراك</span>
-</a>
-                <a href="/admin/students" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                    <i data-feather="users" class="ml-3 w-5 h-5"></i>
-                    <span>الطلاب</span>
-                </a>
-                <a href="instructors.html" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                    <i data-feather="video" class="ml-3 w-5 h-5"></i>
-                    <span>المدربين</span>
-                </a>
-                
-                <p class="px-4 text-xs font-semibold text-gray-400 mt-4 mb-2">النظام</p>
-                <a href="/admin/reports" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                    <i data-feather="pie-chart" class="ml-3 w-5 h-5"></i>
-                    <span>التقارير المالية</span>
-                </a>
-                <a href="/settings" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                    <i data-feather="settings" class="ml-3 w-5 h-5"></i>
-                    <span>الإعدادات</span>
-                </a>
-            </nav>
 
-            <div class="p-4 border-t border-gray-200">
-                <div class="flex items-center gap-3 mb-4">
-                    <img class="h-10 w-10 rounded-full object-cover" src="https://ui-avatars.com/api/?name=Admin+User&background=random" alt="Admin">
-                    <div>
-                        <p class="text-sm font-medium text-gray-700"> 'user.name' </p>
-
-                        <p class="text-xs text-gray-500">'user.email ' </p>
-                    </div>
-                </div>
-
-              <a href="#" onclick="openLogoutModal(event)" class="flex items-center justify-center p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors font-medium">
-    <i data-feather="log-out" class="ml-2 w-5 h-5"></i>
-    تسجيل الخروج
-</a>
-<div id="logoutModal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden items-center justify-center z-50 transition-opacity duration-300">
-    <div class="bg-white rounded-lg shadow-xl overflow-hidden max-w-sm w-full mx-4" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        
-        <div class="px-6 pt-5 pb-4">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                    <i data-feather="alert-triangle" class="h-6 w-6 text-red-600"></i>
-                </div>
-                <div class="mr-4 text-right">
-                    <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">تأكيد تسجيل الخروج</h3>
-                    <div class="mt-2">
-                        <p class="text-sm text-gray-500">
-                            هل أنت متأكد أنك تريد تسجيل الخروج؟ سيتم إنهاء جلستك الحالية.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 flex justify-between gap-3">
-            
-            <button type="button" onclick="closeLogoutModal()" class="w-full justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-100 sm:mt-0 sm:w-auto sm:text-sm transition-colors">
-                إلغاء
-            </button>
-            
-            <a id="confirmLogoutButton" href="/logout" class="w-full justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:w-auto sm:text-sm transition-colors flex items-center">
-                <i data-feather="log-out" class="ml-1 w-4 h-4"></i>
-                نعم، تسجيل الخروج
-            </a>
-            
-        </div>
-    </div>
-</div>
-<script>
-    // ... (بقية دوال JavaScript) ...
-
-// ----------------- دوال التحكم في Modal الخروج -----------------
-
-const logoutModal = document.getElementById('logoutModal');
-
-/**
- * فتح نافذة تأكيد تسجيل الخروج
- * @param {Event} event - لمنع السلوك الافتراضي للرابط.
- */
-function openLogoutModal(event) {
-    event.preventDefault(); // منع التحويل المباشر
-    logoutModal.classList.remove('hidden');
-    logoutModal.classList.add('flex'); // لجعلها ظاهرة في المنتصف
-}
-
-/**
- * إغلاق نافذة تأكيد تسجيل الخروج
- */
-function closeLogoutModal() {
-    logoutModal.classList.remove('flex');
-    logoutModal.classList.add('hidden');
-}
-
-// ⭐️ ملاحظة مهمة: عند النقر على الزر الأحمر "نعم، تسجيل الخروج"، 
-// سيتم التحويل مباشرة إلى المسار /logout لأن وسم <a> يحتوي عليه.
-// ------------------------------------------------------------------
-</script>
-            </div>
-        </aside>
-
-    <!-- Main content -->
     <div class="flex-1 flex flex-col overflow-hidden">
-
-        <!-- Header -->
-        <header class="h-16 bg-white border-b border-gray-200 flex items-center px-8">
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
             <h2 class="text-xl font-bold text-gray-800">إدارة طلبات الاشتراك</h2>
+            <div id="currentDate" class="text-sm text-gray-500 font-medium"></div>
         </header>
 
-        <!-- Main -->
-        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
-
-            <!-- إحصائيات الطلبات -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8 custom-scrollbar">
+            
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <% const total = bookings?.length || 0; %>
-                <% const pendingCount = bookings.filter(b => b.status==='pending').length; %>
-                <% const awaitingCount = bookings.filter(b => b.status==='awaiting_payment').length; %>
-                <% const confirmedCount = bookings.filter(b => b.status==='confirmed').length; %>
-                <% const rejectedCount = bookings.filter(b => b.status==='rejected').length; %>
-
-                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                    <div class="p-3 bg-indigo-50 text-indigo-600 rounded-full"><i data-feather="file-text" class="w-6 h-6"></i></div>
-                    <div><p class="text-gray-500 text-sm">إجمالي الطلبات</p><p class="text-2xl font-bold"><%= total %></p></div>
+                <div onclick="filterByCard('all')" class="cursor-pointer hover:shadow-md transition-all bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4">
+                    <div class="p-3 bg-indigo-50 text-indigo-600 rounded-full"><i data-feather="file-text"></i></div>
+                    <div><p class="text-gray-500 text-xs">إجمالي الطلبات</p><p class="text-2xl font-bold"><%= stats.totalRequests %></p></div>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                    <div class="p-3 bg-yellow-50 text-yellow-600 rounded-full"><i data-feather="clock" class="w-6 h-6"></i></div>
-                    <div><p class="text-gray-500 text-sm">قيد المراجعة</p><p class="text-2xl font-bold"><%= pendingCount %></p></div>
+                <div onclick="filterByCard('pending')" class="cursor-pointer hover:shadow-md transition-all bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4">
+                    <div class="p-3 bg-yellow-50 text-yellow-600 rounded-full"><i data-feather="clock"></i></div>
+                    <div><p class="text-gray-500 text-xs">قيد المراجعة</p><p class="text-2xl font-bold"><%= stats.pendingRequests %></p></div>
                 </div>
 
-             
-
-                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                    <div class="p-3 bg-green-50 text-green-600 rounded-full"><i data-feather="check-circle" class="w-6 h-6"></i></div>
-                    <div><p class="text-gray-500 text-sm">تم الموافقة</p><p class="text-2xl font-bold"><%= confirmedCount %></p></div>
-                </div>
-   <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                    <div class="p-3 bg-orange-50 text-orange-600 rounded-full"><i data-feather="alert-triangle" class="w-6 h-6"></i></div>
-                    <div><p class="text-gray-500 text-sm"> الاشتراكات قريبة الانتهاء </p><p class="text-2xl font-bold"><%= awaitingCount %></p></div>
+                <div onclick="filterByCard('critical')" class="cursor-pointer hover:shadow-md transition-all bg-white p-5 rounded-xl border-r-4 border-r-red-500 flex items-center gap-4 shadow-sm">
+                    <div class="p-3 bg-red-50 text-red-600 rounded-full"><i data-feather="alert-circle"></i></div>
+                    <div>
+                        <p class="text-gray-500 text-xs text-red-600 font-bold">تطلب تجديد</p>
+                        <p class="text-2xl font-bold text-red-700"><%= stats.criticalSubscriptions %></p>
+                    </div>
                 </div>
 
+                <div onclick="filterByCard('confirmed')" class="cursor-pointer hover:shadow-md transition-all bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4">
+                    <div class="p-3 bg-green-50 text-green-600 rounded-full"><i data-feather="check-circle"></i></div>
+                    <div><p class="text-gray-500 text-xs">الفعالة</p><p class="text-2xl font-bold"><%= stats.acceptedRequests %></p></div>
+                </div>
             </div>
 
-            <!-- جدول الطلبات -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-
-                <!-- فلترة وبحث -->
-                <div class="p-4 border-b border-gray-100 flex justify-between items-center flex-wrap gap-4">
-                    <div class="flex items-center gap-4">
-                        <div class="relative">
-                            <i data-feather="search" class="absolute top-2.5 right-3 w-4 h-4 text-gray-400"></i>
-                            <input type="text" placeholder="بحث بالاسم أو الدورة..." class="w-64 pr-10 pl-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" id="searchInput">
-                        </div>
-                        <select id="statusFilter" class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none">
-                            <option value="all">الحالة: الكل</option>
-                            <option value="pending">قيد المراجعة</option> <option value="confirmed">تم الموافقة</option>
-                            <option value="rejected">مرفوض</option>
-                            
-                            <option value="awaiting_payment"> الاشتراكات قريبة الانتهاء </option>
-                           
-                        </select>
+                <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="relative w-full md:w-96">
+                        <i data-feather="search" class="absolute top-3 right-3 w-4 h-4 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="بحث باسم الطالب أو الدورة..." class="w-full pr-10 pl-4 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                     </div>
+                    <select id="statusFilter" class="w-full md:w-48 border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none bg-white cursor-pointer focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">كل الحالات</option>
+                        <option value="critical">⚠️ تطلب تجديد</option>
+                        <option value="pending">قيد المراجعة</option>
+                        <option value="confirmed">تم الموافقة</option>
+                        <option value="rejected">مرفوض</option>
+                    </select>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-right" id="bookingsTable">
-                        <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-medium">
+                    <table class="w-full text-right border-collapse">
+                        <thead class="bg-gray-50 text-gray-500 text-[11px] font-bold uppercase tracking-wider">
                             <tr>
-                                <th class="px-6 py-3">الطالب</th>
-                                <th class="px-6 py-3">الدورة</th>
-                                <th class="px-6 py-3">تاريخ الطلب</th>
-                                <th class="px-6 py-3">حالة الدفع</th>
-                                <th class="px-6 py-3">إدارة الجلسات</th>
-                                <th class="px-6 py-3">الإجراءات</th>
+                                <th class="px-6 py-4">الطالب والمعلم</th>
+                                <th class="px-6 py-4">الدورة</th>
+                                <th class="px-6 py-4">البدء / المتبقي</th>
+                                <th class="px-6 py-4 text-center">الحالة</th>
+                                <th class="px-6 py-4 text-center">تواصل سريع</th>
+                                <th class="px-6 py-4">الإجراءات</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 text-sm text-gray-700" id="bookingsTableBody"></tbody>
+                        <tbody id="bookingsTableBody" class="divide-y divide-gray-100 bg-white">
+                            </tbody>
                     </table>
                 </div>
             </div>
-
         </main>
     </div>
 </div>
 
-<script>
-    feather.replace();
-    const allBookings = <%- JSON.stringify(bookings || []) %>;
+<div id="renewModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity" onclick="closeRenewModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-2xl text-right overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-100">
+            <div class="bg-white px-6 pt-6 pb-4">
+                <div class="sm:flex sm:items-start flex-row-reverse">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-50 sm:mx-0 sm:h-10 sm:w-10">
+                        <i data-feather="refresh-cw" class="text-indigo-600 w-5 h-5"></i>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:mr-4 sm:text-right w-full">
+                        <h3 class="text-xl font-bold text-gray-900">تأكيد تجديد الاشتراك</h3>
+                        <div class="mt-4 p-4 bg-gray-50 rounded-xl space-y-2 border border-gray-100">
+                            <p class="text-xs text-gray-500">سيتم إنشاء طلب جديد للبيانات التالية:</p>
+                            <div class="text-sm font-bold text-indigo-700">
+                                <p>الطالب: <span id="mdlName" class="text-gray-900"></span></p>
+                                <p>الدورة: <span id="mdlCourse" class="text-gray-900"></span></p>
+                            </div>
+                            <p class="text-[10px] text-red-500">⚠️ سيتم نسخ أيام ومواعيد الحصص القديمة تلقائياً.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3">
+                <button type="button" onclick="confirmRenewal()" id="mdlConfirmBtn" class="flex-1 rounded-xl px-4 py-2.5 bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">تأكيد التجديد</button>
+                <button type="button" onclick="closeRenewModal()" class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-all">إلغاء</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    function getStatusInfo(status) {
-        return {
-            pending: { text: 'قيد المراجعة', color: 'bg-yellow-100 text-yellow-800' },
-            awaiting_payment: { text: 'بانتظار الدفع', color: 'bg-orange-100 text-orange-800' },
-            confirmed: { text: 'تم الموافقة', color: 'bg-green-100 text-green-800' },
-            rejected: { text: 'مرفوض', color: 'bg-red-100 text-red-800' }
-        }[status] || { text: 'غير معروف', color: 'bg-gray-200 text-gray-700' };
-    }
+<script>
+    const rawData = `<%- JSON.stringify(bookings) %>`;
+    const allBookings = JSON.parse(rawData);
+    let currentRenewId = null;
+
+    feather.replace();
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     function buildRow(b) {
-        const student = b.studentId?.name || 'طالب غير معروف';
-        const course = b.courseId?.title || 'كورس غير معروف';
-        const orderDate = b.createdAt ? new Date(b.createdAt).toLocaleDateString('ar-EG') : 'غير متوفر';
-        const info = getStatusInfo(b.status);
-          const schedule = (b.status !== 'rejected') ?
+        const isCritical = b.isCritical;
+        const daysLeft = b.daysRemaining;
+        const phone = b.studentId?.phone_number || "";
+        const email = b.studentId?.email || "";
+        const sName = b.studentId?.name || "الطالب";
+        const cTitle = b.courseId?.title || "الدورة";
 
-        `
+        // التواصل
+        const waLink = `https://wa.me/${phone}?text=${encodeURIComponent('مرحباً ' + sName + '، نذكرك بموعد تجديد اشتراكك في دورة ' + cTitle)}`;
+        const mailLink = `mailto:${email}?subject=تجديد الاشتراك&body=عزيزي ${sName}، نود تذكيرك بقرب انتهاء اشتراكك...`;
 
-      <a href="/booking/${b._id}/schedule"
+        const statusMap = {
+            pending: { t: 'قيد المراجعة', c: 'bg-yellow-100 text-yellow-700' },
+            confirmed: { t: 'فعال', c: 'bg-green-100 text-green-700' },
+            rejected: { t: 'مرفوض', c: 'bg-gray-200 text-gray-600' }
+        };
+        const st = statusMap[b.status] || { t: b.status, c: 'bg-gray-100' };
 
-                    class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold block text-center">
-
-                    جدولة الحصص
-
-                </a>
-
-        ` : '';
-
-        const addLinks = (b.status !== 'rejected') ?
-
- `
-
-  <a href="/booking/${b._id}/manage-sessions"
-
-                    class="text-purple-600 bg-purple-100 px-3 py-1 rounded-full text-xs font-bold block text-center hover:bg-purple-200 transition">
-
-                    إدارة/إضافة الحصص
-
-                </a>
-
-                 `
-
-  : '';
-
-     const managePaymentButton = (b.status !== 'rejected') ?
-
-        `
-
-        <a href="/booking/${b._id}/manage-payment"
-
-            class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold block text-center mt-2">
-
-            إدارة الدفع
-
-        </a>
-
-        `
-
-        : ''; // إذا كانت rejected، فسنعرض سلسلة نصية فارغة (زر مخفي)
-
-
-        const paymentBtn = (b.status !== 'rejected') ? `<button  onclick="location.href='/payments?bookingId=${b._id}'" class="px-3 py-1 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700">إدارة الدفع</button>` : '';
-        const sessionBtn = (b.status === 'confirmed') ? `<button onclick="location.href='/sessions?bookingId=${b._id}'" class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs hover:bg-indigo-700">إدارة الجلسات</button>` : '';
         return `
-            <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4 font-medium">${student}</td>
-                <td class="px-6 py-4">${course}</td>
-                <td class="px-6 py-4 text-gray-500">${orderDate}</td>
-                <td class="px-6 py-4"><span class="${info.color} px-2 py-1 rounded-full text-xs font-medium">${info.text}</span></td>
-                <td class="px-6 py-4">${managePaymentButton}</td>
-                <td class="px-6 py-4 flex gap-2">
-                    ${schedule}
-                   
+            <tr class="${isCritical ? 'critical-pulse' : 'hover:bg-gray-50'} transition-all">
+                <td class="px-6 py-4">
+                    <div class="text-sm font-bold text-gray-900">${b.studentId?.name || '---'}</div>
+                    <div class="text-[10px] text-indigo-500 font-medium">المعلم: ${b.teacherId?.name || 'غير محدد'}</div>
                 </td>
-            </tr>`;
+                <td class="px-6 py-4">
+                    <div class="text-xs font-semibold text-gray-700">${b.courseId?.title || '---'}</div>
+                    <div class="text-[9px] text-gray-400 uppercase">${b.courseId?.category?.name || 'عام'}</div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-xs text-gray-600 font-medium">${b.startDate ? new Date(b.startDate).toLocaleDateString('ar-EG') : 'لم يبدأ'}</div>
+                    ${getBadge(daysLeft)}
+                </td>
+                <td class="px-6 py-4 text-center">
+                    <span class="${st.c} px-2.5 py-1 rounded-full text-[10px] font-bold inline-block">${st.t}</span>
+                    ${(isCritical || (daysLeft !== null && daysLeft <= 0)) ? `
+                        <button onclick="openRenewModal('${b._id}')" class="mt-2 w-full bg-red-600 hover:bg-red-700 text-white text-[9px] py-1 rounded-lg font-bold shadow-sm flex items-center justify-center gap-1 transition-all active:scale-95">
+                            <i data-feather="refresh-cw" class="w-2.5 h-2.5"></i> تجديد
+                        </button>` : ''}
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex gap-2 justify-center">
+                        <a href="${waLink}" target="_blank" class="p-2 bg-green-50 text-green-600 rounded-lg border border-green-100 hover:bg-green-100 transition-all" title="واتساب">
+                            <i data-feather="message-circle" class="w-4 h-4"></i>
+                        </a>
+                        <a href="${mailLink}" class="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-100 transition-all" title="إيميل">
+                            <i data-feather="mail" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex flex-col gap-2">
+                        <a href="/booking/${b._id}/manage-payment" class="text-[11px] font-bold text-indigo-600 hover:underline">إدارة الدفع</a>
+                        <div class="flex gap-1">
+                            <a href="/booking/${b._id}/schedule" title="الجدول" class="p-1.5 bg-white border rounded hover:bg-gray-50 transition-colors"><i data-feather="calendar" class="w-3.5 h-3.5 text-gray-500"></i></a>
+                            <a href="/booking/${b._id}/manage-sessions" title="الحصص" class="p-1.5 bg-white border rounded hover:bg-gray-50 transition-colors"><i data-feather="layers" class="w-3.5 h-3.5 text-gray-500"></i></a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    function getBadge(days) {
+        if (days === null) return '';
+        if (days > 7) return `<span class="text-gray-400 text-[10px] block mt-1">متبقي ${days} يوم</span>`;
+        if (days >= 0) return `<span class="text-red-600 font-bold text-[10px] block mt-1 animate-pulse italic">⚠️ ينتهي خلال ${days} يوم</span>`;
+        return `<span class="text-gray-300 font-bold text-[10px] block mt-1">منتهي</span>`;
     }
 
     function renderTable() {
-        const searchValue = document.getElementById('searchInput').value.toLowerCase();
-        const statusFilter = document.getElementById('statusFilter').value;
-
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filter = document.getElementById('statusFilter').value;
         const filtered = allBookings.filter(b => {
-            const matchSearch = b.studentId?.name.toLowerCase().includes(searchValue) || b.courseId?.title.toLowerCase().includes(searchValue);
-            const matchStatus = statusFilter === 'all' || b.status === statusFilter;
-            return matchSearch && matchStatus;
+            const match = (b.studentId?.name || "").toLowerCase().includes(query) || (b.courseId?.title || "").toLowerCase().includes(query);
+            if (filter === 'critical') return match && b.isCritical;
+            if (filter !== 'all') return match && b.status === filter;
+            return match;
         });
-
-        document.getElementById('bookingsTableBody').innerHTML = filtered.map(buildRow).join('');
+        document.getElementById('bookingsTableBody').innerHTML = filtered.length ? filtered.map(buildRow).join('') : '<tr><td colspan="6" class="p-10 text-center text-gray-400">لا توجد نتائج مطابقة</td></tr>';
         feather.replace();
+    }
+
+    function filterByCard(s) { document.getElementById('statusFilter').value = s; renderTable(); }
+
+    function openRenewModal(id) {
+        currentRenewId = id;
+        const b = allBookings.find(x => x._id === id);
+        if(b) {
+            document.getElementById('mdlName').textContent = b.studentId?.name;
+            document.getElementById('mdlCourse').textContent = b.courseId?.title;
+            document.getElementById('renewModal').classList.remove('hidden');
+            feather.replace();
+        }
+    }
+
+    function closeRenewModal() { document.getElementById('renewModal').classList.add('hidden'); }
+
+    async function confirmRenewal() {
+        const btn = document.getElementById('mdlConfirmBtn');
+        btn.disabled = true; btn.innerHTML = '<span class="animate-spin inline-block ml-2">⏳</span> جاري...';
+        try {
+            const res = await fetch(`/api/subscriptions/renew/${currentRenewId}`, { method: 'POST' });
+            if(res.ok) { alert('تم إنشاء طلب تجديد جديد بنجاح بنسخ نفس أيام الحصص'); window.location.reload(); }
+            else alert('فشل التجديد، يرجى المحاولة لاحقاً');
+        } catch (e) { alert('حدث خطأ في الاتصال'); }
+        finally { btn.disabled = false; btn.textContent = 'تأكيد التجديد'; closeRenewModal(); }
     }
 
     document.getElementById('searchInput').addEventListener('input', renderTable);
     document.getElementById('statusFilter').addEventListener('change', renderTable);
-
-    document.addEventListener('DOMContentLoaded', renderTable);
+    window.onload = renderTable;
 </script>
-
 </body>
 </html>

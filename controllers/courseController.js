@@ -274,30 +274,66 @@ console.log(request);
 };
 const getAdminSubscription = async (req, res) => {
 
- const subscription = await Subscription.find().populate({
-                path: 'courseId', // قم بتعبئة الكورس أولاً
-                // داخل الكورس المُعبَّأ، قم بتعبئة التصنيف
-                populate: {
-                    path: 'category', // اسم الحقل في موديل Course
-                    model: 'Category' // اسم موديل التصنيف
-                }
+try {
+        const subscriptions = await Subscription.find()
+            .populate({
+                path: 'courseId',
+                populate: { path: 'category', model: 'Category' }
             })
-            .populate('studentId').sort({ createdAt: -1 });
+            .populate('studentId')
+            .populate('teacherId') // أضفنا المعلم أيضاً
+            .sort({ createdAt: -1 });
 
-console.log("Bookings:", subscription);
+const now = new Date();
+now.setHours(0, 0, 0, 0); // ضبط الوقت للصفر لضمان دقة حساب الأيام
 
-    // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
-    res.render('../views/dashboard/admin_enrollment_management.ejs', { title: 'طلباتى ',
-       bookings:subscription,
-        stats: {
-            totalRequests: subscription.length,
-            pendingRequests: subscription.filter(b => b.status === 'pending').length,
-            acceptedRequests: subscription.filter(b => b.status === 'confirmed').length,
-            awaitingPayment: subscription.filter(b => b.status === 'awaiting_payment').length,
-            rejectedRequests: subscription.filter(b => b.status === 'rejected').length
-        }
-}
-);    
+const enhancedSubscriptions = subscriptions.map(sub => {
+    const subObj = sub.toObject();
+    
+    // تأكد من وجود تاريخ بداية وحوله لكائن Date فعلي
+    if (sub.startDate) {
+        const startDate = new Date(sub.startDate);
+        
+        // حساب تاريخ النهاية (بعد شهر)
+        const endDate = new Date(startDate);
+        endDate.setMonth(startDate.getMonth() + 1);
+        endDate.setHours(0, 0, 0, 0);
+
+        // الفرق بالأيام: (تاريخ النهاية - تاريخ اليوم) / عدد الملي ثانية في اليوم
+        const diffInMs = endDate.getTime() - now.getTime();
+        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+        subObj.daysRemaining = diffInDays;
+        
+        // المعيار الأول: هل الأيام المتبقية 2 أو أقل؟
+        const timeCritical = diffInDays <= 25 && diffInDays >= 0;
+
+    
+        // دمج المعيارين: إذا تحقق أحدهما وكان الاشتراك مؤكداً
+        subObj.isCritical = (sub.status === 'confirmed') && (timeCritical );
+        console.log(subObj.isCritical,'subObj.isCritical');
+    } else {
+        subObj.isCritical = false;
+    }
+
+    return subObj;
+});
+        res.render('../views/dashboard/admin_enrollment_management.ejs', { 
+            title: 'إدارة الطلبات والاشتراكات',
+            bookings: enhancedSubscriptions,
+            stats: {
+                totalRequests: subscriptions.length,
+                pendingRequests: subscriptions.filter(b => b.status === 'pending').length,
+              criticalSubscriptions: enhancedSubscriptions.filter(b => b.isCritical === true).length, // إحصائية جديدة
+                acceptedRequests: subscriptions.filter(b => b.status === 'confirmed').length,
+                rejectedRequests: subscriptions.filter(b => b.status === 'rejected').length
+            }
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("خطأ في جلب البيانات");
+    }  
 }
 // مثال لكود Express/Mongoose في متحكم (Controller)
 const confirmBookingPayment = async (req, res) => {
@@ -405,80 +441,79 @@ console.log(booking);
 
 // 2. دالة معالجة الجدولة وتحديثها (POST /booking/:id/update-sessions)
 const postUpdateSessions = async (req, res) => {
-    try {
-        const bookingId = req.params.id;
-        const { sessions } = req.body;
+  try {
+    const bookingId = req.params.id;
+    const { sessions } = req.body;
 
-        if (!Array.isArray(sessions)) {
-            return res.status(400).send('Invalid sessions data.');
-        }
-
-        // 🔹 جلب الحجز الحالي
-        const booking = await Subscription.findById(bookingId);
-        if (!booking || !booking.startDate) {
-            return res.status(400).send('Invalid booking or missing start date.');
-        }
-
-        const courseStartDate = new Date(booking.startDate);
-        const maxDateLimit = new Date(courseStartDate);
-        maxDateLimit.setDate(maxDateLimit.getDate() + 30); // شهر واحد
-
-        // 🔹 تنظيف + حماية + Validation
-        const cleanedSessions = sessions.map((session, index) => {
-            const oldSession = booking.sessions[index];
-
-            // 🛑 لو الحصة مكتملة → لا تعديل
-            if (oldSession?.status === 'completed') {
-                return oldSession;
-            }
-
-            if (!session.date || !session.time) {
-                throw new Error(`Missing date or time in session ${index + 1}`);
-            }
-
-            const sessionDate = new Date(session.date);
-            if (sessionDate < courseStartDate || sessionDate > maxDateLimit) {
-                throw new Error(
-                    `Session ${index + 1} date is outside allowed range`
-                );
-            }
-
-            // ✅ أول مرة → بدون _id
-            if (!session._id) {
-                return {
-                    status: session.status || 'pending',
-                    date: session.date,
-                    time: session.time
-                };
-            }
-
-            // ✅ تعديل جلسة موجودة
-            return {
-                _id: session._id,
-                status: session.status || 'pending',
-                date: session.date,
-                time: session.time
-            };
-        });
-
-        // 🔹 التحديث النهائي
-        await Subscription.findByIdAndUpdate(
-            bookingId,
-            { sessions: cleanedSessions },
-            { runValidators: true }
-        );
-
-        return res.redirect('/subscriptions');
-
-    } catch (error) {
-        console.error('Error updating sessions:', error.message);
-
-        if (error.message.startsWith('Session')) {
-            return res.status(400).send(error.message);
-        }
-
-        res.status(500).send('Server Error');
+    if (!Array.isArray(sessions)) {
+        return res.status(400).send('Invalid sessions data.');
     }
+
+    // 🔹 جلب الحجز مع بيانات المعلم المسند له الحجز
+    // قمنا بإضافة populate لجلب رابط الزووم من ملف المعلم الشخصي
+    const booking = await Subscription.findById(bookingId).populate('teacherId', 'zoom_link');
+    
+    if (!booking || !booking.startDate) {
+        return res.status(400).send('Invalid booking or missing start date.');
+    }
+
+    // الحصول على رابط المعلم (أو رابط افتراضي إذا لم يوجد)
+    const teacherZoomLink = booking.teacherId?.zoom_link || "";
+
+    const courseStartDate = new Date(booking.startDate);
+    const maxDateLimit = new Date(courseStartDate);
+    maxDateLimit.setDate(maxDateLimit.getDate() + 30); 
+
+    const cleanedSessions = sessions.map((session, index) => {
+        const oldSession = booking.sessions[index];
+
+        // 🛑 لو الحصة مكتملة → لا تعديل
+        if (oldSession?.status === 'completed') {
+            return oldSession;
+        }
+
+        if (!session.date || !session.time) {
+            throw new Error(`Missing date or time in session ${index + 1}`);
+        }
+
+        const sessionDate = new Date(session.date);
+        if (sessionDate < courseStartDate || sessionDate > maxDateLimit) {
+            throw new Error(`Session ${index + 1} date is outside allowed range`);
+        }
+
+        // ✅ بناء كائن الحصة مع إضافة الرابط
+        const sessionData = {
+            status: session.status || 'pending',
+            date: session.date,
+            time: session.time,
+            endtime: session.endtime, // تأكد من استقبال وقت النهاية للتايمر
+            link: teacherZoomLink     // 👈 هنا أضفنا رابط المعلم لكل حصة
+        };
+
+        // إذا كان هناك ID (تعديل حصة موجودة)
+        if (session._id) {
+            sessionData._id = session._id;
+        }
+
+        return sessionData;
+    });
+
+    // 🔹 التحديث النهائي
+    await Subscription.findByIdAndUpdate(
+        bookingId,
+        { sessions: cleanedSessions },
+        { runValidators: true }
+    );
+
+    return res.redirect('/subscriptions');
+
+} catch (error) {
+    console.error('Error updating sessions:', error.message);
+    if (error.message.startsWith('Session')) {
+        return res.status(400).send(error.message);
+    }
+    res.status(500).send('Server Error');
+}
 };
 
 

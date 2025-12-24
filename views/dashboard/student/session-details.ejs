@@ -80,12 +80,12 @@
                     </div>
 
                     <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
-                        
+                   
                         <h3 id="timerHeader" class="text-xl font-bold text-gray-700 mb-6 flex items-center justify-center">
                             <i data-feather="clock" class="ml-2 w-6 h-6 text-indigo-600"></i>
                             الوقت المتبقي لبدء الحصة:
                         </h3>
-                        
+                       
                         <div id="countdownTimer" class="flex justify-center gap-4 flex-wrap">
                             <div class="countdown-segment bg-indigo-50 p-4 rounded-xl min-w-[90px] shadow-sm">
                                 <span id="days" class="text-5xl font-extrabold text-indigo-700 block">00</span>
@@ -108,7 +108,7 @@
                         <p id="timerMessage" class="text-sm font-medium text-red-600 mt-4 hidden">الزر سينشط قبل 10 دقائق من موعد الحصة.</p>
                     </div>
                     
-                    <a href="<%= sessionDetails.link %>" id="joinSessionButton" 
+                    <a href="<%= sessionDetails.sessionLink%>" id="joinSessionButton" 
                        class="w-full inline-flex items-center justify-center px-8 py-4 bg-gray-400 text-white text-xl font-bold rounded-xl shadow-lg transition duration-300 pointer-events-none disabled:opacity-50">
                         <i data-feather="log-in" class="ml-3 w-6 h-6"></i>
                         انضم إلى الحصة الآن (غير متاح)
@@ -123,7 +123,7 @@
                         </div>
                         <div class="bg-white p-4 rounded-xl shadow-md border border-gray-100">
                             <p class="text-sm font-medium text-gray-500 flex items-center justify-center"><i data-feather="user" class="ml-2 w-4 h-4"></i> المعلم</p>
-                            <p class="font-bold text-gray-800 mt-1" id="sessionTutor"><%= sessionDetails.tutorName || 'المعلم غير محدد' %></p>
+                            <p class="font-bold text-gray-800 mt-1" id="sessionTutor"><%= sessionDetails.teacherName || 'المعلم غير محدد' %></p>
                         </div>
                     </div>
                 </div>

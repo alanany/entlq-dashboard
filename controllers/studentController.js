@@ -369,6 +369,8 @@ const getSessionWaitingRoom = async (req, res, next) => {
         path: "courseId",
         select: "title description instructor",
         // يمكنك إضافة تعبئة المدرب هنا إذا كان مرجعاً داخل الكورس
+      }) .populate({
+       path: "teacherId"
       })
       .lean();
 
@@ -383,6 +385,9 @@ const getSessionWaitingRoom = async (req, res, next) => {
       ...booking.sessions[0], // الجلسة المطلوبة هي العنصر الأول (والوحيد) في المصفوفة
       courseTitle: booking.courseId.title,
       sessionLink: booking.sessions[0].link,
+      teacherName: booking.teacherId.name
+      
+  
       // instructorName: booking.courseId.instructor.name, // إذا قمت بتعبئة المدرب
     };
     console.log(sessionDetails.sessionDetails, "sessionDetails");
