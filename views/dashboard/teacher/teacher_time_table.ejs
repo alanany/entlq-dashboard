@@ -3,82 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>جدول المواعيد - لوحة المعلم</title>
+    <title>جدول المعلم الاحترافي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
-        .tab-btn.active { background-color: #4f46e5; color: white; border-color: #4f46e5; }
-        .fc-event { cursor: pointer; padding: 2px 5px; border-radius: 6px; font-size: 0.75rem; }
-        .fc-toolbar-title { font-size: 1.2rem !important; font-weight: 800; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .tab-btn.active { background-color: #4f46e5; color: white; border-color: #4f46e5; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); }
+        .fc-event { cursor: pointer; padding: 4px; border-radius: 6px; font-size: 0.75rem; border: none !important; }
+        .session-card-link:hover { transform: translateY(-3px); transition: all 0.3s ease; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .animate-in { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="overflow-hidden">
 
     <div class="flex h-screen overflow-hidden">
-
-
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <button onclick="history.back()" class="p-2 hover:bg-gray-100 rounded-full transition">
-                    <i data-feather="arrow-right" class="w-5 h-5 text-gray-600"></i>
-                </button>
-                <h1 class="text-lg font-bold text-gray-900">جدول الحصص </h1>
-            </div>
-            <div class="bg-indigo-50 text-indigo-600 p-2 rounded-xl">
-                <i data-feather="credit-card" class="w-5 h-5"></i>
-            </div>
-        </div>
-    </header>
+            
+            <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-6 h-16 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-4">
+                    <button onclick="history.back()" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <i data-feather="arrow-right" class="w-5 h-5 text-gray-500"></i>
+                    </button>
+                    <h1 class="text-xl font-extrabold tracking-tight text-gray-900">جدول الحصص</h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">تحديث تلقائي</span>
+                    <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-200">
+                        <i data-feather="calendar" class="w-5 h-5"></i>
+                    </div>
+                </div>
+            </header>
 
             <main class="flex-1 overflow-y-auto p-4 md:p-8">
                 <div class="max-w-6xl mx-auto">
                     
-                    <div class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-                        <div class="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
-                            <button onclick="switchView('weekly')" id="btn-weekly" class="tab-btn active px-6 py-2 rounded-xl text-sm font-bold transition">أسبوعي</button>
-                            <button onclick="switchView('monthly')" id="btn-monthly" class="tab-btn px-6 py-2 rounded-xl text-sm font-bold transition text-gray-500">شهري</button>
+                    <div class="flex flex-col md:flex-row items-center justify-between mb-10 gap-6">
+                        <div class="flex bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm w-full md:w-auto">
+                            <button onclick="switchView('weekly')" id="btn-weekly" class="tab-btn active flex-1 md:flex-none px-8 py-2.5 rounded-xl text-sm font-bold transition-all">أسبوعي</button>
+                            <button onclick="switchView('monthly')" id="btn-monthly" class="tab-btn flex-1 md:flex-none px-8 py-2.5 rounded-xl text-sm font-bold transition-all text-gray-400">شهري</button>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <button onclick="navigateCalendar('prev')" class="p-2 hover:bg-gray-200 rounded-full transition"><i data-feather="chevron-right"></i></button>
-                            <h3 id="currentDateLabel" class="text-lg font-extrabold text-gray-800">الجدول الدراسي</h3>
-                            <button onclick="navigateCalendar('next')" class="p-2 hover:bg-gray-200 rounded-full transition"><i data-feather="chevron-left"></i></button>
+                        
+                        <div class="flex items-center gap-6 bg-white px-6 py-2.5 rounded-2xl border border-gray-100 shadow-sm">
+                            <button onclick="navigateCalendar('prev')" class="p-1 hover:text-indigo-600 transition-colors"><i data-feather="chevron-right"></i></button>
+                            <h3 id="currentDateLabel" class="text-base font-black text-gray-700 min-w-[120px] text-center">الأسبوع الحالي</h3>
+                            <button onclick="navigateCalendar('next')" class="p-1 hover:text-indigo-600 transition-colors"><i data-feather="chevron-left"></i></button>
                         </div>
                     </div>
 
-                    <div id="weeklyView" class="space-y-4">
-                        <% if (Object.keys(schedule).length > 0) { %>
-                            <% Object.keys(schedule).forEach(date => { %>
-                                <div class="bg-white rounded-3xl border border-gray-100 p-4 flex flex-col md:flex-row gap-4 items-start md:items-center">
-                                    <div class="w-24 text-center border-l-2 border-indigo-500 ml-4">
-                                        <p class="text-xs text-gray-400 font-bold"><%= schedule[date].dayName %></p>
-                                        <p class="text-2xl font-black text-gray-900"><%= schedule[date].dayNumber %></p>
+                    <div id="weeklyView" class="space-y-6 animate-in">
+                        <% 
+                            const now = new Date(); 
+                            // ترتيب التواريخ لضمان البداية من السبت
+                            const sortedDates = Object.keys(schedule).sort(); 
+                        %>
+
+                        <% if (sortedDates.length > 0) { %>
+                            <% sortedDates.forEach(dateStr => { 
+                                const dayData = schedule[dateStr];
+                            %>
+                                <div class="bg-white rounded-[2rem] border border-gray-100 p-6 flex flex-col md:flex-row gap-6 items-start md:items-center shadow-sm hover:border-indigo-100 transition-colors">
+                                    <div class="w-24 text-center border-l-4 border-indigo-500 ml-4 py-2">
+                                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter mb-1"><%= dayData.dayName %></p>
+                                        <p class="text-4xl font-black text-gray-900 leading-none"><%= dayData.dayNumber %></p>
                                     </div>
-                                    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
-                                        <% schedule[date].sessions.forEach(session => { %>
-                                            <div class="p-3 rounded-2xl border <%= session.status === 'completed' ? 'bg-emerald-50 border-emerald-100' : 'bg-indigo-50 border-indigo-100' %> relative">
-                                                <p class="text-[10px] font-bold <%= session.status === 'completed' ? 'text-emerald-500' : 'text-indigo-500' %>"><%= session.time %></p>
-                                                <p class="text-sm font-bold text-gray-800"><%= session.courseTitle %></p>
-                                                <p class="text-[10px] text-gray-500 italic">الطالب: <%= session.studentName %></p>
+                                    
+                                    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+                                        <% if (dayData.sessions && dayData.sessions.length > 0) { %>
+                                            <% dayData.sessions.forEach(session => { 
+                                                // مقارنة التاريخ والوقت الكامل
+                                                const sessionStart = new Date(`${dateStr}T${session.time}:00`);
+                                                const sessionEnd = new Date(sessionStart.getTime() + (60 * 60 * 1000)); 
+                                                
+                                                const isTimePassed = now >= sessionEnd;
+                                                const isCurrentlyRunning = now >= sessionStart && now < sessionEnd;
+                                                const isCompleted = session.status === 'completed';
+                                            %>
+                                                
+                                                <% if (isCompleted) { %>
+                                                    <div class="p-4 rounded-2xl border border-emerald-100 bg-emerald-50/20 border-r-4 border-r-emerald-500 group">
+                                                        <div class="flex justify-between items-start mb-3">
+                                                            <p class="text-[10px] font-bold text-emerald-600 bg-emerald-100/50 px-2 py-0.5 rounded-md"><%= session.time %></p>
+                                                            <i data-feather="check-circle" class="w-4 h-4 text-emerald-500"></i>
+                                                        </div>
+                                                        <p class="text-sm font-bold text-gray-800 mb-1"><%= session.courseTitle %></p>
+                                                        <p class="text-[11px] text-gray-500 font-medium italic"><%= session.studentName %></p>
+                                                    </div>
+
+                                                <% } else if (isTimePassed) { %>
+                                                    <a href="/teacher/session/<%=session.bookingId%>/<%= session.sessionIndex %>" 
+                                                       class="session-card-link block p-4 rounded-2xl border border-amber-200 bg-amber-50/50 border-r-4 border-r-amber-500 relative transition-all">
+                                                        <div class="flex justify-between items-start mb-3">
+                                                            <p class="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md"><%= session.time %></p>
+                                                            <span class="bg-amber-600 text-white text-[8px] px-2 py-0.5 rounded-lg font-black animate-pulse">ارسال التقرير</span>
+                                                        </div>
+                                                        <p class="text-sm font-black text-gray-900 mb-1"><%= session.courseTitle %></p>
+                                                        <p class="text-[11px] text-amber-900 font-bold underline">انقر لإنهاء الحصة</p>
+                                                    </a>
+
+                                                <% } else { %>
+                                                    <div class="p-4 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow">
+                                                        <div class="flex justify-between items-start mb-3">
+                                                            <p class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md"><%= session.time %></p>
+                                                            <% if (isCurrentlyRunning) { %>
+                                                                <span class="flex items-center gap-1 text-[9px] text-indigo-600 font-bold"><span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-ping"></span> جارية الآن</span>
+                                                            <% } %>
+                                                        </div>
+                                                        <p class="text-sm font-bold text-gray-800 mb-1"><%= session.courseTitle %></p>
+                                                        <p class="text-[11px] text-gray-400"><%= session.studentName %></p>
+                                                    </div>
+                                                <% } %>
+                                            <% }) %>
+                                        <% } else { %>
+                                            <div class="col-span-full py-4 flex items-center gap-2 text-gray-300">
+                                                <div class="h-px bg-gray-100 flex-1"></div>
+                                                <span class="text-[10px] font-bold uppercase tracking-widest">يوم راحة</span>
+                                                <div class="h-px bg-gray-100 flex-1"></div>
                                             </div>
-                                        <% }) %>
+                                        <% } %>
                                     </div>
                                 </div>
                             <% }) %>
                         <% } else { %>
-                            <div class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
-                                <p class="text-gray-400 font-bold">لا توجد حصص مجدولة حالياً</p>
+                            <div class="text-center py-32 bg-white rounded-[3rem] border border-dashed border-gray-200">
+                                <div class="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <i data-feather="coffee" class="w-10 h-10 text-gray-200"></i>
+                                </div>
+                                <h4 class="text-xl font-bold text-gray-900 mb-2">لا توجد حصص</h4>
+                                <p class="text-gray-400 text-sm">استمتع بوقت فراغك، لا يوجد مواعيد حالياً.</p>
                             </div>
                         <% } %>
                     </div>
 
-                    <div id="monthlyView" class="hidden bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-                        <div id="calendar-monthly"></div>
+                    <div id="monthlyView" class="hidden animate-in">
+                        <div class="bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-sm">
+                            <div id="calendar-monthly"></div>
+                        </div>
                     </div>
 
                 </div>
@@ -101,7 +164,7 @@
                 monthly.classList.add('hidden');
                 btnW.classList.add('active');
                 btnM.classList.remove('active');
-                document.getElementById('currentDateLabel').innerText = "الجدول الدراسي";
+                document.getElementById('currentDateLabel').innerText = "الأسبوع الحالي";
             } else {
                 weekly.classList.add('hidden');
                 monthly.classList.remove('hidden');
@@ -118,11 +181,32 @@
                 initialView: 'dayGridMonth',
                 locale: 'ar',
                 direction: 'rtl',
+                firstDay: 6, // السبت
                 headerToolbar: false,
-                events: '/teacher/events/<%= user._id %>',
+                events: '/teacher/events/<%= user._id %>', 
                 height: 'auto',
-                
-                datesSet: updateDateLabel
+                datesSet: updateDateLabel,
+                eventDidMount: function(info) {
+                    const status = info.event.extendedProps.status;
+                    const eventDate = info.event.start;
+                    const now = new Date();
+
+                    if (status === 'completed') {
+                        info.el.style.backgroundColor = '#10b981'; 
+                    } else if (eventDate < now) {
+                        info.el.style.backgroundColor = '#f59e0b'; 
+                    } else {
+                        info.el.style.backgroundColor = '#4f46e5'; 
+                    }
+                },
+                eventClick: function(info) {
+                    const status = info.event.extendedProps.status;
+                    const eventDate = info.event.start;
+                    if (status !== 'completed' && eventDate < new Date()) {
+                        window.location.href = info.event.url || ('/teacher/report/' + info.event.id);
+                        info.jsEvent.preventDefault();
+                    }
+                }
             });
             calendar.render();
         }
@@ -134,7 +218,9 @@
         }
 
         function updateDateLabel() {
-            if (calendar) document.getElementById('currentDateLabel').innerText = calendar.view.title;
+            if (calendar && !document.getElementById('monthlyView').classList.contains('hidden')) {
+                document.getElementById('currentDateLabel').innerText = calendar.view.title;
+            }
         }
     </script>
 </body>

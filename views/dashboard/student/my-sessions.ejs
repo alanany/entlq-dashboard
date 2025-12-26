@@ -3,220 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>جدول حصصي القادمة</title>
+    <title>جدول حصصي المتكامل</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        body { font-family: 'Tajawal', sans-serif; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        .tab-active { @apply bg-indigo-600 text-white shadow-lg scale-105; }
+        .accordion-content { transition: max-height 0.3s ease-out; overflow: hidden; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="pb-20">
 
 <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
     
-    <div class="mb-6">
-        <a href="#" onclick="history.back(); return false;" 
-           class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center font-medium transition duration-150">
-            <i data-feather="arrow-right" class="mr-1 w-4 h-4"></i> 
-            العودة للصفحة السابقة
-        </a>
+    <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+            <h1 class="text-4xl font-extrabold text-gray-900 flex items-center">
+                <i data-feather="calendar" class="ml-3 w-8 h-8 text-indigo-600"></i>
+                جدول الحصص والتقارير
+            </h1>
+        </div>
+
+        <div class="inline-flex p-1 bg-gray-200 rounded-2xl shadow-inner font-bold">
+            <button onclick="switchTab('upcoming')" id="tab-upcoming" class="px-8 py-3 rounded-xl transition-all duration-200 bg-indigo-600 text-white shadow-md">الحصص القادمة</button>
+            <button onclick="switchTab('past')" id="tab-past" class="px-8 py-3 rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-100">السابقة والتقارير</button>
+        </div>
     </div>
 
-    <h1 class="text-4xl font-extrabold text-gray-900 mb-8 flex items-center border-b pb-4">
-        <i data-feather="clock" class="ml-3 w-8 h-8 text-indigo-600"></i>
-        جدول حصصي القادمة والجارية
-    </h1>
-
     <% 
-        // ----------------------------------------------------
-        // الدوال المساعدة ومنطق تجميع وفرز الحصص
-        // ----------------------------------------------------
-        
-        // دالة للمقارنة بين التواريخ دون احتساب الوقت
-        const isSameDay = (date1, date2) => {
-            return date1.getFullYear() === date2.getFullYear() &&
-                   date1.getMonth() === date2.getMonth() &&
-                   date1.getDate() === date2.getDate();
-        };
+        const now = new Date();
+        let upcoming = [];
+        let past = [];
 
-        // جمع كل الحصص من كل الحجوزات مع courseTitle
-        let allSessions = [];
         if (bookings) {
             bookings.forEach(booking => {
                 const courseTitle = booking.courseId?.title || 'كورس غير معروف';
+                const studentName = booking.studentId?.name || 'طالب غير معروف';
+
                 (booking.sessions || []).forEach(session => {
-                    allSessions.push({ session, courseTitle });
+                    const dateObj = new Date(session.date);
+                    const [hour, minute] = (session.time || "00:00").split(':').map(Number);
+                    const sessionStart = new Date(dateObj.getTime());
+                    sessionStart.setHours(hour, minute, 0, 0);
+                    const sessionEnd = new Date(sessionStart.getTime() + 60*60*1000);
+                    
+                    const item = { session, courseTitle, studentName, sessionStart, sessionEnd, bookingId: booking._id };
+
+                    if (sessionEnd < now || session.status === 'completed') {
+                        past.push(item);
+                    } else {
+                        upcoming.push(item);
+                    }
                 });
             });
         }
-
-        // فلترة الحصص: تجاهل المنتهية، نحتفظ بالقادمة والجارية فقط
-        const upcomingSessions = allSessions.filter(item => {
-            const session = item.session;
-            if (!session.date || !session.time || session.time.indexOf(':') === -1) return false;
-
-            const dateObj = new Date(session.date);
-            if (isNaN(dateObj.getTime())) return false;
-            
-            const [hour, minute] = session.time.split(':').map(Number);
-            const sessionStart = new Date(dateObj.getTime());
-            sessionStart.setHours(hour, minute, 0, 0);
-
-            const now = new Date();
-            const sessionEnd = new Date(sessionStart.getTime() + 60*60*1000); // مدة الحصة ساعة
-
-            return sessionEnd >= now; // أي حصة لم تنتهِ بعد
-        });
-
-        // فرز الحصص حسب التاريخ والوقت (الأقرب أولاً)
-        upcomingSessions.sort((a, b) => {
-            const sa = new Date(a.session.date); 
-            const ta = a.session.time.split(':'); sa.setHours(parseInt(ta[0]), parseInt(ta[1]), 0, 0);
-            const sb = new Date(b.session.date);
-            const tb = b.session.time.split(':'); sb.setHours(parseInt(tb[0]), parseInt(tb[1]), 0, 0);
-            return sa.getTime() - sb.getTime();
-        });
+        upcoming.sort((a, b) => a.sessionStart - b.sessionStart);
+        past.sort((a, b) => b.sessionStart - a.sessionStart);
     %>
 
-    <% if (upcomingSessions.length === 0) { %>
-        <div class="p-10 text-center bg-white rounded-xl shadow-lg border-2 border-dashed border-gray-300">
-            <i data-feather="inbox" class="w-12 h-12 mx-auto text-gray-400 mb-3"></i>
-            <p class="text-lg font-bold text-gray-600">لا توجد لديك حصص قادمة أو جارية حالياً.</p>
-        </div>
-    <% } else { %>
+    <div id="upcoming-content">
+        <% if (upcoming.length === 0) { %>
+            <div class="p-20 text-center bg-white rounded-[2.5rem] border-2 border-dashed border-gray-200 text-gray-400 font-bold">لا توجد حصص مجدولة.</div>
+        <% } else { %>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <% upcoming.forEach(item => { 
+                    const isLive = item.sessionStart <= now && item.sessionEnd > now;
+                    const isToday = item.sessionStart.toDateString() === now.toDateString();
+                %>
+                    <div class="bg-white p-6 rounded-[2rem] border-2 <%= isLive ? 'border-red-500 shadow-xl ring-4 ring-red-50' : 'border-white shadow-sm' %>">
+                        <div class="flex justify-between mb-4">
+                            <span class="<%= isLive ? 'bg-red-600 animate-pulse' : 'bg-indigo-50 text-indigo-700' %> px-3 py-1 rounded-full text-[10px] font-black italic uppercase">
+                                <%= isLive ? 'مباشر الآن' : (isToday ? 'تبدأ اليوم' : 'قادمة') %>
+                            </span>
+                        </div>
+                        <h3 class="text-xl font-black text-gray-900 mb-1"><%= item.courseTitle %></h3>
+                        <p class="text-xs text-gray-400 font-bold mb-4 uppercase tracking-tighter italic">الطالب: <%= item.studentName %></p>
+                        
+                        <div class="space-y-2 mb-6 text-sm font-bold text-gray-600">
+                            <div class="flex items-center gap-2"><i data-feather="calendar" class="w-4 h-4 text-indigo-400"></i> <%= item.sessionStart.toLocaleDateString('ar-EG') %></div>
+                            <div class="flex items-center gap-2"><i data-feather="clock" class="w-4 h-4 text-indigo-400"></i> <%= item.session.time %></div>
+                        </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-
-       <%
-// ----------------------------------------------------
-// دالة مساعدة للتأكد من المقارنة باليوم فقط
-// يجب أن تكون هذه الدالة معرفة في مكان ما في ملفك الجافاسكريبت
-function isSameDay(d1, d2) {
-    return d1.getFullYear() === d2.getFullYear() &&
-           d1.getMonth() === d2.getMonth() &&
-           d1.getDate() === d2.getDate();
-}
-// ----------------------------------------------------
-
-upcomingSessions.forEach((item, index) => { 
-    const session = item.session;
-    const courseTitle = item.courseTitle;
-    const bookingId = item.bookingId; // افتراض توفر هذا الـ ID
-
-    // التحقق من صلاحية البيانات
-    if (!session || !session.date || !session.time) return; 
-
-    const dateObj = new Date(session.date);
-    const dateDisplay = dateObj.toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' });
-    const timeDisplay = session.time || 'لم يحدد';
-
-    const [hour, minute] = session.time.split(':').map(Number);
-    
-    // إنشاء كائنات التاريخ للوقت الدقيق
-    const sessionStart = new Date(dateObj.getTime());
-    sessionStart.setHours(hour, minute, 0, 0); // ضبط وقت البدء
-    const sessionEnd = new Date(sessionStart.getTime() + 60*60*1000); // نهاية الجلسة (بافتراض ساعة)
-    const now = new Date();
-
-    let statusLabel = 'قادمة';
-    let statusColor = 'bg-indigo-100 text-indigo-700 font-semibold';
-    let cardBorder = 'border-indigo-300';
-    let canJoin = false;
-    let buttonText = 'عرض التفاصيل';
-
-    // 1. حالة جارية
-    if (sessionStart <= now && sessionEnd > now) {
-        statusLabel = 'جارية الآن';
-        statusColor = 'bg-red-600 text-white font-extrabold shadow-md animate-pulse';
-        cardBorder = 'border-red-600 shadow-xl ring-4 ring-red-300';
-        canJoin = true;
-        buttonText = 'انضم لغرفة الحصة';
-    } 
-    // 2. حالة قادمة اليوم
-    else if (isSameDay(dateObj, now)) {
-        statusLabel = 'تبدأ اليوم';
-        statusColor = 'bg-green-100 text-green-700 font-bold';
-        cardBorder = 'border-green-500';
-        // لا يمكن الانضمام إلا إذا كانت قريبة جداً من موعد البدء (يمكن تعديل هذا المنطق)
-        // لكننا نجعل زر الانضمام يظهر عادةً في نفس اليوم للتسهيل.
-        canJoin = true; 
-        buttonText = 'عرض رابط الانضمام';
-    }
-    // 3. حالة انتهت (اختياري، إذا كنت تظهر الجلسات المنتهية)
-    else if (sessionEnd < now) {
-         statusLabel = 'انتهت';
-         statusColor = 'bg-gray-300 text-gray-700 font-medium';
-         cardBorder = 'border-gray-300';
-         canJoin = false;
-         buttonText = 'تفاصيل الجلسة';
-    }
-    // 4. حالة قادمة (أيام أخرى)
-    else {
-         canJoin = false;
-         buttonText = 'عرض التفاصيل';
-    }
-%>
-
-        <div class="bg-white p-5 rounded-xl shadow-md border-2 <%= cardBorder %> transition-shadow duration-300 hover:shadow-lg">
-            <div class="flex justify-between items-center mb-3 pb-2 border-b">
-                <h3 class="text-lg font-extrabold <%= statusLabel === 'جارية الآن' ? 'text-pink-600' : 'text-indigo-700' %>">
-                    <%=  index + 1 %> حصة 
-                </h3>
-                <span class="px-3 py-1 text-xs rounded-full <%= statusColor %>">
-                    <%= statusLabel %>
-                </span>
+                        <% if (isLive || isToday) { %>
+                            <a href="<%= item.session.link %>" target="_blank" class="w-full py-3 bg-indigo-600 text-white rounded-2xl font-black text-center block shadow-md hover:bg-indigo-700 transition">دخول الحصة الآن</a>
+                        <% } else { %>
+                            <div class="w-full py-3 bg-gray-100 text-gray-400 rounded-2xl font-black text-center text-xs border border-gray-200">الرابط غير متاح حالياً</div>
+                        <% } %>
+                    </div>
+                <% }) %>
             </div>
-
-            <dl class="space-y-3 text-sm">
-                <div class="pb-2">
-                    <dt class="font-medium text-gray-500">الكورس:</dt>
-                    <dd class="text-gray-900 font-bold text-base flex items-center">
-                        <i data-feather="book" class="inline w-4 h-4 ml-1 text-gray-500"></i>
-                        <%= courseTitle %>
-                    </dd>
-                </div>
-                <div>
-                    <dt class="font-medium text-gray-500">التاريخ:</dt>
-                    <dd class="text-gray-900 font-semibold flex items-center">
-                        <i data-feather="calendar" class="inline w-4 h-4 ml-1 text-gray-500"></i>
-                        <%= dateDisplay %>
-                    </dd>
-                </div>
-                <div>
-                    <dt class="font-medium text-gray-500">الوقت:</dt>
-                    <dd class="text-gray-900 font-semibold flex items-center">
-                        <i data-feather="clock" class="inline w-4 h-4 ml-1 text-gray-500"></i>
-                        <%= timeDisplay %>
-                    </dd>
-                </div>
-            </dl>
-
-            <% if ( canJoin) { %>
-                <a href="<%= session.link %>" target="_blank"
-                   class="block mt-4 text-center text-white font-bold py-2 rounded-lg transition duration-200 
-                          <%= statusLabel === 'جارية الآن' ? 'bg-pink-600 hover:bg-pink-700 shadow-md' : 'bg-green-600 hover:bg-green-700' %>
-                          flex items-center justify-center">
-                    <i data-feather="<%= statusLabel === 'جارية الآن' ? 'monitor' : 'video' %>" class="w-4 h-4 inline ml-2"></i>
-                    <%= statusLabel === 'جارية الآن' ? 'انضمام الآن!' : 'الانضمام للجلسة' %>
-                </a>
-            <% } else { %>
-                 <button disabled class="block mt-4 text-center text-gray-500 font-bold py-2 rounded-lg bg-gray-200 cursor-not-allowed">
-                    الرابط متاح في يوم الحصة
-                </button>
-            <% } %>
-
-        </div>
-
-        <% }) %>
+        <% } %>
     </div>
 
-    <% } %>
+    <div id="past-content" class="hidden space-y-4">
+        <% past.forEach((item, index) => { %>
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:border-indigo-200">
+                <button onclick="toggleAccordion('<%= index %>')" class="w-full flex items-center justify-between px-8 py-6 outline-none hover:bg-indigo-50/20 transition-colors">
+                    <div class="flex items-center gap-5">
+                        <div class="w-12 h-12 bg-gray-50 text-indigo-600 rounded-2xl flex items-center justify-center font-black"><i data-feather="file-text" class="w-5 h-5"></i></div>
+                        <div class="text-right">
+                            <h4 class="font-black text-gray-900"><%= item.courseTitle %></h4>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter mt-1 italic">الطالب: <%= item.studentName %></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-10">
+                        <div class="hidden md:block text-left text-xs font-black text-gray-600"><%= new Date(item.session.date).toLocaleDateString('ar-EG') %> <p class="text-[10px] text-gray-400 font-medium italic tracking-widest"><%= item.session.time %></p></div>
+                        <i data-feather="chevron-down" id="icon-<%= index %>" class="w-5 h-5 text-gray-300 transition-transform duration-300"></i>
+                    </div>
+                </button>
+
+                <div id="report-<%= index %>" class="max-h-0 accordion-content bg-gray-50/50 border-t border-gray-100">
+                    <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="md:col-span-2 space-y-4 font-medium">
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                                <h5 class="text-[10px] font-black text-indigo-600 mb-2 uppercase">ملاحظات المعلم</h5>
+                                <p class="text-sm text-gray-700 leading-relaxed"><%= item.session.report?.content || 'لا يوجد ملاحظات.' %></p>
+                            </div>
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                                <h5 class="text-[10px] font-black text-green-600 mb-2 uppercase">الواجب</h5>
+                                <p class="text-sm text-gray-700 leading-relaxed"><%= item.session.report?.instructions || 'لا يوجد واجب.' %></p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm flex flex-col justify-center items-center text-center">
+                            <p class="text-[10px] font-black text-gray-400 mb-4 uppercase">التقييم</p>
+                            <div class="flex gap-1 mb-2">
+                                <% let r = item.session.report?.level==='A' ? 3 : item.session.report?.level === 'B' ? 2 : item.session.report?.level === 'C' ? 1 : 0        || 0; for(let i=1; i<=3; i++){ %>
+                                    <i data-feather="star" class="w-4 h-4 <%= i <= r ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200' %>"></i>
+                                <% } %>
+                            </div>
+                            <p class="font-black text-gray-900"><%= r %>/3</p> </div>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    </div>
 </div>
 
 <script>
     feather.replace();
-</script>
 
+    function switchTab(type) {
+        const upBtn = document.getElementById('tab-upcoming');
+        const pastBtn = document.getElementById('tab-past');
+        const upContent = document.getElementById('upcoming-content');
+        const pastContent = document.getElementById('past-content');
+
+        if (type === 'upcoming') {
+            upBtn.className = "px-8 py-3 rounded-xl transition-all duration-200 bg-indigo-600 text-white shadow-md";
+            pastBtn.className = "px-8 py-3 rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-100";
+            upContent.classList.remove('hidden');
+            pastContent.classList.add('hidden');
+        } else {
+            pastBtn.className = "px-8 py-3 rounded-xl transition-all duration-200 bg-indigo-600 text-white shadow-md";
+            upBtn.className = "px-8 py-3 rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-100";
+            upContent.classList.add('hidden');
+            pastContent.classList.remove('hidden');
+        }
+        feather.replace();
+    }
+
+    function toggleAccordion(index) {
+        const content = document.getElementById('report-' + index);
+        const icon = document.getElementById('icon-' + index);
+        if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+            content.style.maxHeight = '0px';
+            icon.style.transform = 'rotate(0deg)';
+        } else {
+            document.querySelectorAll('.accordion-content').forEach(el => el.style.maxHeight = '0px');
+            document.querySelectorAll('[id^="icon-"]').forEach(el => el.style.transform = 'rotate(0deg)');
+            content.style.maxHeight = content.scrollHeight + 'px';
+            icon.style.transform = 'rotate(180deg)';
+        }
+    }
+</script>
 </body>
 </html>

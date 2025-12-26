@@ -93,7 +93,7 @@ const teacherHome = async (req, res) => {
     });
 
     todaysSessions.sort((a, b) => a.time.localeCompare(b.time));
-
+console.log(todaysSessions,'todaysSessions');
     res.render('../views/dashboard/teacher/teacher_dashboard', { 
       todaysSessions,
       currentDate: new Date().toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -105,8 +105,81 @@ const teacherHome = async (req, res) => {
 const login_get = (req, res) => {
   res.render("../views/dashboard/login");
 };
-const finanical_page = (req, res) => {
-  res.render("../views/dashboard/teacher/teacher_financial.ejs");
+const finanical_page = async (req, res) => {
+    try {
+        const teacherId = req.user._id;
+        const teacherHourlyRate = Number(req.user.hour_rate) || 0;
+
+        // جلب الاشتراكات مع الحصص المكتملة والتي حضرها المعلم فعلياً
+        const bookings = await Subscription.find({ 
+            teacherId: teacherId,
+            'sessions.status': 'completed',
+            'sessions.attended': true
+        })
+        .populate('studentId', 'name')
+        .populate('courseId', 'title');
+
+        let completedSessions = [];
+        const monthlyStats = {};
+
+        bookings.forEach(booking => {
+            booking.sessions.forEach((session) => {
+                if (session.status === 'completed' && session.attended) {
+                    
+                    // تحويل مدة الحصة (بالدقائق) إلى ساعات للحساب الصحيح
+                    // مثال: 30 دقيقة تصبح 0.5 ساعة مضروبة في سعر الساعة
+                    const durationInMinutes = Number(booking.selectedPriceOption) || 60; 
+                    const sessionPrice = teacherHourlyRate * (durationInMinutes / 60);
+
+                    // استخراج الشهر من تاريخ الحصة
+                    const sessionDate = new Date(session.date);
+                    const monthNum = sessionDate.getMonth() + 1; // من 1 إلى 12
+
+                    const sessionInfo = {
+                        date: session.date,
+                        time: session.time,
+                        studentName: booking.studentId?.name || 'طالب محذوف',
+                        courseTitle: booking.courseId?.title || 'كورس محذوف',
+                        price: sessionPrice, 
+                        duration: durationInMinutes,
+                        month: monthNum
+                    };
+
+                    completedSessions.push(sessionInfo);
+
+                    // بناء إحصائيات الشهور ديناميكياً
+                    if (!monthlyStats[monthNum]) {
+                        const monthName = new Intl.DateTimeFormat('ar-EG', { month: 'long' }).format(sessionDate);
+                        monthlyStats[monthNum] = { 
+                            monthName: monthName, 
+                            total: 0, 
+                            count: 0 
+                        };
+                    }
+                    monthlyStats[monthNum].total += sessionPrice;
+                    monthlyStats[monthNum].count += 1;
+                }
+            });
+        });
+
+        // ترتيب الحصص من الأحدث للأقدم
+        completedSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // حساب إجمالي الأرباح الكلي
+        const totalEarnings = completedSessions.reduce((sum, s) => sum + s.price, 0);
+
+        res.render('../views/dashboard/teacher/teacher_financial.ejs', { 
+            completedSessions, 
+            hourlyRate: teacherHourlyRate,  
+            teacherName: req.user.name,
+            monthlyStats, // سيحتوي على الشهور التي لها حصص فقط
+            totalEarnings: totalEarnings.toFixed(2)
+        });
+
+    } catch (err) {
+        console.error("Financial Page Error:", err);
+        res.status(500).send("حدث خطأ أثناء معالجة البيانات المالية");
+    }
 };
 const settings_page = (req, res) => {
   const teacher = req.user;
@@ -326,37 +399,62 @@ const getTeacherEvents = async (req, res) => {
 
 const getSchedule = async (req, res) => {
     try {
-        // افترضنا أن ID المعلم موجود في req.user بعد تسجيل الدخول
         const teacherId = req.user._id;
 
-        // جلب الحجوزات التي تحتوي على حصص لم تكتمل بعد أو كل الجدول
+        // 1. تحديد بداية ونهاية الأسبوع الحالي (السبت - الجمعة)
+        const now = new Date();
+        const dayOfWeek = now.getDay(); // 0 (الأحد) إلى 6 (السبت)
+        const diffToSaturday = dayOfWeek === 6 ? 0 : -(dayOfWeek + 1);
+        
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() + diffToSaturday);
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        // 2. جلب الحجوزات
         const bookings = await Subscription.find({ teacherId: teacherId })
             .populate('studentId', 'name')
             .populate('courseId', 'title');
 
-        // تنظيم البيانات للعرض الأسبوعي (تجميع الحصص حسب التاريخ)
         let weeklySchedule = {};
 
         bookings.forEach(booking => {
-            booking.sessions.forEach(session => {
-                const dateKey = new Date(session.date).toISOString().split('T')[0];
-                if (!weeklySchedule[dateKey]) {
-                    weeklySchedule[dateKey] = {
-                        dayName: new Date(session.date).toLocaleDateString('ar-EG', { weekday: 'long' }),
-                        dayNumber: new Date(session.date).getDate(),
-                        sessions: []
-                    };
+            booking.sessions.forEach((session, index) => { // أضفنا index هنا
+                const sessionDate = new Date(session.date);
+
+                // 3. فلترة الحصص لتكون ضمن الأسبوع الحالي فقط
+                if (sessionDate >= startOfWeek && sessionDate <= endOfWeek) {
+                    const dateKey = sessionDate.toISOString().split('T')[0];
+
+                    if (!weeklySchedule[dateKey]) {
+                        weeklySchedule[dateKey] = {
+                            dayName: sessionDate.toLocaleDateString('ar-EG', { weekday: 'long' }),
+                            dayNumber: sessionDate.getDate(),
+                            sessions: []
+                        };
+                    }
+
+                    weeklySchedule[dateKey].sessions.push({
+                        time: session.time,
+                        studentName: booking.studentId?.name,
+                        courseTitle: booking.courseId?.title,
+                        status: session.status,
+                        bookingId: booking._id,
+                        sessionIndex: index // تم تمرير الـ index هنا
+                    });
                 }
-                weeklySchedule[dateKey].sessions.push({
-                    time: session.time,
-                    studentName: booking.studentId?.name,
-                    courseTitle: booking.courseId?.title,
-                    status: session.status
-                });
             });
         });
 
-        // ترتيب الأيام زمنياً
+        // 4. ترتيب الحصص داخل كل يوم بناءً على الوقت
+        Object.keys(weeklySchedule).forEach(date => {
+            weeklySchedule[date].sessions.sort((a, b) => a.time.localeCompare(b.time));
+        });
+
+        // 5. ترتيب الأيام زمنياً
         const sortedSchedule = Object.keys(weeklySchedule)
             .sort()
             .reduce((obj, key) => {
@@ -366,9 +464,11 @@ const getSchedule = async (req, res) => {
 
         res.render('../views/dashboard/teacher/teacher_time_table', { 
             schedule: sortedSchedule,
-            teacherName: req.user.name 
+            teacherName: req.user.name,
+            user: req.user // مهم للـ Monthly Calendar
         });
     } catch (err) {
+        console.error(err);
         res.status(500).send("خطأ في جلب الجدول");
     }
 };
@@ -417,6 +517,8 @@ const saveSessionReport = async (req, res) => {
         console.log(booking);
         // تحديث الحصة المحددة داخل مصفوفة الحصص
         booking.sessions[sessionIndex].status = 'completed';
+                booking.sessions[sessionIndex].attended = true;
+
         booking.sessions[sessionIndex].report = {
             level,
             content,
@@ -432,4 +534,4 @@ const saveSessionReport = async (req, res) => {
 };
 
 module.exports = { signup_get, login_get, loginTeacher, registerTeacher,teacherHome ,  getTeacherCalendarPage,
-settings_page,finanical_page,   getSchedule, getTeacherEvents, getSessionPage, saveSessionReport,postUpdateProfile };
+settings_page,finanical_page, getSchedule, getTeacherEvents, getSessionPage, saveSessionReport,postUpdateProfile };
