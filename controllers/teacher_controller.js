@@ -1,30 +1,29 @@
-
 const User = require("../models/user_model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const Subscription= require('../models/subscription_model.js');
+const Subscription = require("../models/subscription_model.js");
 const handleErrors = (err) => {
   console.log(err.message, err.code);
-  let errors = { email: '', password: '' };
+  let errors = { email: "", password: "" };
 
   // incorrect email
-  if (err.message === 'incorrect email') {
-    errors.email = 'That email is not registered';
+  if (err.message === "incorrect email") {
+    errors.email = "That email is not registered";
   }
 
   // incorrect password
-  if (err.message === 'incorrect password') {
-    errors.password = 'That password is incorrect';
+  if (err.message === "incorrect password") {
+    errors.password = "That password is incorrect";
   }
 
   // duplicate email error
   if (err.code === 11000) {
-    errors.email = 'that email is already registered';
+    errors.email = "that email is already registered";
     return errors;
   }
 
   // validation errors
-  if (err.message.includes('user validation failed')) {
+  if (err.message.includes("user validation failed")) {
     // console.log(err);
     Object.values(err.errors).forEach(({ properties }) => {
       // console.log(val);
@@ -34,11 +33,11 @@ const handleErrors = (err) => {
   }
 
   return errors;
-}
+};
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id) => {
-  return jwt.sign({ id }, '01115699209', {
-    expiresIn: maxAge
+  return jwt.sign({ id }, "01115699209", {
+    expiresIn: maxAge,
   });
 };
 
@@ -55,48 +54,55 @@ const teacherHome = async (req, res) => {
 
     const bookings = await Subscription.find({
       teacherId: teacherId,
-      'sessions.date': { $gte: startOfDay, $lte: endOfDay }
-    }).populate('studentId courseId');
+      "sessions.date": { $gte: startOfDay, $lte: endOfDay },
+    }).populate("studentId courseId");
 
     let todaysSessions = [];
 
-    bookings.forEach(booking => {
+    bookings.forEach((booking) => {
       // هنا التعديل: أضفنا الـ index للحصول على ترتيب الحصة
-      booking.sessions.forEach((session, index) => { 
-        
-        if (new Date(session.date).toDateString() === new Date().toDateString()) {
-          
-          const [hours, minutes] = session.time.split(':').map(Number);
-          const sessionStart = new Date().setHours(hours, minutes-10, 0);
+      booking.sessions.forEach((session, index) => {
+        if (
+          new Date(session.date).toDateString() === new Date().toDateString()
+        ) {
+          console.log(session.time, "session.time");
+          const [hours, minutes] = session.time.split(":").map(Number);
+          const sessionStart = new Date().setHours(hours, minutes - 10, 0);
           const sessionEnd = new Date().setHours(hours + 1, minutes, 0);
           const currentTime = new Date().getTime();
 
-          let status = 'upcoming';
+          let status = "upcoming";
           if (currentTime >= sessionStart && currentTime <= sessionEnd) {
-            status = 'live';
+            status = "live";
           } else if (currentTime > sessionEnd) {
-            status = 'finished';
+            status = "finished";
           }
 
           // إضافة البيانات للرابط
           todaysSessions.push({
-            bookingId: booking._id,       // تأكد من إضافة هذا السطر
-            sessionIndex: index,          // تأكد من إضافة هذا السطر
+            bookingId: booking._id, // تأكد من إضافة هذا السطر
+            sessionIndex: index, // تأكد من إضافة هذا السطر
             title: booking.courseId?.title,
             studentName: booking.studentId?.name,
             time: session.time,
             status: status,
-            link: req.user.zoom_link || booking.zoomLink || '#'
+            link: req.user.zoom_link || booking.zoomLink || "#",
           });
         }
       });
     });
+    console.log(todaysSessions, "todaysSessions");
 
     todaysSessions.sort((a, b) => a.time.localeCompare(b.time));
-console.log(todaysSessions,'todaysSessions');
-    res.render('../views/dashboard/teacher/teacher_dashboard', { 
+    res.render("../views/dashboard/teacher/teacher_dashboard", {
       todaysSessions,
-      currentDate: new Date().toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' })
+      todaysSessionsNumbers: todaysSessions.length,
+
+      currentDate: new Date().toLocaleDateString("ar-EG", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
     });
   } catch (err) {
     res.status(500).send("خطأ في تحميل الصفحة الرئيسية");
@@ -106,86 +112,91 @@ const login_get = (req, res) => {
   res.render("../views/dashboard/login");
 };
 const finanical_page = async (req, res) => {
-    try {
-        const teacherId = req.user._id;
-        const teacherHourlyRate = Number(req.user.hour_rate) || 0;
+  try {
+    const teacherId = req.user._id;
+    const teacherHourlyRate = Number(req.user.hour_rate) || 0;
 
-        // جلب الاشتراكات مع الحصص المكتملة والتي حضرها المعلم فعلياً
-        const bookings = await Subscription.find({ 
-            teacherId: teacherId,
-            'sessions.status': 'completed',
-            'sessions.attended': true
-        })
-        .populate('studentId', 'name')
-        .populate('courseId', 'title');
+    // جلب الاشتراكات مع الحصص المكتملة والتي حضرها المعلم فعلياً
+    const bookings = await Subscription.find({
+      teacherId: teacherId,
+      "sessions.status": "completed",
+      "sessions.attended": true,
+    })
+      .populate("studentId", "name")
+      .populate("courseId", "title");
 
-        let completedSessions = [];
-        const monthlyStats = {};
+    let completedSessions = [];
+    const monthlyStats = {};
 
-        bookings.forEach(booking => {
-            booking.sessions.forEach((session) => {
-                if (session.status === 'completed' && session.attended) {
-                    
-                    // تحويل مدة الحصة (بالدقائق) إلى ساعات للحساب الصحيح
-                    // مثال: 30 دقيقة تصبح 0.5 ساعة مضروبة في سعر الساعة
-                    const durationInMinutes = Number(booking.selectedPriceOption) || 60; 
-                    const sessionPrice = teacherHourlyRate * (durationInMinutes / 60);
+    bookings.forEach((booking) => {
+      booking.sessions.forEach((session) => {
+        if (session.status === "completed" && session.attended) {
+          // تحويل مدة الحصة (بالدقائق) إلى ساعات للحساب الصحيح
+          // مثال: 30 دقيقة تصبح 0.5 ساعة مضروبة في سعر الساعة
+          const durationInMinutes = Number(booking.selectedPriceOption) || 60;
+          const sessionPrice = teacherHourlyRate * (durationInMinutes / 60);
 
-                    // استخراج الشهر من تاريخ الحصة
-                    const sessionDate = new Date(session.date);
-                    const monthNum = sessionDate.getMonth() + 1; // من 1 إلى 12
+          // استخراج الشهر من تاريخ الحصة
+          const sessionDate = new Date(session.date);
+          const monthNum = sessionDate.getMonth() + 1; // من 1 إلى 12
 
-                    const sessionInfo = {
-                        date: session.date,
-                        time: session.time,
-                        studentName: booking.studentId?.name || 'طالب محذوف',
-                        courseTitle: booking.courseId?.title || 'كورس محذوف',
-                        price: sessionPrice, 
-                        duration: durationInMinutes,
-                        month: monthNum
-                    };
+          const sessionInfo = {
+            date: session.date,
+            time: session.time,
+            studentName: booking.studentId?.name || "طالب محذوف",
+            courseTitle: booking.courseId?.title || "كورس محذوف",
+            price: sessionPrice,
+            duration: durationInMinutes,
+            month: monthNum,
+          };
 
-                    completedSessions.push(sessionInfo);
+          completedSessions.push(sessionInfo);
 
-                    // بناء إحصائيات الشهور ديناميكياً
-                    if (!monthlyStats[monthNum]) {
-                        const monthName = new Intl.DateTimeFormat('ar-EG', { month: 'long' }).format(sessionDate);
-                        monthlyStats[monthNum] = { 
-                            monthName: monthName, 
-                            total: 0, 
-                            count: 0 
-                        };
-                    }
-                    monthlyStats[monthNum].total += sessionPrice;
-                    monthlyStats[monthNum].count += 1;
-                }
-            });
-        });
+          // بناء إحصائيات الشهور ديناميكياً
+          if (!monthlyStats[monthNum]) {
+            const monthName = new Intl.DateTimeFormat("ar-EG", {
+              month: "long",
+            }).format(sessionDate);
+            monthlyStats[monthNum] = {
+              monthName: monthName,
+              total: 0,
+              count: 0,
+            };
+          }
+          monthlyStats[monthNum].total += sessionPrice;
+          monthlyStats[monthNum].count += 1;
+        }
+      });
+    });
 
-        // ترتيب الحصص من الأحدث للأقدم
-        completedSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    // ترتيب الحصص من الأحدث للأقدم
+    completedSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        // حساب إجمالي الأرباح الكلي
-        const totalEarnings = completedSessions.reduce((sum, s) => sum + s.price, 0);
+    // حساب إجمالي الأرباح الكلي
+    const totalEarnings = completedSessions.reduce(
+      (sum, s) => sum + s.price,
+      0
+    );
 
-        res.render('../views/dashboard/teacher/teacher_financial.ejs', { 
-            completedSessions, 
-            hourlyRate: teacherHourlyRate,  
-            teacherName: req.user.name,
-            monthlyStats, // سيحتوي على الشهور التي لها حصص فقط
-            totalEarnings: totalEarnings.toFixed(2)
-        });
-
-    } catch (err) {
-        console.error("Financial Page Error:", err);
-        res.status(500).send("حدث خطأ أثناء معالجة البيانات المالية");
-    }
+    res.render("../views/dashboard/teacher/teacher_financial.ejs", {
+      completedSessions,
+      hourlyRate: teacherHourlyRate,
+      teacherName: req.user.name,
+      monthlyStats, // سيحتوي على الشهور التي لها حصص فقط
+      totalEarnings: totalEarnings.toFixed(2),
+    });
+  } catch (err) {
+    console.error("Financial Page Error:", err);
+    res.status(500).send("حدث خطأ أثناء معالجة البيانات المالية");
+  }
 };
 const settings_page = (req, res) => {
   const teacher = req.user;
   res.render("../views/dashboard/teacher/teacher_settings.ejs", { teacher });
 };
 const registerTeacher = async (req, res) => {
+    console.log(req.body),'registerTeacher';
+
   // استخراج البيانات من جسم الطلب
   const {
     name,
@@ -194,45 +205,48 @@ const registerTeacher = async (req, res) => {
     phone_number,
     gender,
     password,
-   zoom_link
+    zoom_link,
   } = req.body;
-console.log(req.body);
   try {
     // التحقق من وجود مستخدم بنفس البريد الإلكتروني
     const existingStudent = await User.findOne({ email });
     if (existingStudent) {
       console.log("Email already exists");
       // يمكنك استخدام نظام رسائل flash للمستخدم
-      return res
-        .status(400)
-        .json({
-          error: "هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.",
-        });
+      return res.status(400).json({
+        error: "هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.",
+      });
     }
 
     // التحقق من تطابق كلمات المرور (يتم يدوياً قبل محاولة الحفظ)
-    if (password .length < 6) {
+    if (password.length < 6) {
       // نرسل رسالة الخطأ المباشرة
       return res.status(400).json({
         error: "كلمة المرور ضعيفة .  اقل من 6 يرجى التأكد من الإدخال.",
       });
     }
+    if (password !== req.body.confirm_password) {
+      // نرسل رسالة الخطاء المباشرة
+      return res.status(400).json({
+        error: "كلمتا المرور غير متطابقتين. يرجى التأكد من الإدخال.",
+      });
+    }
     // إنشاء طالب جديد
-  
+
     const user = await User.create({
-       name,
+      name,
       email,
       country_code: country_code,
       phone_number: country_code + phone_number, // حفظ رقم الهاتف بالكامل
       role: "teacher",
       password,
-      gender:gender,
-      zoom_link:zoom_link
+      gender: gender,
+      zoom_link: zoom_link,
     });
     console.log(user);
     // حفظ الطالب في قاعدة البيانات (سيتم تشفير كلمة المرور تلقائيًا عبر الـ middleware)
-  
- res.status(200).json({
+
+    res.status(200).json({
       message: "تم التسجيل بنجاح.", // تمرير الرسالة المجمعة
     });
     // إعادة توجيه المستخدم إلى صفحة تسجيل الدخول أو صفحة النجاح
@@ -267,271 +281,280 @@ console.log(req.body);
   }
 };
 const postUpdateProfile = async (req, res) => {
-    try {
-     const email = req.user.email;
-        const { name, zoom_link, bio } = req.body;
-        const updateData = { name, zoom_link, bio,email };
-console.log(req.body);
-console.log(req.user.zoom_link);
+  try {
+    const email = req.user.email;
+    const { name, zoom_link, bio } = req.body;
+    const updateData = { name, zoom_link, bio, email };
+    console.log(req.body);
+    console.log(req.user.zoom_link);
 
-        // إذا قام المعلم برفع صورة جديدة
-        if (req.file) {
-            updateData.avatar = req.file.filename;
-        }
-        if(zoom_link!==req.user.zoom_link){
-          console.log(zoom_link,'تغيير اللينك ');
-          await Subscription.updateMany(
-    { teacherId: req.user._id },
-    { $set: { "sessions.$[elem].link": zoom_link } },
-    { arrayFilters: [{ "elem.status": "pending" }] } // يطبق التحديث فقط على الحصص المعلقة
-);
-        }
-
-        await User.findByIdAndUpdate(req.user._id, updateData);
-        
-        res.redirect('/teacher/home');
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("حدث خطأ أثناء التحديث");
+    // إذا قام المعلم برفع صورة جديدة
+    if (req.file) {
+      updateData.avatar = req.file.filename;
     }
+    if (zoom_link !== req.user.zoom_link) {
+      console.log(zoom_link, "تغيير اللينك ");
+      await Subscription.updateMany(
+        { teacherId: req.user._id },
+        { $set: { "sessions.$[elem].link": zoom_link } },
+        { arrayFilters: [{ "elem.status": "pending" }] } // يطبق التحديث فقط على الحصص المعلقة
+      );
+    }
+
+    await User.findByIdAndUpdate(req.user._id, updateData);
+
+    res.redirect("/teacher/home");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("حدث خطأ أثناء التحديث");
+  }
 };
 
 const loginTeacher = async (req, res) => {
-   
+  // 1. استخراج البيانات المطلوبة
+  const { email, password, role } = req.body;
+  console.log(req.body);
+  // **كائن الأخطاء المخصص**
+  let errors = {};
 
-    // 1. استخراج البيانات المطلوبة
-    const { email, password, role } = req.body;
-    console.log(req.body);
-    // **كائن الأخطاء المخصص**
-    let errors = {}; 
-
-    try {
-        // 2. البحث عن المستخدم بالبريد والدور
-        const user = await User.findOne({ email: email, role: role });
-console.log(user);
-        if (!user||user==null) {
-            // 3. حالة: المستخدم غير موجود (البريد غير صحيح)
-            errors.email = 'هذا البريد الإلكتروني غير صحيح';
-            res.status(400).json({ errors });
-            return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
-        }
-        
-        // 4. إذا تم العثور على المستخدم، مقارنة كلمة المرور
-        const auth = await bcrypt.compare(password, user.password);
-        
-        if (!auth) {
-            // 5. حالة: كلمة المرور غير صحيحة
-            errors.password = 'كلمة المرور المدخلة غير صحيحة';
-            res.status(400).json({ errors });
-            return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
-        } 
-        
-        // 6. حالة النجاح: كلمة المرور صحيحة
-        const token = createToken(user._id);
-        await res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-        console.log(user);
-        // إرسال استجابة النجاح
-        res.status(200).json({ user: user._id, message: "تم تسجيل الدخول بنجاح." });
-        return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
-
-    } 
-    catch (err) {
-        // 7. التقاط أخطاء الخادم العامة أو أخطاء قاعدة البيانات
-        console.error(err);
-        
-        // استخدام دالة handleErrors لمعالجة الأخطاء غير المتوقعة (مثل خطأ في الخادم)
-        const specificErrors = handleErrors(err); 
-        res.status(400).json({ errors: specificErrors });
-        return; // ⭐️ إيقاف التنفيذ
+  try {
+    // 2. البحث عن المستخدم بالبريد والدور
+    const user = await User.findOne({ email: email, role: role });
+    console.log(user);
+    if (!user || user == null) {
+      // 3. حالة: المستخدم غير موجود (البريد غير صحيح)
+      errors.email = "هذا البريد الإلكتروني غير صحيح";
+      res.status(400).json({ errors });
+      return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
     }
-}
+
+    // 4. إذا تم العثور على المستخدم، مقارنة كلمة المرور
+    const auth = await bcrypt.compare(password, user.password);
+
+    if (!auth) {
+      // 5. حالة: كلمة المرور غير صحيحة
+      errors.password = "كلمة المرور المدخلة غير صحيحة";
+      res.status(400).json({ errors });
+      return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
+    }
+
+    // 6. حالة النجاح: كلمة المرور صحيحة
+    const token = createToken(user._id);
+    await res.cookie("jwt", token, { httpOnly: true, maxAge: maxAge * 1000 });
+    console.log(user);
+    // إرسال استجابة النجاح
+    res.status(200).json({ user: user._id, message: "تم تسجيل الدخول بنجاح." });
+    return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
+  } catch (err) {
+    // 7. التقاط أخطاء الخادم العامة أو أخطاء قاعدة البيانات
+    console.error(err);
+
+    // استخدام دالة handleErrors لمعالجة الأخطاء غير المتوقعة (مثل خطأ في الخادم)
+    const specificErrors = handleErrors(err);
+    res.status(400).json({ errors: specificErrors });
+    return; // ⭐️ إيقاف التنفيذ
+  }
+};
 const getTeacherCalendarPage = async (req, res) => {
-    try {
-        const teacher = await User.findById(req.params.id);
-       
-        res.render('../views/dashboard/teacher/teacher_session_table', { teacher });
-    } catch (err) {
-        res.status(500).send("خطأ في تحميل الصفحة");
-    }
+  try {
+    const teacher = await User.findById(req.params.id);
+
+    res.render("../views/dashboard/teacher/teacher_session_table", { teacher });
+  } catch (err) {
+    res.status(500).send("خطأ في تحميل الصفحة");
+  }
 };
 
 // API لإمداد التقويم بالبيانات
 const getTeacherEvents = async (req, res) => {
-    try {
-        const teacherId = req.params.id;
-        const bookings = await Subscription.find({ teacherId }).populate('studentId');
+  try {
+    const teacherId = req.params.id;
+    const bookings = await Subscription.find({ teacherId }).populate(
+      "studentId"
+    );
 
-        let events = [];
-        bookings.forEach(booking => {
-            if (booking.sessions && booking.sessions.length > 0) {
-                booking.sessions.forEach(session => {
-                    // تأكد أن الجلسة لها تاريخ ووقت وأنها ليست "ملغاة"
-                    if (session.date && session.time) {
-                        try {
-                            // تحويل التاريخ ليكون بصيغة YYYY-MM-DD
-                            const d = new Date(session.date);
-                            const datePart = d.toISOString().split('T')[0];
-                            
-                            // تأكد أن الوقت بصيغة HH:mm (مثلاً 14:30)
-                            const startStr = `${datePart}T${session.time}:00`;
+    let events = [];
+    bookings.forEach((booking) => {
+      if (booking.sessions && booking.sessions.length > 0) {
+        booking.sessions.forEach((session) => {
+          // تأكد أن الجلسة لها تاريخ ووقت وأنها ليست "ملغاة"
+          if (session.date && session.time) {
+            try {
+              // تحويل التاريخ ليكون بصيغة YYYY-MM-DD
+              const d = new Date(session.date);
+              const datePart = d.toISOString().split("T")[0];
 
-                            events.push({
-                                title: booking.studentId?.name || 'طالب',
-                                start: startStr,
-                                backgroundColor: '#4f46e5'
-                            });
-                        } catch (e) {
-                            console.log("Error formatting date for session:", session._id);
-                        }
-                    }
-                });
+              // تأكد أن الوقت بصيغة HH:mm (مثلاً 14:30)
+              const startStr = `${datePart}T${session.time}:00`;
+
+              events.push({
+                bookingId: booking._id,
+                sessionIndex: booking.sessions.indexOf(session),
+                title: booking.studentId?.name || "طالب",
+                start: startStr,
+                backgroundColor: "#4f46e5",
+              });
+            } catch (e) {
+              console.log("Error formatting date for session:", session._id);
             }
+          }
         });
+      }
+    });
 
-        console.log("Events found:", events.length); // سيظهر في Terminal السيرفر
-        res.json(events);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json([]);
-    }
+    console.log("Events found:", events.length); // سيظهر في Terminal السيرفر
+    res.json(events);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
 };
 // controllers/teacherController.js
 
 const getSchedule = async (req, res) => {
-    try {
-        const teacherId = req.user._id;
+  try {
+    const teacherId = req.user._id;
 
-        // 1. تحديد بداية ونهاية الأسبوع الحالي (السبت - الجمعة)
-        const now = new Date();
-        const dayOfWeek = now.getDay(); // 0 (الأحد) إلى 6 (السبت)
-        const diffToSaturday = dayOfWeek === 6 ? 0 : -(dayOfWeek + 1);
-        
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() + diffToSaturday);
-        startOfWeek.setHours(0, 0, 0, 0);
+    // 1. تحديد بداية ونهاية الأسبوع الحالي (السبت - الجمعة)
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 (الأحد) إلى 6 (السبت)
+    const diffToSaturday = dayOfWeek === 6 ? 0 : -(dayOfWeek + 1);
 
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-        endOfWeek.setHours(23, 59, 59, 999);
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() + diffToSaturday);
+    startOfWeek.setHours(0, 0, 0, 0);
 
-        // 2. جلب الحجوزات
-        const bookings = await Subscription.find({ teacherId: teacherId })
-            .populate('studentId', 'name')
-            .populate('courseId', 'title');
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
 
-        let weeklySchedule = {};
+    // 2. جلب الحجوزات
+    const bookings = await Subscription.find({ teacherId: teacherId })
+      .populate("studentId", "name")
+      .populate("courseId", "title");
 
-        bookings.forEach(booking => {
-            booking.sessions.forEach((session, index) => { // أضفنا index هنا
-                const sessionDate = new Date(session.date);
+    let weeklySchedule = {};
 
-                // 3. فلترة الحصص لتكون ضمن الأسبوع الحالي فقط
-                if (sessionDate >= startOfWeek && sessionDate <= endOfWeek) {
-                    const dateKey = sessionDate.toISOString().split('T')[0];
+    bookings.forEach((booking) => {
+      booking.sessions.forEach((session, index) => {
+        // أضفنا index هنا
+        const sessionDate = new Date(session.date);
 
-                    if (!weeklySchedule[dateKey]) {
-                        weeklySchedule[dateKey] = {
-                            dayName: sessionDate.toLocaleDateString('ar-EG', { weekday: 'long' }),
-                            dayNumber: sessionDate.getDate(),
-                            sessions: []
-                        };
-                    }
+        // 3. فلترة الحصص لتكون ضمن الأسبوع الحالي فقط
+        if (sessionDate >= startOfWeek && sessionDate <= endOfWeek) {
+          const dateKey = sessionDate.toISOString().split("T")[0];
 
-                    weeklySchedule[dateKey].sessions.push({
-                        time: session.time,
-                        studentName: booking.studentId?.name,
-                        courseTitle: booking.courseId?.title,
-                        status: session.status,
-                        bookingId: booking._id,
-                        sessionIndex: index // تم تمرير الـ index هنا
-                    });
-                }
-            });
-        });
+          if (!weeklySchedule[dateKey]) {
+            weeklySchedule[dateKey] = {
+              dayName: sessionDate.toLocaleDateString("ar-EG", {
+                weekday: "long",
+              }),
+              dayNumber: sessionDate.getDate(),
+              sessions: [],
+            };
+          }
 
-        // 4. ترتيب الحصص داخل كل يوم بناءً على الوقت
-        Object.keys(weeklySchedule).forEach(date => {
-            weeklySchedule[date].sessions.sort((a, b) => a.time.localeCompare(b.time));
-        });
+          weeklySchedule[dateKey].sessions.push({
+            time: session.time,
+            studentName: booking.studentId?.name,
+            courseTitle: booking.courseId?.title,
+            status: session.status,
+            bookingId: booking._id,
+            sessionIndex: index, // تم تمرير الـ index هنا
+          });
+        }
+      });
+    });
 
-        // 5. ترتيب الأيام زمنياً
-        const sortedSchedule = Object.keys(weeklySchedule)
-            .sort()
-            .reduce((obj, key) => {
-                obj[key] = weeklySchedule[key];
-                return obj;
-            }, {});
+    // 4. ترتيب الحصص داخل كل يوم بناءً على الوقت
+    Object.keys(weeklySchedule).forEach((date) => {
+      weeklySchedule[date].sessions.sort((a, b) =>
+        a.time.localeCompare(b.time)
+      );
+    });
 
-        res.render('../views/dashboard/teacher/teacher_time_table', { 
-            schedule: sortedSchedule,
-            teacherName: req.user.name,
-            user: req.user // مهم للـ Monthly Calendar
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("خطأ في جلب الجدول");
-    }
+    // 5. ترتيب الأيام زمنياً
+    const sortedSchedule = Object.keys(weeklySchedule)
+      .sort()
+      .reduce((obj, key) => {
+        obj[key] = weeklySchedule[key];
+        return obj;
+      }, {});
+
+    res.render("../views/dashboard/teacher/teacher_time_table", {
+      schedule: sortedSchedule,
+      teacherName: req.user.name,
+      user: req.user, // مهم للـ Monthly Calendar
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("خطأ في جلب الجدول");
+  }
 };
 
-
 const getSessionPage = async (req, res) => {
-   try {
-        const { bookingId, sessionIndex } = req.params;
-        const booking = await Subscription.findById(bookingId).populate('studentId courseId');
-        const session = booking.sessions[sessionIndex];
+  try {
+    const { bookingId, sessionIndex } = req.params;
+    const booking = await Subscription.findById(bookingId).populate(
+      "studentId courseId"
+    );
+    const session = booking.sessions[sessionIndex];
 
-        // 1. تحويل وقت الحصة (مثلاً 14:30) إلى كائن تاريخ كامل لليوم
-        const [hours, minutes] = session.time.split(':').map(Number);
-        const sessionStartTime = new Date(); // تاريخ اليوم
-        sessionStartTime.setHours(hours, minutes, 0, 0);
-
-        // 2. تحديد وقت النهاية (بإضافة ساعة واحدة مثلاً)
-        const sessionEndTime = new Date(sessionStartTime.getTime() + 60 * 60 * 1000); 
-
-        // 3. حساب الفرق بالثواني بين "الآن" ووقت "النهاية"
-        const now = new Date();
-        let remainingSeconds = Math.floor((sessionEndTime - now) / 1000);
-
-        // إذا كانت الحصة لم تبدأ بعد أو انتهت، نضبط القيمة
-        if (remainingSeconds < 0) remainingSeconds = 0; 
-        if (remainingSeconds > 3600) remainingSeconds = 3600; // بحد أقصى ساعة
-
-        res.render('../views/dashboard/teacher/teacher_session', {
-            booking,
-            session,
-            sessionIndex,
-            student: booking.studentId,
-            remainingSeconds, // هذا الرقم هو الأهم للتايمر
-            title: "متابعة الحصة"
-        });
-    } catch (err) {
-        res.status(500).send("خطأ في الخادم");
-    }
+    // 1. تحويل وقت الحصة (مثلاً 14:30) إلى كائن تاريخ كامل لليوم
+   
+    res.render("../views/dashboard/teacher/teacher_session", {
+      booking,
+      session,
+      sessionIndex,
+      student: booking.studentId,
+     
+      title: "متابعة الحصة",
+    });
+  } catch (err) {
+    res.status(500).send("خطأ في الخادم");
+  }
 };
 
 const saveSessionReport = async (req, res) => {
-    try {
-        const { bookingId, sessionIndex, level, content, instructions } = req.body;
-   console.log(req.body);
-        const booking = await Subscription.findById(bookingId);
-        console.log(booking);
-        // تحديث الحصة المحددة داخل مصفوفة الحصص
-        booking.sessions[sessionIndex].status = 'completed';
-                booking.sessions[sessionIndex].attended = true;
+  try {
+    
+    const { bookingId, sessionIndex, level, content, instructions } = req.body;
 
-        booking.sessions[sessionIndex].report = {
-            level,
-            content,
-            instructions,
-            submittedAt: new Date()
-        };
+    const booking = await Subscription.findById(bookingId);
+    console.log(booking);
+    // تحديث الحصة المحددة داخل مصفوفة الحصص
+    booking.sessions[sessionIndex].status = "completed";
+    booking.sessions[sessionIndex].attended = true;
 
-        await booking.save();
-        res.redirect('/teacher/home');
-    } catch (err) {
-        res.status(500).send("خطأ في حفظ التقرير");
-    }
+    booking.sessions[sessionIndex].report = {
+      level,
+      content,
+      instructions,
+      submittedAt: new Date(),
+    };
+
+    await booking.save();
+    res.status(200).json({
+      success: true,
+      message: "تم حفظ التقرير بنجاح",
+    });
+  } catch (err) {
+    res.status(500).send("خطأ في حفظ التقرير");
+  }
 };
 
-module.exports = { signup_get, login_get, loginTeacher, registerTeacher,teacherHome ,  getTeacherCalendarPage,
-settings_page,finanical_page, getSchedule, getTeacherEvents, getSessionPage, saveSessionReport,postUpdateProfile };
+module.exports = {
+  signup_get,
+  login_get,
+  loginTeacher,
+  registerTeacher,
+  teacherHome,
+  getTeacherCalendarPage,
+  settings_page,
+  finanical_page,
+  getSchedule,
+  getTeacherEvents,
+  getSessionPage,
+  saveSessionReport,
+  postUpdateProfile,
+};

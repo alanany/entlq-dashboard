@@ -13,7 +13,7 @@ studentdashboardRoutes.get('/student/courses_list', studentController.getAllCour
 studentdashboardRoutes.get('/student/book_plan/:id', studentController.getBookPlan);
 studentdashboardRoutes.get('/home', courseController.home_website_get);
 studentdashboardRoutes.get('/website-courses', courseController.allCourses_website_get);
-studentdashboardRoutes.get('/website-course/:id',checkUser,requireAuth, courseController.getCourseDetails);
+studentdashboardRoutes.get('/website-course/:id', courseController.getCourseDetails);
 studentdashboardRoutes.post('/student/checkout',checkUser,requireAuth, courseController.checkout);
 studentdashboardRoutes.get('/success',checkUser,requireAuth, studentController.getSucessSubscriptionPage);
 studentdashboardRoutes.get('/student/enrolled_subscription',checkUser,requireAuth, studentController.getEnrolledSubscription);
@@ -22,6 +22,11 @@ studentdashboardRoutes.get('/request-details/:requestId',checkUser,requireAuth, 
 studentdashboardRoutes.get('/student/session-details/:bookingId/:sessionId',checkUser,requireAuth, studentController.getSessionWaitingRoom);
 studentdashboardRoutes.get('/student/my-sessions',checkUser,requireAuth, studentController.getMySessionsPage);
 
-studentdashboardRoutes.get('/student/settings',checkUser,requireAuth, studentController.getStudentSettings);
+studentdashboardRoutes.get('/student/settings', studentController.getStudentSettings);
 studentdashboardRoutes.get('/student/billing',checkUser,requireAuth, studentController.getStudentBillingPage);
+studentdashboardRoutes.post('/settings/update-profile',checkUser,requireAuth, studentController.update_profile);
+studentdashboardRoutes.post('/settings/update-password',checkUser,requireAuth, studentController.updatePassword);
+studentdashboardRoutes.get('/student/profile',checkUser,requireAuth, studentController.getProfilePage);
+
+
 module.exports = studentdashboardRoutes;

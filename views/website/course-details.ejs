@@ -21,9 +21,7 @@
             <a href="/" class="text-2xl font-extrabold text-indigo-600">
                 <i data-feather="book-open" class="ml-2 w-6 h-6 inline-block"></i> انطلق
             </a>
-            <a href="#" onclick="history.back(); return false;" class="text-sm font-semibold text-gray-700 hover:text-indigo-600 transition flex items-center">
-                <i data-feather="arrow-right" class="mr-2 w-4 h-4"></i> العودة للكورسات
-            </a>
+           
         </div>
     </header>
 
@@ -40,14 +38,24 @@
                 <span class="text-indigo-200 text-sm font-medium tracking-widest uppercase">
                     <%= course.category.name || 'تخصص عام  ' %> | المستوى: <%= levelMap[course.level] || 'غير محدد' %>
                 </span>
-                <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight"><%= course.title || 'عنوان الكورس غير متوفر' %></h1>
-                <p class="text-xl text-indigo-200 max-w-3xl"><%= course.description || 'وصف مختصر للكورس يوضح قيمته المضافة للطالب.' %></p>
+                <h1 class="text-4xl lg:text-3xl font-abold leading-tight text-black"><%= course.title || 'عنوان الكورس غير متوفر' %></h1>
+                <p class="text-xl text-indigo-200 max-w-2xl"><%= course.description || 'وصف مختصر للكورس يوضح قيمته المضافة للطالب.' %></p>
                 
-                <a href="/student/book_plan/<%= course._id %>" 
+           <% if (user==null) { %>
+             <a href="/student/login" 
+                   class="inline-flex items-center justify-center px-5 py-2 mt-4 border border-transparent text-xl font rounded-xl shadow-lg text-white bg-green-500 hover:bg-green-600 transition duration-300 transform hover:scale-105">
+                    <i data-feather="calendar" class="ml-2 w-6 h-6"></i>
+                    احجز الآن
+                </a>
+           <% }else{ %>  
+             <a href="/student/book_plan/<%= course._id %>" 
                    class="inline-flex items-center justify-center px-8 py-3 mt-6 border border-transparent text-xl font-bold rounded-xl shadow-lg text-white bg-green-500 hover:bg-green-600 transition duration-300 transform hover:scale-105">
                     <i data-feather="calendar" class="ml-2 w-6 h-6"></i>
                     احجز الآن
                 </a>
+            <% } %>
+            
+           
                 </div>
         </div>
     </section>
@@ -62,7 +70,7 @@
                      class="w-full h-auto max-h-96 object-cover rounded-xl shadow-lg border border-gray-200">
 
                 <div>
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4 border-b pb-2">عن الكورس</h2>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4 border-b pb-2">عن الكورس</h2>
                     <div class="prose prose-lg prose-indigo max-w-none text-gray-700">
                         <p><%= course.description || 'لا يوجد وصف تفصيلي لهذا الكورس حالياً.' %></p>
                     </div>
@@ -71,7 +79,7 @@
                 <hr class="my-6">
                 
                 <div>
-                    <h2 class="text-3xl font-bold text-gray-900 mb-6">منهج الكورس</h2>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">منهج الكورس</h2>
                     
                     <% if (typeof course.curriculum !== 'undefined' && course.curriculum.length > 0) { %>
                         <div class="space-y-4">
@@ -111,7 +119,7 @@
 
             <div class="lg:col-span-4 mt-10 lg:mt-0">
                 <div class="sticky sticky-card bg-white p-6 rounded-xl shadow-2xl border-t-4 border-indigo-600">
-                    <h3 class="text-2xl font-extrabold text-gray-900 mb-5 border-b pb-3">خيارات الحجز الفردي</h3>
+                    <h3 class="text-xl font-extrabold text-gray-900 mb-5 border-b pb-3">خيارات الحجز الفردي</h3>
 
                     <% if (typeof course.pricingOptions !== 'undefined' && course.pricingOptions.length > 0) { %>
                         <div class="space-y-4">
@@ -123,9 +131,7 @@
                                     </div>
                                     <div class="text-left">
                                         <p class="text-2xl font-extrabold text-green-600"><%= option.price %> SAR</p>
-                                        <a href="/checkout/<%= course._id %>?duration=<%= option.duration %>" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">
-                                            احجز الآن <i data-feather="arrow-left" class="w-3 h-3 inline-block mr-1"></i>
-                                        </a>
+                                       
                                     </div>
                                 </div>
                             <% }); %>

@@ -72,8 +72,15 @@
                     </button>
                     <div>
                         <h2 class="text-lg lg:text-xl font-black text-gray-900">أهلاً بك، أ. <%=user.name  %> 👋</h2>
+                    <% if (todaysSessions.length > 0) { %>
+                     
                         <p class="text-[10px] lg:text-xs text-gray-400 font-bold hidden sm:block">لديك <%=todaysSessions.length  %> حصص اليوم، تمنياتنا لك بالتوفيق!</p>
-                    </div>
+                  
+                    <% }else{ %> 
+                        
+                        <p class="text-[10px] lg:text-xs text-gray-400 font-bold hidden sm:block">  لا يوجد حصص اليوم، تمنياتنا لك بالتوفيق!</p>
+                  
+                        <% } %>     </div>
                 </div>
                 
                 <div class="flex items-center gap-3">

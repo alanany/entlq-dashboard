@@ -8,9 +8,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
+        /* شريط التابات الأساسي */
+.mobile-bottom-nav {
+    @apply lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-t border-gray-100 flex items-center justify-around px-2 pb-5 z-[9999] shadow-[0_-5px_20px_rgba(0,0,0,0.05)];
+}
+
+/* التاب في الحالة العادية */
+.nav-tab {
+    @apply flex flex-col items-center justify-center flex-1 h-full transition-all duration-300;
+    color: #9ca3af; /* رمادي */
+}
+
+/* التاب في الحالة النشطة (Active) */
+.nav-tab.active {
+    color: #5e35b1 !important; /* بنفسجي ألف باء */
+}
+
+/* حركة الأيقونة فقط عند النشاط */
+.nav-tab.active i {
+    transform: translateY(-3px); /* رفعة بسيطة للأيقونة */
+    stroke-width: 2.5px; /* جعل خط الأيقونة أوضح */
+    transition: all 0.3s ease;
+}
+
+/* النص عند النشاط */
+.nav-tab.active span {
+    font-weight: 800; /* جعل الخط عريض */
+    font-size: 11px; /* تكبير بسيط جداً للنص */
+}
+
+/* تأثير الضغط (Feedback) */
+.nav-tab:active {
+    transform: scale(0.95);
+}
         body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
         .tab-active { @apply bg-indigo-600 text-white shadow-lg scale-105; }
         .accordion-content { transition: max-height 0.3s ease-out; overflow: hidden; }
+
+             @media (max-width: 1024px) {
+    body { padding-bottom: 100px; } /* نفس ارتفاع الشريط السفلي */
+}
     </style>
 </head>
 <body class="pb-20">
@@ -19,17 +56,18 @@
     
     <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-            <h1 class="text-4xl font-extrabold text-gray-900 flex items-center">
-                <i data-feather="calendar" class="ml-3 w-8 h-8 text-indigo-600"></i>
+            <h1 class="text-xl font-bold text-gray-600 flex items-center">
+                <i data-feather="calendar" class="ml-3 w-8 h-8 text-indigo-400"></i>
                 جدول الحصص والتقارير
             </h1>
         </div>
 
         <div class="inline-flex p-1 bg-gray-200 rounded-2xl shadow-inner font-bold">
-            <button onclick="switchTab('upcoming')" id="tab-upcoming" class="px-8 py-3 rounded-xl transition-all duration-200 bg-indigo-600 text-white shadow-md">الحصص القادمة</button>
-            <button onclick="switchTab('past')" id="tab-past" class="px-8 py-3 rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-100">السابقة والتقارير</button>
+            <button onclick="switchTab('upcoming')" id="tab-upcoming" class="px-6 py-2 rounded-xl transition-all duration-200 bg-indigo-600 text-white shadow-md">الحصص القادمة</button>
+            <button onclick="switchTab('past')" id="tab-past" class="px-6 py-2 rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-100">السابقة والتقارير</button>
         </div>
     </div>
+<%- include('../../partials/bottom-nav.ejs', {currentPage: 'sessions'}) %>        </div>
 
     <% 
         const now = new Date();

@@ -2,11 +2,11 @@ const { Router } = require('express');
 const { checkUser, requireAuth } = require('../middleware/authMiddleware');
 const teacherdashboardRoutes = Router();
 const teacherController = require('../controllers/teacher_controller');
-
+const {validationAnyRequestExpect} = require("../validation/validation");
 teacherdashboardRoutes.get('/teacher/register', teacherController.signup_get);
 teacherdashboardRoutes.get('/teacher/login', teacherController.login_get);
 teacherdashboardRoutes.post('/teacher/login', teacherController.loginTeacher);
-teacherdashboardRoutes.post('/teacher/register', teacherController.registerTeacher);
+teacherdashboardRoutes.post('/teacher/register',validationAnyRequestExpect(['name','password','phone_number','country_code','email','gender']), teacherController.registerTeacher);
 teacherdashboardRoutes.get('/teacher/home',checkUser,requireAuth, teacherController.teacherHome);
 teacherdashboardRoutes.get('/teacher/calendar/:id',checkUser,requireAuth, teacherController.getTeacherCalendarPage);
 

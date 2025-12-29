@@ -10,73 +10,75 @@ const getstudentDashboard = async (req, res, next) => {
     if (role === "student") {
       const studentId = req.user._id;
       const nearestSession = await getNearestSession(studentId);
-
+     const studentStats =   await     getStudentStats(studentId);
+     const courseBookingDetails=await getStudentCourseDetails(studentId);
       console.log(nearestSession, "nearestSession in controller");
+            console.log(courseBookingDetails, "courseBookingDetails in controller");
+
       res.render("dashboard/student/student-dashboard", {
         title: "لوحة تحكم الطالب",
         nearestSession,
+        studentStats,
+        courseBookingDetails
       });
     } else if (role === "teacher") {
-      try {
-        const teacherId = req.user._id;
-        const now = new Date();
+       try {
+    const teacherId = req.user._id;
+    const now = new Date();
 
-        const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
 
-        const bookings = await Subscription.find({
-          teacherId: teacherId,
-          "sessions.date": { $gte: startOfDay, $lte: endOfDay },
-        }).populate("studentId courseId");
+    const bookings = await Subscription.find({
+      teacherId: teacherId,
+      'sessions.date': { $gte: startOfDay, $lte: endOfDay }
+    }).populate('studentId courseId');
 
-        let todaysSessions = [];
+    let todaysSessions = [];
+console.log(bookings, "bookings in controller");
+    bookings.forEach(booking => {
+      // هنا التعديل: أضفنا الـ index للحصول على ترتيب الحصة
+      booking.sessions.forEach((session, index) => { 
+           console.log(session.time  ,'session.time');
+           console.log(session.date,'session.date');
+        if (new Date(session.date).toDateString() === new Date().toDateString()) {
+       
+          const [hours, minutes] = session.time.split(':').map(Number);
+          const sessionStart = new Date().setHours(hours, minutes-10, 0);
+          const sessionEnd = new Date().setHours(hours + 1, minutes, 0);
+          const currentTime = new Date().getTime();
 
-        bookings.forEach((booking) => {
-          // هنا التعديل: أضفنا الـ index للحصول على ترتيب الحصة
-          booking.sessions.forEach((session, index) => {
-            if (
-              new Date(session.date).toDateString() ===
-              new Date().toDateString()
-            ) {
-              const [hours, minutes] = session.time.split(":").map(Number);
-              const sessionStart = new Date().setHours(hours, minutes-10, 0);
-              const sessionEnd = new Date().setHours(hours + 1, minutes, 0);
-              const currentTime = new Date().getTime();
+          let status = 'upcoming';
+          if (currentTime >= sessionStart && currentTime <= sessionEnd) {
+            status = 'live';
+          } else if (currentTime > sessionEnd) {
+            status = 'finished';
+          }
 
-              let status = "upcoming";
-              if (currentTime >= sessionStart && currentTime <= sessionEnd) {
-                status = "live";
-              } else if (currentTime > sessionEnd) {
-                status = "finished";
-              }
-
-              // إضافة البيانات للرابط
-              todaysSessions.push({
-                bookingId: booking._id, // تأكد من إضافة هذا السطر
-                sessionIndex: index, // تأكد من إضافة هذا السطر
-                title: booking.courseId?.title,
-                studentName: booking.studentId?.name,
-                time: session.time,
-                status: status,
-                link: req.user.zoom_link || booking.zoomLink || "#",
-              });
-            }
+          // إضافة البيانات للرابط
+          todaysSessions.push({
+            bookingId: booking._id,       // تأكد من إضافة هذا السطر
+            sessionIndex: index,          // تأكد من إضافة هذا السطر
+            title: booking.courseId?.title,
+            studentName: booking.studentId?.name,
+            time: session.time,
+            status: status,
+            link: req.user.zoom_link || booking.zoomLink || '#'
           });
-        });
+        }
+      });
+    });
+console.log(todaysSessions,'todaysSessions');
 
-        todaysSessions.sort((a, b) => a.time.localeCompare(b.time));
-
-        res.render("../views/dashboard/teacher/teacher_dashboard", {
-          todaysSessions,
-          currentDate: new Date().toLocaleDateString("ar-EG", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          }),
-        });
-      } catch (err) {
-        res.status(500).send("خطأ في تحميل الصفحة الرئيسية");
-      }
+    todaysSessions.sort((a, b) => a.time.localeCompare(b.time));
+    res.render('../views/dashboard/teacher/teacher_dashboard', { 
+      todaysSessions,
+      todaysSessionsNumbers: todaysSessions.length,
+      currentDate: new Date().toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' })
+    });
+  } catch (err) {
+    res.status(500).send("خطأ في تحميل الصفحة الرئيسية");
+  }
     } else {
       res.render("dashboard/index");
     }
@@ -185,7 +187,18 @@ const createToken = (id) => {
     expiresIn: maxAge,
   });
 };
-
+const update_profile = async (req, res) => {
+    try {
+        const { name } = req.body;
+        await User.findByIdAndUpdate(req.user._id, { name },{ new: true, runValidators: true });
+res.status(200).json({ message: "تم تحديث الملف الشخصي بنجاح." });
+       
+        
+    } catch (err) {
+      console.log(err);
+        res.redirect('/settings?error=profile');
+    }
+};
 const login_student = async (req, res) => {
   // 1. استخراج البيانات المطلوبة
   const { email, password, role } = req.body;
@@ -406,23 +419,32 @@ const getSessionWaitingRoom = async (req, res, next) => {
  * جلب أقرب حصة قادمة (تاريخياً) من بين جميع حجوزات الطالب.
  */
 const mongoose = require("mongoose");
+const { duration } = require("moment");
 const getNearestSession = async (studentId) => {
   // 💡 يجب استبدال هذا بمعرّف الطالب الفعلي، مثلاً من req.user.id
 
   const now = new Date();
 
-  try {
-    const result = await Subscription.aggregate([
-      {
-        $match: {
-          studentId: new mongoose.Types.ObjectId(studentId),
-          status: "confirmed",
-        },
+// 1. تحديد بداية ونهاية اليوم الحالي
+const startOfDay = new Date();
+startOfDay.setUTCHours(0, 0, 0, 0);
+
+const endOfDay = new Date();
+endOfDay.setUTCHours(23, 59, 59, 999);
+
+try {
+  const result = await Subscription.aggregate([
+    {
+      $match: {
+        studentId: new mongoose.Types.ObjectId(studentId),
+        status: "confirmed",
       },
-      { $unwind: "$sessions" },
-      {
-        $addFields: {
-          dateTimeString: {
+    },
+    { $unwind: "$sessions" },
+    {
+      $addFields: {
+        combinedDateTime: {
+          $toDate: {
             $concat: [
               { $dateToString: { format: "%Y-%m-%d", date: "$sessions.date" } },
               "T",
@@ -432,45 +454,169 @@ const getNearestSession = async (studentId) => {
           },
         },
       },
-      {
-        $addFields: {
-          combinedDateTime: { $toDate: "$dateTimeString" },
-        },
-      },
-      { $match: { combinedDateTime: { $gt: now } } },
-      { $sort: { combinedDateTime: 1 } },
-      { $limit: 1 },
+    },
+    // 2. التعديل الجوهري: فلترة الحصص التي تقع بين بداية ونهاية اليوم
+    { 
+      $match: { 
+        combinedDateTime: { 
+          $gte: startOfDay, 
+          $lte: endOfDay 
+        } 
+      } 
+    },
+    { $sort: { combinedDateTime: 1 } },
+    // إذا كنت تريد كل حصص اليوم احذف $limit، إذا كنت تريد أول حصة فقط اتركها
+    // { $limit: 1 }, 
 
+    {
+      $lookup: {
+        from: "courses",
+        localField: "courseId",
+        foreignField: "_id",
+        as: "courseDetails",
+      },
+    },
+    { $unwind: "$courseDetails" },
+    {
+      $project: {
+        _id: 0,
+        bookingId: "$_id",
+        sessionDetails: "$sessions",
+        sessionId: "$sessions._id",
+        combinedDateTime: 1,
+        courseTitle: "$courseDetails.title",
+        totalAmount: 1,
+      },
+    },
+  ]);
+
+  return result; // سيعيد مصفوفة بكل حصص اليوم
+} catch (error) {
+  console.error("Error in getTodaySessions:", error);
+  return null;
+}
+};
+const getStudentCourseDetails = async (studentId) => {
+  try {
+    const mongoose = require('mongoose');
+    const id = new mongoose.Types.ObjectId(studentId);
+
+    const result = await Subscription.aggregate([
+      { $match: { studentId: id, status: "confirmed" } },
+      
+      // ربط الكورس
       {
         $lookup: {
           from: "courses",
           localField: "courseId",
           foreignField: "_id",
-          as: "courseDetails",
-        },
+          as: "courseInfo"
+        }
       },
-      { $unwind: "$courseDetails" },
+      { $unwind: "$courseInfo" },
 
+      // إجراء عملية الضرب
       {
         $project: {
           _id: 0,
-          bookingId: "$_id",
-          sessionDetails: "$sessions",
-          sessionId: "$sessions._id",
-          combinedDateTime: 1,
-          courseTitle: "$courseDetails.title",
-          totalAmount: 1,
+          courseName: "$courseInfo.title",
+          numberOfSessionsPerMonth: 1,
+          pricePerSession: { $toDouble: "$selectedPriceOption" },
+          // العملية الحسابية (السعر × عدد الحصص)
+          totalCalculatedPrice: {
+            $multiply: [
+              { $toDouble: "$selectedPriceOption" },
+              "$numberOfSessionsPerMonth"
+            ]
+          },
+          startDate: 1,
+          status: 1
+        }
+      }
+    ]);
+
+    return result[0];
+  } catch (error) {
+    console.error("Error calculating total:", error);
+    return [];
+  }
+};
+const getStudentStats = async (studentId) => {
+  try {
+    const mongoose = require('mongoose');
+    const id = new mongoose.Types.ObjectId(studentId);
+
+    const stats = await Subscription.aggregate([
+      // 1. فلترة اشتراكات الطالب المؤكدة فقط
+      {
+        $match: {
+          studentId: id,
+          status: "confirmed",
+        },
+      },
+       
+      // 3. التجميع وحساب الاحصائيات
+     
+      // 2. تفكيك الحصص للتعامل مع كل واحدة على حدة
+      { $unwind: "$sessions" },
+      {
+        $group: {
+          _id: "$studentId",
+          // أ- حصص مكتملة: نعد الجلسات التي حالتها 'completed'
+          completedSessions: {
+            $sum: { $cond: [{ $eq: ["$sessions.status", "completed"] }, 1, 0] },
+          },
+          // ب- تقييمك: تحويل المستويات (A,B,C) لأرقام لحساب المتوسط
+          avgRating: {
+            $avg: {
+              $switch: {
+                branches: [
+                  { case: { $eq: ["$sessions.report.level", "A"] }, then: 5 },
+                  { case: { $eq: ["$sessions.report.level", "B"] }, then: 4 },
+                  { case: { $eq: ["$sessions.report.level", "C"] }, then: 3 }
+                ],
+                default: null 
+              }
+            }
+          },
+          // ج- دقائق التعلم: بفرض أن كل حصة مكتملة هي ساعة (60 دقيقة) 
+          // أو يمكنك استبدال 60 بحقل المدة إذا أضفته
+          totalMinutes: {
+            $sum: { $cond: [{ $eq: ["$sessions.status", "completed"] }, 60, 0] }
+          },
+          // د- الخطة: إجمالي الحصص المحجوزة في مصفوفة الجلسات
+          totalPlan: { $sum: 1 }
+        },
+      },
+      // 4. التنسيق النهائي للعرض
+      {
+        $project: {
+          _id: 0,
+          completedSessions: 1,
+       
+
+
+     
+          rating: { $ifNull: [{ $round: ["$avgRating", 1] }, 0] },
+          learningMinutes: 1,
+          totalPlan: 1,
+          learningHours: { $divide: ["$totalMinutes", 60] } // تحويل الساعات لو أردت
         },
       },
     ]);
-
-    return result.length > 0 ? result[0] : null;
+console.log(stats,'stats');
+    return stats.length > 0 ? stats[0] : { 
+    
+      completedSessions: 0, 
+      rating: 0, 
+      learningMinutes: 0, 
+      totalPlan: 0 
+    };
   } catch (error) {
-    console.error("Error in getNearestSession:", error);
+    console.error("Dashboard Stats Error:", error);
     return null;
   }
 };
-
 const getMySessionsPage = async (req, res) => {
   // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
 
@@ -493,19 +639,114 @@ const getMySessionsPage = async (req, res) => {
     bookings: acceptedRequests,
   });
 };
-const getStudentSettings = async (req, res) => {
-  // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
+const getStudentSettings = async (req, res, next) => {
+ 
+  const user = await User.findById(req.user._id);
+     console.log(user,'user new ');
   res.render("dashboard/student/settings", {
     title: "  الاعدادات الطالب ",
+    newuser: user,
   });
 };
+
 const getStudentBillingPage = async (req, res) => {
-  // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
-  res.render("dashboard/student/billing", {
-    title: "  الاعدادات الطالب ",
-  });
+    try {
+        const studentId = req.user._id; // الحصول على ID الطالب من التوثيق
+
+        const billingData = await Subscription.aggregate([
+            // 1. جلب كافة اشتراكات هذا الطالب
+            { $match: { studentId: new mongoose.Types.ObjectId(studentId) } },
+            
+            // 2. ربط بيانات الكورس
+            {
+                $lookup: {
+                    from: "courses",
+                    localField: "courseId",
+                    foreignField: "_id",
+                    as: "courseInfo"
+                }
+            },
+            { $unwind: "$courseInfo" },
+
+            // 3. معالجة البيانات وحساب الحصص المتبقية
+            {
+                $project: {
+                    courseName: "$courseInfo.title",
+                    totalSessions: "$numberOfSessionsPerMonth",
+                    priceOption: "$selectedPriceOption",
+                    totalAmount: 1,
+                    status: 1,
+                    createdAt: 1,
+                    startDate: 1,
+                    // حساب الحصص التي لم تكتمل بعد (المتبقية)
+                    remainingSessionsCount: {
+                        $size: {
+                            $filter: {
+                                input: "$sessions",
+                                as: "sess",
+                                cond: { $ne: ["$$sess.status", "completed"] }
+                            }
+                        }
+                    },
+                    // حساب تاريخ التجديد (بعد شهر من البداية)
+                    renewalDate: { $add: ["$startDate", 30 * 24 * 60 * 60 * 1000] }
+                }
+            },
+            // 4. ترتيب الدفعات من الأحدث للأقدم
+            { $sort: { createdAt: -1 } }
+        ]);
+
+    console.log(billingData,'billingData');
+        // إرسال البيانات للصفحة
+        res.render('dashboard/student/billing', { 
+            billingData,
+            // نعتبر أول سجل هو الخطة النشطة حالياً
+            activePlan: billingData.length > 0 ? billingData[0] : null 
+        });
+
+    } catch (error) {
+        console.error("Billing Page Error:", error);
+        res.status(500).send("حدث خطأ في جلب بيانات الرصيد");
+    }
+};
+const getProfilePage = async (req, res) => {
+    res.render('dashboard/student/profile_tab', { 
+           
+        });
+};
+const updatePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+        const user = await User.findById(req.user._id);
+
+        // التأكد من تطابق كلمة المرور الجديدة والتأكيد
+      if (newPassword !== confirmPassword) {
+            return res.status(400).json({ message: "كلمة المرور الجديدة وتأكيدها غير متطابقين." });
+        }
+
+        // 3. التحقق من كلمة المرور الحالية (قارن القديمة بالمخزنة)
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "كلمة المرور الحالية غير صحيحة." });
+        }
+
+      
+        user.password = newPassword;
+        await user.save();
+res.status(200).json({ message: "تم تغيير كلمة المرور بنجاح." });
+    
+    } catch (err) {
+        console.log(err);
+          
+            return res.status(400).json({ message:err});
+       
+     
+    }
 };
 module.exports = {
+  getProfilePage,
+  updatePassword,
+  update_profile,
   getMySessionsPage,
   getStudentSettings,
   getStudentBillingPage,

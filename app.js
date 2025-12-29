@@ -11,11 +11,15 @@ const path = require('path');
 const methodOverride = require('method-override');
 const ApiAuthRouter = require('./routes/api routes/api_authRoutes');
 const teacherDashboardRoutes = require('./routes/teacher_dashboard_routes');
+const bodyParser = require('body-parser');
+
 // ⭐️ الإعداد الصحيح لمجلد العرض ⭐️
 // يتم تعيين مجلد 'views' كمسار افتراضي للـ EJS
 app.set("views", path.join(__dirname, 'views')); 
 app.set("view engine", "ejs");
+// 1. لتحليل البيانات القادمة بتنسيق JSON (مثل تطبيقات React/Mobile)
 
+// 2. لتحليل البيانات القادمة من نماذج HTML (HTML Forms)
 // middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));

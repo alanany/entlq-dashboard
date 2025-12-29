@@ -19,7 +19,7 @@
         <div class="flex-1 flex flex-col overflow-hidden">
              <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
                 <h2 class="text-xl font-semibold text-gray-800">معالج حجز خطة الحصص</h2>
-                 <a href="student-dashboard.html" class="text-sm text-indigo-600 hover:underline flex items-center font-medium">
+                 <a href="/" class="text-sm text-indigo-600 hover:underline flex items-center font-medium">
                     <i data-feather="arrow-right" class="mr-1 w-4 h-4"></i> إلغاء والعودة
                 </a>
             </header>
@@ -130,7 +130,7 @@
                             <button id="backToStep1" class="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg font-medium hover:bg-gray-400">
                                 <i data-feather="arrow-right" class="mr-2 w-5 h-5 inline-block"></i> عودة
                             </button>
-                            <button id="goToStep3" disabled class="px-6 py-3 bg-indigo-400 text-white rounded-lg font-medium hover:bg-indigo-500 disabled:opacity-50">
+                            <button id="goToStep3" disabled class="px-4 py-2 bg-indigo-400 text-white rounded-lg font-medium hover:bg-indigo-500 disabled:opacity-50">
                                 المتابعة للدفع <i data-feather="arrow-left" class="ml-2 w-5 h-5 inline-block"></i>
                             </button>
                         </div>
@@ -163,11 +163,11 @@
                         </div>
 
                         <div class="flex justify-between mt-6">
-                            <button id="backToStep2" class="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg font-medium hover:bg-gray-400">
+                            <button id="backToStep2" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg font-medium hover:bg-gray-400">
                                 <i data-feather="arrow-right" class="mr-2 w-5 h-5 inline-block"></i> عودة
                             </button>
                           <form id="paymentForm" action="#" method="POST">
-    <button id="checkoutButton" type="button" class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">
+    <button id="checkoutButton" type="button" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">
         إتمام عملية الدفع <i data-feather="check" class="ml-2 w-5 h-5 inline-block"></i>
     </button>
 </form>
@@ -178,7 +178,48 @@
             </main>
         </div>
     </div>
+      <div
+      id="toastContainer"
+      class="fixed bottom-4 right-4 z-[70] space-y-3"
+    ></div>
 <script>
+    function showToast(message, type = "info") {
+        const container = document.getElementById("toastContainer");
+        const toast = document.createElement("div");
+        let bgColor =
+          type === "success"
+            ? "bg-green-600"
+            : type === "error"
+            ? "bg-red-600"
+            : "bg-blue-600";
+        let icon =
+          type === "success"
+            ? "check-circle"
+            : type === "error"
+            ? "alert-triangle"
+            : "info";
+
+        toast.className = `p-4 min-w-[250px] text-white ${bgColor} rounded-xl shadow-xl flex items-center justify-between transform transition-all duration-300 translate-x-full opacity-0`;
+        toast.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i data-feather="${icon}" class="w-5 h-5"></i>
+                    <span class="text-sm font-bold">${message}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="mr-4"><i data-feather="x" class="w-4 h-4"></i></button>
+            `;
+
+        container.appendChild(toast);
+        feather.replace();
+
+        setTimeout(() => {
+          toast.classList.remove("translate-x-full", "opacity-0");
+        }, 10);
+
+        setTimeout(() => {
+          toast.classList.add("translate-x-full", "opacity-0");
+          setTimeout(() => toast.remove(), 300);
+        }, 4000);
+      }
     // 💡 افتراض: يجب أن يكون لديك متغيرات EJS تحمل ID الكورس والطالب من الباك-إند
     // يمكنك استخراجها من عناصر مخفية أو تخزينها في متغيرات JavaScript هنا:
 
@@ -249,12 +290,13 @@ console.log(bookingData,'bookingData');
             return response.json();
         })
         .then(data => {
-            // 5. التعامل مع النجاح
-            alert('✅ تم إنشاء طلب الحجز بنجاح! سيتم توجيهك للدفع.');
-            console.log('بيانات الطلب:', data);
             
+              showToast("تم إنشاء طلب الحجز بنجاح بنجاح!", "success");
+
+            // 5. التعامل مع النجاح
+          
             // التوجيه إلى صفحة الدفع (مثال: استخدام معرف الطلب المُعاد من الخادم)
-            window.location.href = `/success`;
+            window.location.href = `/`;
         })
         .catch(error => {
             // 6. التعامل مع الأخطاء

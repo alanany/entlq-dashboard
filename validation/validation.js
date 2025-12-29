@@ -19,6 +19,7 @@ const validationAnyRequestExpect = (requiredFields = []) => {
           field,
           message: `حقل ${field} مطلوب ولا يمكن أن يكون فارغاً`,
         });
+        console.log("errors", errors);
         continue; // لو مفيش قيمة، نكمل للحقول الأخرى
       }
 

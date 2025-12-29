@@ -8,6 +8,7 @@ const bookingSchema = new mongoose.Schema({
 
     // 💡 مصفوفة لتخزين الجدولة
     sessions: [{
+        durationMinutes: { type: Number(), default:Number(this.selectedPriceOption)  },
         date: { type: Date, required: true },
         time: { type: String, required: true },
           endtime: { type: String },
