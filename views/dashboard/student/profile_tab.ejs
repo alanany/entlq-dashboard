@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>إعدادات الحساب </title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <style>
+        
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8faff; }
+        .setting-card { @apply bg-white p-4 flex items-center justify-between border-b border-gray-50 active:bg-gray-50 transition-all; }
+        .icon-box { @apply w-10 h-10 rounded-2xl flex items-center justify-center ml-4; }
+    /* شريط التابات الأساسي */
+.mobile-bottom-nav {
+    @apply lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-t border-gray-100 flex items-center justify-around px-2 pb-5 z-[9999] shadow-[0_-5px_20px_rgba(0,0,0,0.05)];
+}
+
+/* التاب في الحالة العادية */
+.nav-tab {
+    @apply flex flex-col items-center justify-center flex-1 h-full transition-all duration-300;
+    color: #9ca3af; /* رمادي */
+}
+
+/* التاب في الحالة النشطة (Active) */
+.nav-tab.active {
+    color: #5e35b1 !important; /* بنفسجي ألف باء */
+}
+
+/* حركة الأيقونة فقط عند النشاط */
+.nav-tab.active i {
+    transform: translateY(-3px); /* رفعة بسيطة للأيقونة */
+    stroke-width: 2.5px; /* جعل خط الأيقونة أوضح */
+    transition: all 0.3s ease;
+}
+
+/* النص عند النشاط */
+.nav-tab.active span {
+    font-weight: 800; /* جعل الخط عريض */
+    font-size: 11px; /* تكبير بسيط جداً للنص */
+}
+
+/* تأثير الضغط (Feedback) */
+.nav-tab:active {
+    transform: scale(0.95);
+}
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-50">
+        <h1 class="text-lg font-bold text-gray-800">حسابي</h1>
+        <button onclick="window.history.back()" class="text-gray-500 lg:hidden">
+            <i data-feather="arrow-left"></i>
+        </button>
+    </header>
+
+    <main class="max-w-2xl mx-auto pb-32">
+        
+        <div class="bg-white p-8 text-center border-b border-gray-100">
+            <div class="relative inline-block">
+                <div class="w-24 h-24 bg-[#5e35b1] rounded-3xl mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-indigo-100">
+                    <%= user.name.charAt(0) %>
+                </div>
+                <button class="absolute bottom-0 right-0 bg-white p-2 rounded-xl shadow-md border border-gray-100 text-gray-600">
+                    <i data-feather="camera" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <h2 class="mt-4 text-xl font-black text-gray-800"><%= user.name %></h2>
+            <p class="text-gray-400 text-sm"><%= user.email %></p>
+        </div>
+
+    <div class="mt-8 px-5">
+    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-4 mr-2">إعدادات الحساب</p>
+    
+    <div class="bg-white rounded-[1.5rem] shadow-sm border border-gray-100 overflow-hidden">
+         <a href="/student/enrolled_subscription" class="flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center ml-4">
+                    <i data-feather="file-text" class="w-5 h-5"></i>
+                </div>
+                <span class="text-sm font-bold text-gray-700"> طلبات الانضمام  </span>
+            </div>
+            <i data-feather="chevron-left" class="text-gray-300 w-5 h-5"></i>
+        </a>
+
+  <a href="/student/billing" class="flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center ml-4">
+                    <i data-feather="dollar-sign" class="w-5 h-5"></i>
+                </div>
+                <span class="text-sm font-bold text-gray-700">  الرصيد والدفع   </span>
+            </div>
+            <i data-feather="chevron-left" class="text-gray-300 w-5 h-5"></i>
+        </a>
+
+
+        <a href="/student/edit-profile" class="flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center ml-4">
+                    <i data-feather="user" class="w-5 h-5"></i>
+                </div>
+                <span class="text-sm font-bold text-gray-700">تعديل البيانات الشخصية</span>
+            </div>
+            <i data-feather="chevron-left" class="text-gray-300 w-5 h-5"></i>
+        </a>
+
+        <a href="/student/change-password" class="flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 text-[#5e35b1] flex items-center justify-center ml-4">
+                    <i data-feather="lock" class="w-5 h-5"></i>
+                </div>
+                <span class="text-sm font-bold text-gray-700">تغيير كلمة المرور</span>
+            </div>
+            <i data-feather="chevron-left" class="text-gray-300 w-5 h-5"></i>
+        </a>
+
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center ml-4">
+                    <i data-feather="bell" class="w-5 h-5"></i>
+                </div>
+                <span class="text-sm font-bold text-gray-700">تنبيهات الحصص</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#5e35b1]"></div>
+            </label>
+        </div>
+
+    </div>
+</div>
+
+<div class="mt-8 px-5">
+    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-4 mr-2">المساعدة والدعم</p>
+    
+    <div class="bg-white rounded-[1.5rem] shadow-sm border border-gray-100 overflow-hidden">
+        <a href="https://wa.me/+966581734347" target="_blank" class="flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center ml-4">
+                    <i data-feather="message-circle" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <span class="text-sm font-bold text-gray-700 block">تواصل معنا</span>
+                    <span class="text-[10px] text-gray-400">متاحون دائماً لخدمتك عبر واتساب</span>
+                </div>
+            </div>
+            <i data-feather="external-link" class="text-gray-300 w-4 h-4"></i>
+        </a>
+    </div>
+</div>
+
+ <div id="logoutModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden transform transition-all scale-95">
+            <div class="p-8 text-center">
+                <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-feather="log-out" class="w-10 h-10"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-gray-900">تأكيد الخروج</h3>
+                <p class="text-gray-500 mt-3 text-sm leading-relaxed">هل أنت متأكد أنك تريد تسجيل الخروج من حسابك الآن؟</p>
+            </div>
+            <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3">
+                <a href="/student/logout" class="w-full sm:flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm text-center hover:bg-red-700 shadow-lg shadow-red-200">نعم، اخرج</a>
+                <button onclick="closeLogoutModal()" class="w-full sm:flex-1 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-100">إلغاء</button>
+            </div>
+        </div>
+    </div>
+        <div class="mt-8 px-4">
+            <a href="#" onclick="openLogoutModal(event)" class="flex items-center justify-center p-2 mt-4 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors font-medium">
+                        <i data-feather="log-out" class="ml-2 w-5 h-5"></i>
+                        تسجيل الخروج
+                    </a>
+            <p class="text-center text-gray-300 text-[10px] mt-6">إصدار التطبيق 2.0.1</p>
+        </div>
+
+    </main>
+
+<%- include('../../partials/bottom-nav.ejs', {currentPage: 'settings'}) %>        </div>
+
+    <script>
+        feather.replace();
+         const modal = document.getElementById('logoutModal');
+        function openLogoutModal(e) {
+            e.preventDefault();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => modal.firstElementChild.nextElementSibling.classList.remove('scale-95'), 10);
+        }
+        function closeLogoutModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    
+    </script>
+</body>
+</html>
