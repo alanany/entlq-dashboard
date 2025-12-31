@@ -35,6 +35,7 @@ zoom_link: {
     enum: ['admin', 'student', 'teacher'],
     default: 'student'
   },
+  timezone: { type: String, default: 'UTC' }, // مثال: 'Asia/Riyadh'
   status:{
     type: String,
     enum: ['active', 'banned'],

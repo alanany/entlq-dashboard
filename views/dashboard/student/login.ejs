@@ -36,6 +36,15 @@
                        class="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
                        placeholder="كلمة المرور">
             </div>
+<div class="space-y-2">
+    <label class="text-sm font-bold text-gray-700">المنطقة الزمنية (تحديد تلقائي)</label>
+    
+    <select disabled id="timezoneSelectDisplay" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none opacity-70">
+    </select>
+    
+    <input type="hidden" name="timezone" id="timezoneHiddenInput">
+</div>
+
 
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
@@ -76,6 +85,22 @@
 
     <script>
         feather.replace();
+
+    const timeZones = Intl.supportedValuesOf('timeZone');
+    const selectDisplay = document.getElementById('timezoneSelectDisplay');
+    const hiddenInput = document.getElementById('timezoneHiddenInput');
+    const userDefault = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    // تعيين القيمة للحقل المخفي فوراً
+    hiddenInput.value = userDefault;
+console.error('userDefault',userDefault);
+    timeZones.forEach(tz => {
+        const option = document.createElement('option');
+        option.value = tz;
+        option.text = tz.replace('_', ' '); 
+        if (tz === userDefault) option.selected = true; 
+        selectDisplay.appendChild(option);
+    });
 
         const saveBtn = document.getElementById("saveBtn");
         const originalButtonText = saveBtn.textContent.trim(); 
@@ -164,7 +189,8 @@
             const userData = {
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value,
-                role: 'student'
+                role: 'student',
+                timezone: userDefault
             };
 
             startLoading(true); // تفعيل وضع التحميل (باستخدام نص تسجيل الدخول)

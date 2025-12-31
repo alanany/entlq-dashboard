@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Course = require("../models/course_model.js");
 const Subscription = require("../models/subscription_model.js");
+const teacherController = require("../controllers/teacher_controller");
 const getstudentDashboard = async (req, res, next) => {
   try {
     const role = req.user.role;
@@ -28,7 +29,6 @@ const getstudentDashboard = async (req, res, next) => {
 
     const startOfDay = new Date(now.setHours(0, 0, 0, 0));
     const endOfDay = new Date(now.setHours(23, 59, 59, 999));
-
     const bookings = await Subscription.find({
       teacherId: teacherId,
       'sessions.date': { $gte: startOfDay, $lte: endOfDay }
@@ -69,10 +69,12 @@ console.log(bookings, "bookings in controller");
       });
     });
 console.log(todaysSessions,'todaysSessions');
+const teacherStatic=await teacherController.teacherStatics(req,res);
 
     todaysSessions.sort((a, b) => a.time.localeCompare(b.time));
     res.render('../views/dashboard/teacher/teacher_dashboard', { 
       todaysSessions,
+      teacherStatic,
       todaysSessionsNumbers: todaysSessions.length,
       currentDate: new Date().toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' })
     });
@@ -114,6 +116,7 @@ const registerStudent = async (req, res) => {
     gender,
     password,
     confirm_Password,
+    timezone,
   } = req.body;
 
   try {
@@ -143,6 +146,8 @@ const registerStudent = async (req, res) => {
       phone_number: country_code + phone_number, // حفظ رقم الهاتف بالكامل
       gender,
       password,
+      timezone,
+      role: "student",
     });
     console.log(user);
     // حفظ الطالب في قاعدة البيانات (سيتم تشفير كلمة المرور تلقائيًا عبر الـ middleware)
@@ -201,8 +206,8 @@ res.status(200).json({ message: "تم تحديث الملف الشخصي بنج�
 };
 const login_student = async (req, res) => {
   // 1. استخراج البيانات المطلوبة
-  const { email, password, role } = req.body;
-
+  const { email, password, role,timezone} = req.body;
+console.log(timezone,'timezone');
   // **كائن الأخطاء المخصص**
   let errors = {};
 
@@ -227,7 +232,12 @@ const login_student = async (req, res) => {
       return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
     }
 
-    // 6. حالة النجاح: كلمة المرور صحيحة
+ if (timezone && user.timezone !== timezone) {
+    user.timezone = timezone;
+    await user.save();
+    console.log(`تم تحديث توقيت المستخدم إلى: ${timezone}`);
+}
+     // 6. حالة النجاح: كلمة المرور صحيحة
     const token = createToken(user._id);
     await res.cookie("jwt", token, { httpOnly: true, maxAge: maxAge * 1000 });
 
@@ -420,82 +430,42 @@ const getSessionWaitingRoom = async (req, res, next) => {
  */
 const mongoose = require("mongoose");
 const { duration } = require("moment");
-const getNearestSession = async (studentId) => {
-  // 💡 يجب استبدال هذا بمعرّف الطالب الفعلي، مثلاً من req.user.id
+async function getNearestSession(studentId) {
+  // جلب الاشتراكات المؤكدة
+  const subscriptions = await Subscription.find({
+    studentId: studentId,
+    status: "confirmed",
+  }).populate("courseId");
 
-  const now = new Date();
+  let upcoming = [];
+  const now = new Date(); // الوقت الحالي الفعلي للسيرفر
 
-// 1. تحديد بداية ونهاية اليوم الحالي
-const startOfDay = new Date();
-startOfDay.setUTCHours(0, 0, 0, 0);
+  subscriptions.forEach((sub) => {
+    (sub.sessions || []).forEach((session) => {
+      // 1. تنظيف التاريخ (YYYY-MM-DD)
+      const rawDate = new Date(session.date).toISOString().split('T')[0];
+      // 2. دمج التاريخ والوقت في كائن واحد
+      const sessionStart = new Date(`${rawDate}T${session.time}:00`);
+      // 3. نهاية الحصة (بعد ساعة مثلاً)
+      const sessionEnd = new Date(sessionStart.getTime() + 60 * 60 * 1000);
 
-const endOfDay = new Date();
-endOfDay.setUTCHours(23, 59, 59, 999);
+      // إذا كانت الحصة لم تنتهِ بعد ولم يتم تعليمها كمكتملة
+      if (sessionEnd > now && session.status !== "completed") {
+        upcoming.push({
+          bookingId: sub._id,
+          courseTitle: sub.courseId?.title,
+          sessionDetails: session,
+          startTime: sessionStart // نستخدم هذا للترتيب
+        });
+      }
+    });
+  });
 
-try {
-  const result = await Subscription.aggregate([
-    {
-      $match: {
-        studentId: new mongoose.Types.ObjectId(studentId),
-        status: "confirmed",
-      },
-    },
-    { $unwind: "$sessions" },
-    {
-      $addFields: {
-        combinedDateTime: {
-          $toDate: {
-            $concat: [
-              { $dateToString: { format: "%Y-%m-%d", date: "$sessions.date" } },
-              "T",
-              "$sessions.time",
-              ":00Z",
-            ],
-          },
-        },
-      },
-    },
-    // 2. التعديل الجوهري: فلترة الحصص التي تقع بين بداية ونهاية اليوم
-    { 
-      $match: { 
-        combinedDateTime: { 
-          $gte: startOfDay, 
-          $lte: endOfDay 
-        } 
-      } 
-    },
-    { $sort: { combinedDateTime: 1 } },
-    // إذا كنت تريد كل حصص اليوم احذف $limit، إذا كنت تريد أول حصة فقط اتركها
-    // { $limit: 1 }, 
+  // ترتيب الحصص من الأقرب للأبعد
+  upcoming.sort((a, b) => a.startTime - b.startTime);
 
-    {
-      $lookup: {
-        from: "courses",
-        localField: "courseId",
-        foreignField: "_id",
-        as: "courseDetails",
-      },
-    },
-    { $unwind: "$courseDetails" },
-    {
-      $project: {
-        _id: 0,
-        bookingId: "$_id",
-        sessionDetails: "$sessions",
-        sessionId: "$sessions._id",
-        combinedDateTime: 1,
-        courseTitle: "$courseDetails.title",
-        totalAmount: 1,
-      },
-    },
-  ]);
-
-  return result; // سيعيد مصفوفة بكل حصص اليوم
-} catch (error) {
-  console.error("Error in getTodaySessions:", error);
-  return null;
+  return upcoming[0] || null; // إرجاع أقرب حصة فقط
 }
-};
 const getStudentCourseDetails = async (studentId) => {
   try {
     const mongoose = require('mongoose');

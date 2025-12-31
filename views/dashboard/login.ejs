@@ -70,6 +70,15 @@
                     <label for="password" class="block text-sm font-medium text-gray-700">كلمة المرور</label>
                     <input id="password" name="password" type="password" autocomplete="current-password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors">
                 </div>
+<div class="space-y-2">
+    <label class="text-sm font-bold text-gray-700">المنطقة الزمنية (تحديد تلقائي)</label>
+    
+    <select disabled id="timezoneSelectDisplay" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none opacity-70">
+    </select>
+    
+    <input type="hidden" name="timezone" id="timezoneHiddenInput">
+</div>
+
 
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
@@ -103,6 +112,22 @@
 
     <script>
         feather.replace();
+
+    const timeZones = Intl.supportedValuesOf('timeZone');
+    const selectDisplay = document.getElementById('timezoneSelectDisplay');
+    const hiddenInput = document.getElementById('timezoneHiddenInput');
+    const userDefault = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    // تعيين القيمة للحقل المخفي فوراً
+    hiddenInput.value = userDefault;
+console.error('userDefault',userDefault);
+    timeZones.forEach(tz => {
+        const option = document.createElement('option');
+        option.value = tz;
+        option.text = tz.replace('_', ' '); 
+        if (tz === userDefault) option.selected = true; 
+        selectDisplay.appendChild(option);
+    });
 
         const saveBtn = document.getElementById("saveBtn");
         const spinner = document.getElementById("spinner");
@@ -194,7 +219,8 @@
             const userData = {
                 role: form.querySelector('input[name="role"]:checked').value,
                 email: document.getElementById('email').value,
-                password: document.getElementById('password').value
+                password: document.getElementById('password').value,
+                timezone: userDefault
             };
 
             startLoading(true); // تفعيل وضع التحميل (باستخدام نص تسجيل الدخول)

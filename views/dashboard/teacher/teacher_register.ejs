@@ -289,7 +289,26 @@
               />
             </div>
           </div>
+<div class="space-y-2">
+    <label class="text-sm font-bold text-gray-700">المنطقة الزمنية</label>
+    <select  disabled name="timezone" id="timezoneSelect" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+        </select>
+</div>
 
+<script>
+    // جلب قائمة بكل المناطق الزمنية العالمية
+    const timeZones = Intl.supportedValuesOf('timeZone');
+    const select = document.getElementById('timezoneSelect');
+    const userDefault = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    timeZones.forEach(tz => {
+        const option = document.createElement('option');
+        option.value = tz;
+        option.text = tz.replace('_', ' '); // تجميل الشكل
+        if (tz === userDefault) option.selected = true; // تحديد منطقة الطالب الحالية تلقائياً
+        select.appendChild(option);
+    });
+</script>
           <button
             id="saveBtn"
             type="submit"

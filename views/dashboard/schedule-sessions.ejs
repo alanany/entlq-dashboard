@@ -7,38 +7,40 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        input:focus { transform: scale(1.01); transition: all 0.2s ease; }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
     
     <% 
         const studentName = booking.studentId?.name || 'طالب غير معروف';
+        const studentTZ = booking.studentId?.timezone || 'UTC'; // المنطقة الزمنية للطالب
         const courseTitle = booking.courseId?.title || 'كورس محذوف';
         const totalSessions = booking.numberOfSessionsPerMonth || 5; 
         const existingSessions = booking.sessions || [];
         const courseStartDate = booking.startDate ? new Date(booking.startDate) : null;
-        const teacherId=booking.teacherId;
-        const sessionDuration=booking.selectedPriceOption;
+        const teacherId = booking.teacherId;
+        const sessionDuration = booking.selectedPriceOption;
         const teacherName = booking.teacherId?.name || 'معلم غير معروف';
-        // حساب تاريخ الحد الأقصى: شهر واحد بعد تاريخ البداية
+
         let maxDateLimit = null;
         if (courseStartDate) {
             maxDateLimit = new Date(courseStartDate);
-            // إضافة 30 يوماً للحد الأقصى
             maxDateLimit.setDate(maxDateLimit.getDate() + 30); 
         }
 
-        // تحويل البيانات السابقة إلى كائن يسهل الوصول إليه (لربط التاريخ والوقت والحالة)
         const sessionsMap = {};
         existingSessions.forEach((session, index) => {
             const dateStr = session.date ? new Date(session.date).toISOString().split('T')[0] : '';
             const timeStr = session.time || '';
-            const status = session.status || 'pending'; // 'pending', 'completed', 'missed'
+            const status = session.status || 'pending';
             sessionsMap[index] = { 
                 date: dateStr, 
                 time: timeStr, 
                 status: status,
-                _id: session._id // نحتاج الـ ID لتأكيد الإجراء عبر الـ Controller
+                _id: session._id 
             };
         });
     %>
@@ -47,79 +49,63 @@
         
         <div class="mb-6">
             <a href="#" onclick="history.back(); return false;" 
-                class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center font-medium transition duration-150">
-                <i data-feather="arrow-right" class="mr-1 w-4 h-4"></i> 
+                class="text-sm text-indigo-600 hover:text-indigo-800 flex items-center font-bold transition">
+                <i data-feather="arrow-right" class="ml-2 w-4 h-4"></i> 
                 العودة لطلبات الانضمام
             </a>
         </div>
 
+        <div class="mb-6 bg-blue-50 border-r-4 border-blue-500 p-4 rounded-xl shadow-sm flex items-center justify-between">
+            <div class="flex items-center">
+                <i data-feather="globe" class="ml-3 text-blue-600"></i>
+                <div>
+                    <p class="text-sm font-bold text-blue-900">توقيت الطالب المتوقع:</p>
+                    <p class="text-xs text-blue-700 font-medium">المنطقة الزمنية للطالب: <span class="font-black"><%= studentTZ %></span></p>
+                </div>
+            </div>
+        </div>
+
         <div class="mb-8 border-b pb-4">
             <h1 class="text-3xl font-extrabold text-gray-900 flex items-center">
-                <i data-feather="calendar" class="ml-3 w-7 h-7 text-blue-600"></i> 
-                جدولة حصص الكورس: <%= courseTitle %>
+                <i data-feather="calendar" class="ml-3 w-8 h-8 text-indigo-600"></i> 
+                جدولة حصص: <%= studentName %>
             </h1>
-            <p class="mt-2 text-lg text-gray-600">
-                إدخال تاريخ ووقت جميع الحصص المطلوبة (<%= totalSessions %> حصص).
-                <% if (courseStartDate) { %>
-                    <span class="font-bold text-red-600 block mt-1">
-                        ⚠️ ملاحظة: يجب أن تكون مواعيد الحصص بين تاريخ البداية (<%= new Date(courseStartDate).toLocaleDateString('ar-EG') %>) والحد الأقصى (بعد شهر).
-                    </span>
-                <% } %>
-            </p>
+            <p class="mt-2 text-gray-500 font-medium">كورس: <span class="text-indigo-600"><%= courseTitle %></span></p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
             
-            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit">
-                <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2 flex items-center">
-                    <i data-feather="info" class="ml-2 w-5 h-5 text-indigo-500"></i>
-                    ملخص الطلب
-                </h3>
-                <dl class="space-y-3 text-sm">
-                    <div>
-                        <dt class="font-medium text-gray-500">الطالب:</dt>
-                        <dd class="text-gray-900 font-semibold"><%= studentName %></dd>
-                    </div>
-                    <div>
-                        <dt class="font-medium text-gray-500">الكورس:</dt>
-                        <dd class="text-indigo-600 font-semibold"><%= courseTitle %></dd>
-                    </div>
-                     <div>
-                        <dt class="font-medium text-gray-500">اسم المعلم :</dt>
-                        <dd class="text-indigo-600 font-semibold"><%= teacherName %></dd>
-                    </div>
-   <a href="/teacher/calendar/<%= teacherId._id %>" 
-   class="inline-flex items-center px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all group" 
-   title="عرض جدول المواعيد">
-    <i data-feather="calendar" class="w-4 h-4 ml-1"></i>
-    <span class="text-xs font-bold">الجدول</span>
-</a>
-                    <div>
-                        <dt class="font-medium text-gray-500">عدد الحصص المطلوب:</dt>
-                        <dd class="text-2xl font-extrabold text-blue-700 mt-1"><%= totalSessions %></dd>
-                    </div>
-                      <div>
-                        <dt class="font-medium text-gray-500">مدة كل حصة :  :</dt>
-                        <dd class="text-2xl font-extrabold text-blue-700 mt-1"><%= sessionDuration %> دقيقة</dd>
-                    </div>
-                    <% if (courseStartDate) { %>
-                    <div>
-                        <dt class="font-medium text-gray-500">تاريخ بدء الكورس:</dt>
-                        <dd class="text-gray-900 font-semibold"><%= new Date(courseStartDate).toLocaleDateString('ar-EG') %></dd>
-                    </div>
-                    <div>
-                        <dt class="font-medium text-gray-500">تاريخ انتهاء الجدول (شهر):</dt>
-                        <dd class="text-red-600 font-semibold"><%= maxDateLimit.toLocaleDateString('ar-EG') %></dd>
-                    </div>
-                    <% } %>
-                </dl>
+            <div class="lg:col-span-1 space-y-4">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
+                    <h3 class="text-lg font-black text-gray-900 mb-4 border-b pb-3 flex items-center">
+                        <i data-feather="info" class="ml-2 w-5 h-5 text-indigo-500"></i> ملخص الجدولة
+                    </h3>
+                    <dl class="space-y-4 text-sm">
+                        <div class="bg-indigo-50 p-3 rounded-xl">
+                            <dt class="font-bold text-indigo-400 text-[10px] uppercase">المعلم المسؤول</dt>
+                            <dd class="text-indigo-900 font-black flex items-center mt-1">
+                                <%= teacherName %>
+                                <a href="/teacher/calendar/<%= teacherId._id %>" class="mr-auto text-indigo-600 hover:scale-110">
+                                    <i data-feather="external-link" class="w-4 h-4"></i>
+                                </a>
+                            </dd>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="bg-gray-50 p-3 rounded-xl text-center">
+                                <dt class="text-[10px] font-bold text-gray-400">الحصص</dt>
+                                <dd class="text-xl font-black text-gray-800"><%= totalSessions %></dd>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-xl text-center">
+                                <dt class="text-[10px] font-bold text-gray-400">المدة</dt>
+                                <dd class="text-xl font-black text-gray-800"><%= sessionDuration %>د</dd>
+                            </div>
+                        </div>
+                    </dl>
+                </div>
             </div>
 
-            <div class="lg:col-span-3 bg-white p-8 rounded-xl shadow-xl">
-                
-                <h2 class="text-xl font-bold text-blue-700 mb-6">تحديد مواعيد الحصص</h2>
-
-                <form action="/booking/<%= booking._id %>/update-sessions" method="POST" class="space-y-8" id="scheduleForm">
+            <div class="lg:col-span-3 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                <form action="/booking/<%= booking._id %>/update-sessions" method="POST" class="space-y-6" id="scheduleForm">
                     
                     <% 
                         const minDateString = courseStartDate ? courseStartDate.toISOString().split('T')[0] : '';
@@ -127,228 +113,174 @@
 
                         for(let i = 0; i < totalSessions; i++) { 
                             const sessionNumber = i + 1;
-                      
-    const sessionData = sessionsMap[i] || {
-        date: '',
-        time: '',
-        status: 'pending',
-        _id: ''
-    };
+                            const sessionData = sessionsMap[i] || { date: '', time: '', status: 'pending', _id: '' };
+                            const isCompleted = sessionData?.status === 'completed';
+                    %>
 
-    const isCompleted = sessionData?.status === 'completed';
-    const inputState = isCompleted ? 'disabled' : 'required';
-    const inputClass = isCompleted ? 'bg-gray-100 cursor-not-allowed' : 'bg-white';
-%>  
-
-                        <div class="p-4 border border-gray-200 rounded-lg shadow-sm grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
+                        <div class="group p-5 border border-gray-100 rounded-2xl hover:border-indigo-200 hover:bg-indigo-50/10 transition-all flex flex-col md:flex-row gap-6 items-center">
                             
-                            <div class="md:col-span-2">
-                                <span class="text-lg font-bold text-gray-800">الحصة رقم <%= sessionNumber %></span>
-                                <p class="text-xs text-gray-500 mt-1">
-                                    الحالة: 
-                                    <% if (isCompleted) { %>
-                                        <span class="font-bold text-green-600 flex items-center"><i data-feather="check-circle" class="ml-1 w-4 h-4"></i> مكتملة - لا يمكن التعديل</span>
-                                    <% } else { %>
-                                        <span class="font-bold text-yellow-600 flex items-center"><i data-feather="clock" class="ml-1 w-4 h-4"></i> قيد الانتظار</span>
-                                    <% } %>
-                                </p>
-                                <input type="hidden" name="sessions[<%= i %>][status]" value="<%= sessionData.status %>" id="status_<%= i %>">
-                                <input type="hidden" name="sessions[<%= i %>][_id]" value="<%= sessionData._id %>">
+                            <div class="flex-shrink-0 text-center md:text-right">
+                                <span class="text-[10px] font-black text-indigo-400 uppercase block">SESSION</span>
+                                <span class="text-2xl font-black text-gray-800"><%= sessionNumber.toString().padStart(2, '0') %></span>
                             </div>
 
-                            <div class="md:col-span-1">
-                                <label for="date_<%= i %>" class="block text-sm font-medium text-gray-700 mb-1">التاريخ</label>
-                                <input type="date" id="date_<%= i %>" name="sessions[<%= i %>][date]" <%= inputState %>
-                                        value="<%= sessionData.date %>" 
-                                        class="schedule-date-input block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-base p-2 border <%= inputClass %>"
-                                        min="<%= minDateString %>" onchange="checkAvailability(<%= i %>)"
-                                        max="<%= maxDateString %>">
+                            <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="relative">
+                                    <label class="text-[10px] font-black text-gray-400 mr-2 mb-1 block">تاريخ الحصة</label>
+                                    <input type="date" name="sessions[<%= i %>][date]" id="date_<%= i %>"
+                                           value="<%= sessionData.date %>"
+                                           min="<%= minDateString %>" max="<%= maxDateString %>"
+                                           onchange="checkAvailability(<%= i %>); updateStudentPreview(<%= i %>)"
+                                           class="w-full bg-gray-50 border-none rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none <%= isCompleted ? 'opacity-50 pointer-events-none' : '' %>" required>
+                                </div>
+                                <div class="relative">
+                                    <label class="text-[10px] font-black text-gray-400 mr-2 mb-1 block">الوقت (بتوقيتك كآدمن)</label>
+                                    <input type="time" name="sessions[<%= i %>][time]" id="time_<%= i %>"
+                                           value="<%= sessionData.time %>"
+                                           onchange="checkAvailability(<%= i %>); updateStudentPreview(<%= i %>)"
+                                           class="w-full bg-gray-50 border-none rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none <%= isCompleted ? 'opacity-50 pointer-events-none' : '' %>" required>
+                                    <p id="student_preview_<%= i %>" class="text-[10px] text-indigo-600 font-bold mt-1 italic"></p>
+                                </div>
+                                <p id="error_<%= i %>" class="md:col-span-2 text-[10px] text-red-500 font-bold hidden"></p>
                             </div>
 
-                            <div class="md:col-span-1">
-                                <label for="time_<%= i %>" class="block text-sm font-medium text-gray-700 mb-1">الوقت</label>
-                                <input type="time" id="time_<%= i %>" name="sessions[<%= i %>][time]" <%= inputState %>
-                                        value="<%= sessionData.time %>" onchange="checkAvailability(<%= i %>)"
-                                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-base p-2 border <%= inputClass %>">
+                            <div class="flex-shrink-0 w-full md:w-auto">
+                                <% if (isCompleted) { %>
+                                    <div class="bg-emerald-100 text-emerald-600 px-4 py-2 rounded-xl flex items-center gap-2">
+                                        <i data-feather="check-circle" class="w-4 h-4"></i>
+                                        <span class="text-xs font-black">مكتملة</span>
+                                    </div>
+                                <% } else { %>
+                                    <button type="button" 
+                                            data-session-id="<%= sessionData._id %>" 
+                                            data-session-index="<%= i %>"
+                                            class="open-modal-btn w-full md:w-auto bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-600 transition-colors">
+                                        تأكيد الإنجاز
+                                    </button>
+                                <% } %>
                             </div>
-                            <p id="error_<%= i %>" class="text-[10px] text-red-600 font-bold mt-1 hidden"></p>
-                          <div class="md:col-span-2 text-left">
-    <% 
-        // 1. تحويل تاريخ الجلسة إلى كائن تاريخ (افترضنا أن الحقل اسمه sessionData.date)
-        const sessionDate = new Date(sessionData.date); 
-        const now = new Date();
-        const isPast = now > sessionDate; // هل الوقت الحالي تجاوز وقت الجلسة؟
-    %>
-
-    <% if (isCompleted) { %>
-        <span class="text-sm text-green-600 font-bold">تم تأكيد الحضور</span>
-
-    <% } else if (isPast) { %>
-        <button type="button" 
-                data-session-id="<%= sessionData._id %>" 
-                data-session-index="<%= i %>"
-                class="open-modal-btn w-full justify-center py-2 px-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
-            <i data-feather="check" class="ml-1 w-4 h-4 inline"></i> تأكيد الانتهاء
-        </button>
-
-    <% } else { %>
-        <span class="text-sm text-gray-400 italic">بانتظار موعد الجلسة</span>
-    <% } %>
-</div>
-
+                            
+                            <input type="hidden" name="sessions[<%= i %>][status]" value="<%= sessionData.status %>">
+                            <input type="hidden" name="sessions[<%= i %>][_id]" value="<%= sessionData._id %>">
                         </div>
-
                     <% } %>
-                    
-                    <div class="pt-6 border-t mt-8">
-                        <button type="submit"
-                                 class="w-full justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
-                            حفظ التعديلات على الجدولة
+
+                    <div class="pt-6">
+                        <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-1 transition-all">
+                            حفظ وتحديث الجدول
                         </button>
                     </div>
-
                 </form>
-
             </div>
         </div>
-
     </div>
 
-<div id="confirmationModal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-50 transition-opacity duration-300 items-center justify-center">
-    <div class="bg-white rounded-lg shadow-2xl overflow-hidden max-w-lg w-full m-4 transform transition-all duration-300 scale-95">
-        
-        <div class="p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 bg-green-100 p-2 rounded-full">
-                    <i data-feather="alert-triangle" class="w-6 h-6 text-green-600"></i>
+    <div id="confirmationModal" class="fixed inset-0 bg-gray-900/60 hidden z-50 items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full m-4 p-8 transform transition-all">
+            <div class="text-center">
+                <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-feather="check" class="text-green-600 w-8 h-8"></i>
                 </div>
-                <div class="ml-4">
-                    <h3 class="text-lg leading-6 font-bold text-gray-900">تأكيد إنهاء الجلسة</h3>
-                </div>
+                <h3 class="text-xl font-black text-gray-900 mb-2">تأكيد حضور الحصة</h3>
+                <p class="text-gray-500 text-sm mb-6" id="sessionDetailsText"></p>
             </div>
-            <div class="mt-4 text-gray-500">
-                <p>هل أنت متأكد من أنك تريد تأكيد **اكتمال** هذه الجلسة؟</p>
-                <p class="mt-2 text-sm text-red-600 font-medium">ملاحظة: لا يمكن تعديل تاريخ ووقت الجلسة بعد تأكيد الانتهاء.</p>
-                <p id="sessionDetailsText" class="mt-3 font-semibold text-gray-800"></p>
+            <div class="flex gap-3">
+                <button id="confirmCompleteBtn" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition">تأكيد</button>
+                <button id="cancelCompleteBtn" class="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition">إلغاء</button>
             </div>
-        </div>
-
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button type="button" id="confirmCompleteBtn"
-                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                نعم، تأكيد الانتهاء
-            </button>
-            <button type="button" id="cancelCompleteBtn"
-                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                إلغاء
-            </button>
         </div>
     </div>
-</div>
 
-<script>
-    feather.replace();
+    <script>
+        feather.replace();
 
-async function checkAvailability(index) {
-    const dateInput = document.getElementById(`date_${index}`);
-    const timeInput = document.getElementById(`time_${index}`);
-    const errorSpan = document.getElementById(`error_${index}`);
-    const submitBtn = document.querySelector('button[type="submit"]');
+        // المنطقة الزمنية للطالب القادمة من قاعدة البيانات
+        const studentTimeZone = '<%= studentTZ %>';
 
-    const date = dateInput.value;
-    const time = timeInput.value;
-    const teacherId = '<%= booking.teacherId?._id || booking.teacherId %>';
-    const bookingId = '<%= booking._id %>';
+        // دالة تحديث توقيت الطالب
+        function updateStudentPreview(index) {
+            const dateInput = document.getElementById(`date_${index}`);
+            const timeInput = document.getElementById(`time_${index}`);
+            const previewSpan = document.getElementById(`student_preview_${index}`);
 
-    if (!date || !time) return;
+            if (!dateInput.value || !timeInput.value) return;
 
-    try {
-        const response = await fetch('/admin/check-teacher-conflict', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ teacherId, date, time, bookingId })
-        });
+            try {
+                // دمج التاريخ والوقت (يفترض المتصفح أن هذا توقيت الجهاز المحلي للآدمن)
+                const adminDate = new Date(`${dateInput.value}T${timeInput.value}`);
 
-        const result = await response.json();
+                const studentTimeStr = adminDate.toLocaleTimeString('ar-EG', {
+                    timeZone: studentTimeZone,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
 
-        if (result.conflict) {
-            // إبراز الخطأ ومنع الحفظ
-            errorSpan.innerText = "⚠️ " + result.message;
-            errorSpan.classList.remove('hidden');
-            dateInput.classList.add('border-red-500', 'bg-red-50');
-            timeInput.classList.add('border-red-500', 'bg-red-50');
-            
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        } else {
-            // إزالة الخطأ
-            errorSpan.classList.add('hidden');
-            dateInput.classList.remove('border-red-500', 'bg-red-50');
-            timeInput.classList.remove('border-red-500', 'bg-red-50');
-            
-            // التحقق من عدم وجود أخطاء أخرى قبل تفعيل الزر
-            const hasOtherErrors = Array.from(document.querySelectorAll('[id^="error_"]'))
-                                       .some(span => !span.classList.contains('hidden'));
-            if (!hasOtherErrors) {
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                previewSpan.innerText = `🕒 عند الطالب: ${studentTimeStr}`;
+            } catch (e) {
+                previewSpan.innerText = "";
             }
         }
-    } catch (err) {
-        console.error("Connection Error:", err);
-    }
-}
-    document.addEventListener('DOMContentLoaded', () => {
 
+        // فحص تضارب مواعيد المعلم
+        async function checkAvailability(index) {
+            const dateInput = document.getElementById(`date_${index}`);
+            const timeInput = document.getElementById(`time_${index}`);
+            const errorSpan = document.getElementById(`error_${index}`);
+            
+            if (!dateInput.value || !timeInput.value) return;
 
-        const modal = document.getElementById('confirmationModal');
-        const openButtons = document.querySelectorAll('.open-modal-btn');
-        const confirmBtn = document.getElementById('confirmCompleteBtn');
-        const cancelBtn = document.getElementById('cancelCompleteBtn');
-        const detailsText = document.getElementById('sessionDetailsText');
+            try {
+                const response = await fetch('/admin/check-teacher-conflict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        teacherId: '<%= booking.teacherId?._id || booking.teacherId %>', 
+                        date: dateInput.value, 
+                        time: timeInput.value, 
+                        bookingId: '<%= booking._id %>' 
+                    })
+                });
+                const result = await response.json();
+                if (result.conflict) {
+                    errorSpan.innerText = "⚠️ " + result.message;
+                    errorSpan.classList.remove('hidden');
+                    [dateInput, timeInput].forEach(el => el.classList.add('ring-2', 'ring-red-500', 'bg-red-50'));
+                } else {
+                    errorSpan.classList.add('hidden');
+                    [dateInput, timeInput].forEach(el => el.classList.remove('ring-2', 'ring-red-500', 'bg-red-50'));
+                }
+            } catch (err) { console.error(err); }
+        }
 
-        let currentSessionId = null;
+        // منطق الـ Modal
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('confirmationModal');
+            const detailsText = document.getElementById('sessionDetailsText');
+            let currentSessionId = null;
 
-        // 1. فتح الـ Modal
-        openButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                const sessionId = event.currentTarget.dataset.sessionId;
-                const sessionIndex = event.currentTarget.dataset.sessionIndex;
-                
-                // جلب بيانات التاريخ والوقت لعرضها في المودال
-                const dateVal = document.getElementById(`date_${sessionIndex}`).value;
-                const timeVal = document.getElementById(`time_${sessionIndex}`).value;
-
-                detailsText.textContent = `الجلسة رقم ${parseInt(sessionIndex) + 1} (${dateVal} الساعة ${timeVal}).`;
-                
-                currentSessionId = sessionId;
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
+            document.querySelectorAll('.open-modal-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.target.dataset.sessionIndex;
+                    currentSessionId = e.target.dataset.sessionId;
+                    detailsText.innerText = `هل أنت متأكد من اكتمال الحصة رقم ${parseInt(idx)+1}؟`;
+                    modal.classList.replace('hidden', 'flex');
+                });
             });
-        });
 
-        // 2. إلغاء الإجراء وإغلاق الـ Modal
-        cancelBtn.addEventListener('click', () => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            currentSessionId = null;
-        });
+            document.getElementById('cancelCompleteBtn').onclick = () => modal.classList.replace('flex', 'hidden');
 
-        // 3. تأكيد الإجراء وإرسال الطلب (Redirect to Controller)
-        confirmBtn.addEventListener('click', () => {
-            if (currentSessionId) {
-                const bookingId = '<%= booking._id %>'; 
-                // 💡 يتم إرسال الطلب إلى مسار الـ Controller الخاص بـ Mark as Complete
-                window.location.href = `/booking/${bookingId}/session/${currentSessionId}/complete`;
-            }
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            document.getElementById('confirmCompleteBtn').onclick = () => {
+                if (currentSessionId) {
+                    window.location.href = `/booking/<%= booking._id %>/session/${currentSessionId}/complete`;
+                }
+            };
+
+            // تشغيل المعاينة الأولية لجميع الحصص
+            <% for(let i = 0; i < totalSessions; i++) { %>
+                updateStudentPreview(<%= i %>);
+            <% } %>
         });
-        
-        // ... (يمكن إضافة منطق قيود التاريخ هنا إذا لزم الأمر) ...
-        
-        console.log(`تم تجهيز واجهة الجدولة لطلب #${'<%= booking._id.toString().slice(-6) %>'}`);
-    });
-</script>
+    </script>
 </body>
 </html>

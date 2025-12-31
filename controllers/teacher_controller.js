@@ -51,6 +51,7 @@ const teacherHome = async (req, res) => {
 
     const startOfDay = new Date(now.setHours(0, 0, 0, 0));
     const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+const teacherStatic=await teacherStatics(req,res);
 
     const bookings = await Subscription.find({
       teacherId: teacherId,
@@ -86,6 +87,7 @@ const teacherHome = async (req, res) => {
             studentName: booking.studentId?.name,
             time: session.time,
             status: status,
+            isSendReport:session.report.level == null? false : true,
             link: req.user.zoom_link || booking.zoomLink || "#",
           });
         }
@@ -97,6 +99,7 @@ const teacherHome = async (req, res) => {
     res.render("../views/dashboard/teacher/teacher_dashboard", {
       todaysSessions,
       todaysSessionsNumbers: todaysSessions.length,
+      teacherStatic,
 
       currentDate: new Date().toLocaleDateString("ar-EG", {
         day: "numeric",
@@ -107,6 +110,107 @@ const teacherHome = async (req, res) => {
   } catch (err) {
     res.status(500).send("خطأ في تحميل الصفحة الرئيسية");
   }
+};
+const teacherStatics= async (req, res) => {
+    try {
+
+
+        // 1. جلب معرف المعلم من الجلسة (بافتراض استخدام Passport.js أو JWT)
+        const teacherId = req.user._id;
+
+        // 2. حساب إجمالي عدد الطلاب المشتركين مع هذا المعلم
+        const totalStudentsCount = await Subscription.countDocuments({ teacherId: teacherId });
+
+    const teacherHourlyRate = Number(req.user.hour_rate) || 0;
+
+    // جلب الاشتراكات مع الحصص المكتملة والتي حضرها المعلم فعلياً
+    const bookings = await Subscription.find({
+      teacherId: teacherId,
+      "sessions.status": "completed",
+      "sessions.attended": true,
+    })
+      .populate("studentId", "name")
+      .populate("courseId", "title");
+
+    let completedSessions = [];
+    const monthlyStats = {};
+
+    bookings.forEach((booking) => {
+      booking.sessions.forEach((session) => {
+        if (session.status === "completed" && session.attended) {
+          // تحويل مدة الحصة (بالدقائق) إلى ساعات للحساب الصحيح
+          // مثال: 30 دقيقة تصبح 0.5 ساعة مضروبة في سعر الساعة
+          const durationInMinutes = Number(booking.selectedPriceOption) || 60;
+          const sessionPrice = teacherHourlyRate * (durationInMinutes / 60);
+
+          // استخراج الشهر من تاريخ الحصة
+          const sessionDate = new Date(session.date);
+          const monthNum = sessionDate.getMonth() + 1; // من 1 إلى 12
+
+          const sessionInfo = {
+            date: session.date,
+            time: session.time,
+            studentName: booking.studentId?.name || "طالب محذوف",
+            courseTitle: booking.courseId?.title || "كورس محذوف",
+            price: sessionPrice,
+            duration: durationInMinutes,
+            month: monthNum,
+          };
+
+          completedSessions.push(sessionInfo);
+
+          // بناء إحصائيات الشهور ديناميكياً
+          if (!monthlyStats[monthNum]) {
+            const monthName = new Intl.DateTimeFormat("ar-EG", {
+              month: "long",
+            }).format(sessionDate);
+            monthlyStats[monthNum] = {
+              monthName: monthName,
+              total: 0,
+              count: 0,
+            };
+          }
+          monthlyStats[monthNum].total += sessionPrice;
+          monthlyStats[monthNum].count += 1;
+        }
+      });
+    });
+
+    // ترتيب الحصص من الأحدث للأقدم
+    completedSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // حساب إجمالي الأرباح الكلي
+    const totalEarnings = completedSessions.reduce(
+      (sum, s) => sum + s.price,
+      0
+    );
+       
+        
+        // 4. جلب عدد الكورسات التي يقدمها هذا المعلم
+
+        // 5. جلب آخر 5 طلاب انضموا حديثاً (Latest Joins)
+        const latestBookings = await Subscription.find({ teacherId: teacherId })
+            .sort({ createdAt: -1 }) // الترتيب من الأحدث
+            .limit(2)
+            .populate('studentId')   // جلب بيانات الطالب (الاسم)
+            .populate('courseId');    // جلب بيانات الكورس (العنوان)
+
+            const  stats= {
+                students: totalStudentsCount,
+                revenue: totalEarnings  ,
+                courses: 1,
+                rating: 4.9 ,
+                            latestStudents: latestBookings
+// يمكن حسابها لاحقاً من جدول التقييمات
+            };
+            console.log(stats,"stats");
+        // 6. رندر الصفحة وإرسال البيانات لـ EJS
+        return stats;
+
+    } catch (err) {
+        console.error("Dashboard Error:", err);
+        res.status(500).send("حدث خطأ في تحميل لوحة التحكم");
+    }
 };
 const login_get = (req, res) => {
   res.render("../views/dashboard/login");
@@ -206,6 +310,7 @@ const registerTeacher = async (req, res) => {
     gender,
     password,
     zoom_link,
+    timezone,
   } = req.body;
   try {
     // التحقق من وجود مستخدم بنفس البريد الإلكتروني
@@ -242,6 +347,7 @@ const registerTeacher = async (req, res) => {
       password,
       gender: gender,
       zoom_link: zoom_link,
+      timezone: timezone,
     });
     console.log(user);
     // حفظ الطالب في قاعدة البيانات (سيتم تشفير كلمة المرور تلقائيًا عبر الـ middleware)
@@ -376,22 +482,23 @@ const getTeacherEvents = async (req, res) => {
     let events = [];
     bookings.forEach((booking) => {
       if (booking.sessions && booking.sessions.length > 0) {
-        booking.sessions.forEach((session) => {
-          // تأكد أن الجلسة لها تاريخ ووقت وأنها ليست "ملغاة"
+        booking.sessions.forEach((session, index) => { // نستخدم index مباشرة هنا
           if (session.date && session.time) {
             try {
-              // تحويل التاريخ ليكون بصيغة YYYY-MM-DD
+              // 1. استخراج التاريخ بصيغة YYYY-MM-DD
               const d = new Date(session.date);
               const datePart = d.toISOString().split("T")[0];
 
-              // تأكد أن الوقت بصيغة HH:mm (مثلاً 14:30)
-              const startStr = `${datePart}T${session.time}:00`;
+              // 2. إضافة حرف "Z" في نهاية السلسلة لإخبار المتصفح أن هذا التوقيت هو UTC
+              // هذا هو المفتاح الذي سيجعل المتصفح يضيف +3 ساعات (أو حسب منطقة المستخدم)
+              const startStrUTC = `${datePart}T${session.time}:00Z`;
 
               events.push({
                 bookingId: booking._id,
-                sessionIndex: booking.sessions.indexOf(session),
+                sessionIndex: index, // الـ index الصحيح داخل المصفوفة
+                isSendReport: session.report && session.report.level != null,
                 title: booking.studentId?.name || "طالب",
-                start: startStr,
+                start: startStrUTC, // التوقيت بصيغة UTC
                 backgroundColor: "#4f46e5",
               });
             } catch (e) {
@@ -402,7 +509,6 @@ const getTeacherEvents = async (req, res) => {
       }
     });
 
-    console.log("Events found:", events.length); // سيظهر في Terminal السيرفر
     res.json(events);
   } catch (err) {
     console.error(err);
@@ -438,31 +544,34 @@ const getSchedule = async (req, res) => {
     bookings.forEach((booking) => {
       booking.sessions.forEach((session, index) => {
         // أضفنا index هنا
-        const sessionDate = new Date(session.date);
+     // ... (داخل دالة bookings.forEach)
+const sessionDate = new Date(session.date);
 
-        // 3. فلترة الحصص لتكون ضمن الأسبوع الحالي فقط
-        if (sessionDate >= startOfWeek && sessionDate <= endOfWeek) {
-          const dateKey = sessionDate.toISOString().split("T")[0];
+if (sessionDate >= startOfWeek && sessionDate <= endOfWeek) {
+  const dateKey = sessionDate.toISOString().split("T")[0];
 
-          if (!weeklySchedule[dateKey]) {
-            weeklySchedule[dateKey] = {
-              dayName: sessionDate.toLocaleDateString("ar-EG", {
-                weekday: "long",
-              }),
-              dayNumber: sessionDate.getDate(),
-              sessions: [],
-            };
-          }
+  if (!weeklySchedule[dateKey]) {
+    weeklySchedule[dateKey] = {
+      dayName: sessionDate.toLocaleDateString("ar-EG", { weekday: "long" }),
+      dayNumber: sessionDate.getDate(),
+      sessions: [],
+    };
+  }
 
-          weeklySchedule[dateKey].sessions.push({
-            time: session.time,
-            studentName: booking.studentId?.name,
-            courseTitle: booking.courseId?.title,
-            status: session.status,
-            bookingId: booking._id,
-            sessionIndex: index, // تم تمرير الـ index هنا
-          });
-        }
+  // التعديل هنا: ندمج التاريخ والوقت في صيغة ISO موحدة
+  // نفترض أن session.time مخزن بصيغة "19:30"
+  const isoDateTime = `${dateKey}T${session.time}:00Z`; 
+
+  weeklySchedule[dateKey].sessions.push({
+    time: session.time, // الوقت الخام للعرض الاحتياطي
+    fullUTC: isoDateTime, // هذا الحقل سيستخدمه JavaScript في الواجهة للتحويل
+    studentName: booking.studentId?.name,
+    courseTitle: booking.courseId?.title,
+    status: session.status,
+    bookingId: booking._id,
+    sessionIndex: index,
+  });
+}
       });
     });
 
@@ -542,8 +651,47 @@ const saveSessionReport = async (req, res) => {
     res.status(500).send("خطأ في حفظ التقرير");
   }
 };
+const studentGetpage= async (req, res) => {
+    try {
+        // 1. جلب بيانات المعلم من الجلسة (Session)
+        const teacherId = req.user._id; 
+
+        // 2. جلب الطلاب المشتركين مع هذا المعلم فقط
+        // ملاحظة: نقوم بجلب الحجوزات التي تخص هذا المعلم ثم "عمل Populating" لبيانات الطلاب
+        const bookings = await Subscription.find({ teacherId: teacherId })
+            .populate('studentId') // جلب بيانات الطالب (الاسم، البريد)
+            .populate('courseId'); // جلب بيانات الكورس (العنوان)
+        // 3. تحويل البيانات لشكل بسيط يسهل التعامل معه في EJS
+        const students = bookings.map(book => {
+            return {
+                _id: book.studentId._id,
+                name: book.studentId.name,
+                email: book.studentId.email,
+                numberOfSessionsPerMonth: book.numberOfSessionsPerMonth,
+                courseTitle: book.courseId==null?'كورس غير محدد':book.courseId.title,
+                progress: book.progress || 0, // نسبة الإنجاز
+                isActive: book.status === 'confirmed',
+                completedSessions: book.sessions.filter(session => session.status === 'completed').length
+            };
+        });
+console.log(students);
+
+        // 4. رندر الصفحة وإرسال البيانات
+        res.render('../views/dashboard/teacher/teacher_students', {
+            user: req.user, // بيانات المعلم للهيدر
+            students: students // قائمة الطلاب للجدول
+        });
+
+    } catch (err) {
+        console.error("Error fetching students:", err);
+        res.status(500).send("حدث خطأ في جلب البيانات");
+    }
+};
+
 
 module.exports = {
+  teacherStatics,
+  studentGetpage,
   signup_get,
   login_get,
   loginTeacher,

@@ -78,7 +78,7 @@ module.exports.login_post = async (req, res) => {
     console.log(req.body);
 
     // 1. استخراج البيانات المطلوبة
-    const { email, password, role } = req.body;
+    const { email, password, role ,timezone} = req.body;
     
     // **كائن الأخطاء المخصص**
     let errors = {}; 
@@ -93,7 +93,7 @@ module.exports.login_post = async (req, res) => {
             res.status(400).json({ errors });
             return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
         }
-        
+
         // 4. إذا تم العثور على المستخدم، مقارنة كلمة المرور
         const auth = await bcrypt.compare(password, user.password);
         
@@ -103,7 +103,11 @@ module.exports.login_post = async (req, res) => {
             res.status(400).json({ errors });
             return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
         } 
-        
+  if (timezone && user.timezone !== timezone) {
+    user.timezone = timezone;
+    await user.save();
+    console.log(`تم تحديث توقيت المستخدم إلى: ${timezone}`);
+}
         // 6. حالة النجاح: كلمة المرور صحيحة
         const token = createToken(user._id);
         await res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });

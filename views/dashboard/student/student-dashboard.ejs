@@ -53,7 +53,7 @@
         }
         
         @media (max-width: 1024px) {
-    body { padding-bottom: 80px; } /* نفس ارتفاع الشريط السفلي */
+    body { padding-bottom: 100px; } /* نفس ارتفاع الشريط السفلي */
 }
     </style>
 </head>
@@ -129,135 +129,149 @@
                     </button>
                 </div>
             </header>
+<main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 lg:p-8">
+    <div class="max-w-7xl mx-auto space-y-8">
 
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 lg:p-8">
-                <div class="max-w-7xl mx-auto space-y-8">
+        <% 
+        // [EJS Logic] معالجة بيانات الحصة بتوافق المناطق الزمنية
+        let fullDateTime = 'جاري التحميل...';
+        let sessionState = 'none'; 
+        let countdownMs = 0;
+        let joinUrl = '#';
 
-                    <% 
-                    // [EJS Logic] معالجة بيانات الحصة
-                    let fullDateTime = 'جاري التحميل...';
-                    let sessionState = 'none'; 
-                    let countdownMs = 0;
-                    let joinUrl = '#';
+        if (nearestSession && nearestSession.sessionDetails && nearestSession.sessionDetails.date) {
+            const sd = nearestSession.sessionDetails;
+            const studentTZ = user.timezone || 'UTC'; // منطقة الطالب من اليوزر
+            
+            // 1. استخراج التاريخ والوقت الخام
+            const rawDate = new Date(sd.date).toISOString().split('T')[0];
+            const rawTime = sd.time; // HH:mm
 
-                    if (nearestSession && nearestSession.sessionDetails && nearestSession.sessionDetails.date) {
-                        const sd = nearestSession.sessionDetails;
-                        const dateObj = new Date(sd.date);
-                        const finalISODateTime = `${dateObj.toISOString().split('T')[0]}T${sd.time}:00`;
-                        const displayDateObj = new Date(finalISODateTime);
+            // 2. إنشاء كائن التاريخ (يفترض أن المخزن هو وقت السيرفر/الآدمن)
+            const sessionStart = new Date(`${rawDate}T${rawTime}:00`);
+            const sessionEnd = new Date(sessionStart.getTime() + 60*60*1000); // حصة لمدة ساعة
+            
+            // 3. تحويل العرض النصي ليتوافق مع منطقة الطالب الزمنية
+            fullDateTime = sessionStart.toLocaleString('ar-EG', { 
+                timeZone: studentTZ,
+                weekday: 'long', 
+                day: 'numeric', 
+                month: 'long', 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true
+            });
 
-                        fullDateTime = displayDateObj.toLocaleString('ar-SA', { 
-                            weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' 
-                        });
-                        
-                        joinUrl = `/student/session-details/${nearestSession.bookingId}/${sd._id}`;
-                        const now = new Date();
-                        const sessionStart = displayDateObj;
-                        const sessionEnd = new Date(sessionStart.getTime() + 60*60*1000);
+            joinUrl = `/student/session-details/${nearestSession.bookingId}/${sd._id}`;
+            const now = new Date();
 
-                        if(now >= sessionStart && now <= sessionEnd){
-                            sessionState = 'ongoing';
-                            countdownMs = sessionEnd.getTime() - now.getTime();
-                        } else if(now < sessionStart) {
-                            sessionState = 'upcoming';
-                        }
-                    }
-                    %>
+            // 4. تحديد حالة الحصة
+            if(now >= sessionStart && now <= sessionEnd){
+                sessionState = 'ongoing';
+                countdownMs = sessionEnd.getTime() - now.getTime();
+            } else if(now < sessionStart) {
+                // نعتبرها "قادمة اليوم" فقط إذا كان الفرق أقل من 24 ساعة أو في نفس اليوم
+                sessionState = 'upcoming';
+            }
+        }
+        %>
 
-                    <% if(sessionState === 'upcoming'){ %>
-                        <div class="bg-gradient-to-l from-indigo-700 to-indigo-600 text-white p-6 rounded-2xl shadow-lg border-r-8 border-indigo-400">
-                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                <div class="flex items-start gap-4">
-                                    <div class="p-3 bg-indigo-500/30 rounded-xl">
-                                        <i data-feather="monitor" class="w-8 h-8"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-xl lg:text-2xl font-bold">لديك حصة قادمة اليوم</h3>
-                                        <p class="text-indigo-100 mt-1 font-medium"><%= nearestSession.courseTitle %></p>
-                                        <p class="text-sm text-indigo-200 mt-1 italic"><%= fullDateTime %></p>
-                                    </div>
-                                </div>
-                                <a href="<%= joinUrl %>" class="w-full md:w-auto text-center px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition shadow-md">
-                                    دخول غرفة الانتظار
-                                </a>
-                            </div>
+        <% if(sessionState === 'upcoming'){ %>
+            <div class="bg-gradient-to-l from-indigo-700 to-indigo-600 text-white p-6 rounded-2xl shadow-lg border-r-8 border-indigo-400">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 bg-indigo-500/30 rounded-xl">
+                            <i data-feather="monitor" class="w-8 h-8"></i>
                         </div>
-
-                    <% } else if(sessionState === 'ongoing'){ %>
-                        <div class="bg-gradient-to-r from-red-600 to-orange-500 text-white p-6 rounded-2xl shadow-2xl border-2 border-yellow-400 animate-pulse">
-                            <div class="flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-right">
-                                <div class="space-y-2">
-                                    <h2 class="text-2xl lg:text-3xl font-black tracking-tight">🔥 الحصة جارية الآن!</h2>
-                                    <p class="text-lg opacity-90"><%= nearestSession.courseTitle %></p>
-                                    <p class="font-bold text-xl">الوقت المتبقي: <span id="countdown" class="bg-white text-red-600 px-3 py-1 rounded-lg font-mono">--:--</span></p>
-                                </div>
-                                <a href="<%= joinUrl %>" class="w-full md:w-auto px-10 py-4 bg-yellow-400 text-red-700 font-extrabold text-xl rounded-2xl hover:scale-105 transition-transform shadow-xl">
-                                    انضم الآن
-                                </a>
-                            </div>
-                        </div>
-                        <script>
-                            let countdownMs = <%= countdownMs %>;
-                            function updateCountdown() {
-                                const el = document.getElementById('countdown');
-                                if(countdownMs <= 0) { el.innerText = "00:00"; return; }
-                                const mins = Math.floor(countdownMs / 60000);
-                                const secs = Math.floor((countdownMs % 60000) / 1000);
-                                el.innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
-                                countdownMs -= 1000;
-                            }
-                            setInterval(updateCountdown, 1000); updateCountdown();
-                        </script>
-
-                    <% } else { %>
-                        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center flex flex-col items-center">
-                            <div class="w-20 h-20 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-4">
-                                <i data-feather="calendar" class="w-10 h-10"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-gray-800">لا توجد حصص مجدولة اليوم</h3>
-                            <p class="text-gray-500 mt-2 max-w-sm">يمكنك مراجعة دروسك السابقة أو تصفح الجدول الزمني للحصص القادمة.</p>
-                            <a href="/student/my-sessions" class="mt-6 inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">
-                                <i data-feather="list" class="ml-2 w-5 h-5"></i> عرض الجدول
-                            </a>
-                        </div>
-                    <% } %>
-
-               <% if (courseBookingDetails!=null) { %>
-                   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                        <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                            <div class="p-3 bg-green-100 rounded-full text-green-600"><i data-feather="check-square"></i></div>
-                            <div>
-                                <p class="text-xs font-medium text-gray-500">حصص مكتملة</p>
-                                <p class="text-2xl font-bold text-gray-900"> <%= studentStats.completedSessions  %></p>
-                            </div>
-                        </div>
-                        <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                            <div class="p-3 bg-yellow-100 rounded-full text-yellow-600"><i data-feather="star"></i></div>
-                            <div>
-                                <p class="text-xs font-medium text-gray-500">تقييمك</p>
-                                <p class="text-2xl font-bold text-gray-900"><%= studentStats.rating  %></p>
-                            </div>
-                        </div>
-                        <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                            <div class="p-3 bg-red-100 rounded-full text-red-600"><i data-feather="zap"></i></div>
-                            <div>
-                                <p class="text-xs font-medium text-gray-500">دقائق التعلم إجمالى دقائق التعلي  </p>
-                                <p class="text-2xl font-bold text-gray-900"><%= courseBookingDetails.totalCalculatedPrice %></p>
-                            </div>
-                        </div>
-                        <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm overflow-hidden">
-                            <div class="p-3 bg-indigo-100 rounded-full text-indigo-600 flex-shrink-0"><i data-feather="package"></i></div>
-                            <div class="truncate">
-                                <p class="text-xs font-medium text-gray-500">الخطة</p>
-                                <p class="text-lg font-bold text-gray-900 truncate"> <%= courseBookingDetails.courseName  %>  <%= studentStats.totalPlan  %> حصص</p>
-                            </div>
+                        <div>
+                            <h3 class="text-xl lg:text-2xl font-bold">لديك حصة قادمة</h3>
+                            <p class="text-indigo-100 mt-1 font-medium"><%= nearestSession.courseTitle %></p>
+                            <p class="text-sm text-indigo-200 mt-1 italic flex items-center gap-1">
+                                <i data-feather="clock" class="w-3 h-3"></i>
+                                <%= fullDateTime %> (بتوقيتك المحلي)
+                            </p>
                         </div>
                     </div>
-               <% } %>  
-
-                   
+                    <a href="<%= joinUrl %>" class="w-full md:w-auto text-center px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition shadow-md">
+                        دخول غرفة الانتظار
+                    </a>
                 </div>
-            </main>
+            </div>
+
+        <% } else if(sessionState === 'ongoing'){ %>
+            <div class="bg-gradient-to-r from-red-600 to-orange-500 text-white p-6 rounded-2xl shadow-2xl border-2 border-yellow-400 animate-pulse">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-right">
+                    <div class="space-y-2">
+                        <h2 class="text-2xl lg:text-3xl font-black tracking-tight">🔥 الحصة جارية الآن!</h2>
+                        <p class="text-lg opacity-90"><%= nearestSession.courseTitle %></p>
+                        <p class="font-bold text-xl">الوقت المتبقي: <span id="countdown" class="bg-white text-red-600 px-3 py-1 rounded-lg font-mono">--:--</span></p>
+                    </div>
+                    <a href="<%= joinUrl %>" class="w-full md:w-auto px-10 py-4 bg-yellow-400 text-red-700 font-extrabold text-xl rounded-2xl hover:scale-105 transition-transform shadow-xl">
+                        انضم الآن
+                    </a>
+                </div>
+            </div>
+            <script>
+                let countdownMs = <%= countdownMs %>;
+                function updateCountdown() {
+                    const el = document.getElementById('countdown');
+                    if(!el) return;
+                    if(countdownMs <= 0) { el.innerText = "00:00"; return; }
+                    const mins = Math.floor(countdownMs / 60000);
+                    const secs = Math.floor((countdownMs % 60000) / 1000);
+                    el.innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
+                    countdownMs -= 1000;
+                }
+                setInterval(updateCountdown, 1000); updateCountdown();
+            </script>
+
+        <% } else { %>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center flex flex-col items-center">
+                <div class="w-20 h-20 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-4">
+                    <i data-feather="calendar" class="w-10 h-10"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">لا توجد حصص مجدولة حالياً</h3>
+                <p class="text-gray-500 mt-2 max-w-sm">يمكنك مراجعة دروسك السابقة أو تصفح الجدول الزمني للحصص القادمة.</p>
+                <a href="/student/my-sessions" class="mt-6 inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">
+                    <i data-feather="list" class="ml-2 w-5 h-5"></i> عرض الجدول الكامل
+                </a>
+            </div>
+        <% } %>
+
+        <% if (courseBookingDetails != null) { %>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
+                    <div class="p-3 bg-green-100 rounded-full text-green-600"><i data-feather="check-square"></i></div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500">حصص مكتملة</p>
+                        <p class="text-2xl font-bold text-gray-900"><%= studentStats.completedSessions %></p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
+                    <div class="p-3 bg-yellow-100 rounded-full text-yellow-600"><i data-feather="star"></i></div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500">تقييمك الأكاديمي</p>
+                        <p class="text-2xl font-bold text-gray-900"><%= studentStats.rating %></p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
+                    <div class="p-3 bg-red-100 rounded-full text-red-600"><i data-feather="zap"></i></div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500">إجمالي المدفوع/الدقائق</p>
+                        <p class="text-2xl font-bold text-gray-900"><%= courseBookingDetails.totalCalculatedPrice %></p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm overflow-hidden">
+                    <div class="p-3 bg-indigo-100 rounded-full text-indigo-600 flex-shrink-0"><i data-feather="package"></i></div>
+                    <div class="truncate">
+                        <p class="text-xs font-medium text-gray-500">باقة الكورس</p>
+                        <p class="text-lg font-bold text-gray-900 truncate"><%= courseBookingDetails.courseName %> (<%= studentStats.totalPlan %> حصص)</p>
+                    </div>
+                </div>
+            </div>
+        <% } %>  
+    </div>
+</main>
     </div>
 <%- include('../../partials/bottom-nav.ejs', {currentPage: 'dashboard'}) %>        </div>
 

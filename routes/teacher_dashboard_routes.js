@@ -19,4 +19,6 @@ teacherdashboardRoutes.post('/teacher/save-session-report',checkUser,requireAuth
 teacherdashboardRoutes.get('/teacher/finanical_page',checkUser,requireAuth, teacherController.finanical_page);
 teacherdashboardRoutes.get('/teacher/settings',checkUser,requireAuth, teacherController.settings_page);
 teacherdashboardRoutes.post('/teacher/update',checkUser,requireAuth, teacherController.postUpdateProfile);
+teacherdashboardRoutes.get('/teacher/students',checkUser,requireAuth, teacherController.studentGetpage);
+
 module.exports = teacherdashboardRoutes;

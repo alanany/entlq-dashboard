@@ -134,7 +134,11 @@
                 showToast("تم الارسال  بنجاح!", 'success'); 
                 
                 // التحويل إلى لوحة التحكم
-                 setTimeout(() => {window.history.back();  }, 800);
+                 setTimeout(() => {
+                    
+                  window.location.href = '/teacher/schedule';
+                
+                }, 800);
 
     } catch (error) {
             stopLoading(true);
