@@ -5,6 +5,17 @@ const Course = require('../models/course_model.js');
 const User = require('../models/user_model.js');
 const Subscription= require('../models/subscription_model.js');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
+const storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, 'uploads/');
+        },
+        filename: function (req, file, cb) {
+            cb(null, Date.now() + '-' + file.originalname);
+        }
+    });
+const upload = multer({ storage: storage });
+
 const getAdminDashboard = async (req, res) => {
     
     // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
@@ -27,60 +38,42 @@ const getAddCourse = async (req, res) => {
 };
 
 
- // تأكد من المسار الصحيح لنموذج الدورة
 
-// 💡 دالة معالجة إرسال النموذج (POST) لإضافة دورة جديدة
+// 2. دالة التحكم (Controller)
 const addCourse = async (req, res) => {
-    // 1. استخراج البيانات من جسم الطلب
-    const { 
-        title, 
-        description, 
-        level, 
-        category,
-        pricingOptions, // تم استقبالها بشكل صحيح من الواجهة الأمامية المصححة
-        curriculum 
-    } = req.body; 
-console.log(req.body);
-    // 2. التحقق الأساسي من الحقول الضرورية
-    // ⭐️ التصحيح: تم تغيير 'lengrh' إلى 'length' ⭐️
-    if (!title || !description || !level || !category || curriculum.length === 0 || pricingOptions.length === 0) {
-        return res.status(400).json({ 
-            message: 'الرجاء تعبئة جميع الحقول الأساسية وخيارات التسعير وحقول المنهج الدراسي.' 
-        });
-    }
-
-    // 3. إنشاء كائن الدورة في قاعدة البيانات
     try {
-        const course = await Course.create({ 
-            title, 
-            description, 
-            level, 
-            category,
-            pricingOptions, // ⬅️ إضافة حقل التسعير المفقود
-            curriculum,     // يتم إدراج هيكل المنهج الدراسي مباشرة
-            // creator: req.user._id // (إذا كنت تستخدم مصادقة)
-        });
+        console.log(req.body);
+        // استخراج البيانات النصية من req.body
+        let  { title, description, level, category, pricingOptions, curriculum } = req.body;
 
-        // 4. إرسال استجابة النجاح (عادةً ما يتم إرسال كائن الدورة الجديدة)
-        res.status(201).json();
+        // 💡 تحويل النصوص إلى مصفوفات/كائنات (لأن FormData ترسلها كـ Strings)
+        if (pricingOptions) pricingOptions = JSON.parse(pricingOptions);
+        if (curriculum) curriculum = JSON.parse(curriculum);
 
-    } catch (err) {
-        // 5. معالجة أخطاء التحقق أو أخطاء قاعدة البيانات
-        console.error("خطأ في إنشاء الدورة:", err);
-        
-        let errorMessage = 'فشل في إنشاء الدورة. يرجى التحقق من المدخلات.';
-        
-        if (err.name === 'ValidationError') {
-             // جمع رسائل التحقق من Mongoose
-            errorMessage = "خطأ في التحقق من البيانات: " + Object.values(err.errors).map(val => val.message).join(', ');
-        } else if (err.code && err.code === 11000) {
-             // معالجة خطأ تكرار المفتاح الفريد
-             errorMessage = "هذا العنوان (Title) مستخدم بالفعل. يرجى اختيار عنوان آخر.";
+        // مسار الصورة المحفوظة
+        const coverImagePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+        // التحقق من الحقول الأساسية
+        if (!title || !description || !category || !curriculum || curriculum.length === 0) {
+            return res.status(400).json({ message: 'الرجاء إكمال كافة البيانات المطلوبة' });
         }
 
-        res.status(400).json({ 
-            message: errorMessage
+        // إنشاء الدورة في قاعدة البيانات
+        const newCourse = await Course.create({
+            title,
+            description,
+            level,
+            category,
+            pricingOptions,
+            curriculum,
+            coverImage: coverImagePath
         });
+
+        res.status(201).json({ message: 'تم نشر الدورة بنجاح', course: newCourse });
+
+    } catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ message: err.message || 'حدث خطأ في السيرفر' });
     }
 };
 const getEditCourse = async (req, res) => {
@@ -115,57 +108,37 @@ const getEditCourse = async (req, res) => {
 // 4. معالجة تحديث بيانات الدورة (POST /api/courses/edit/:id)
 // -----------------------------------------------------
 const updateCoursePost = async (req, res) => {
-    const courseId = req.params.id;
-    
-    // 💡 التعديل: نستقبل pricingOptions بدلاً من price
-    const { 
-        title, 
-        description, 
-        // ⭐️⭐️ تم تغيير price إلى pricingOptions ⭐️⭐️
-        pricingOptions, 
-        level, 
-        category, 
-        curriculum 
-    } = req.body; 
-
-    const updates = {
-        title, 
-        description, 
-        // ⭐️⭐️ تمرير pricingOptions ⭐️⭐️
-        pricingOptions, 
-        level, 
-        category, 
-        curriculum
-        // يمكنك هنا إضافة حقل coverImageURL إذا تم رفع صورة جديدة
-    };
-    console.log(updates);
-    try {
+   try {
+        const courseId = req.params.id;
         
-        const updatedCourse = await Course.findByIdAndUpdate(
-            courseId, 
-            updates, 
-            { new: true, runValidators: true } // new: true لإرجاع المستند المحدث
-        );
+        // فك تشفير البيانات المرسلة كـ Strings
+        let { title, description, level, category, pricingOptions, curriculum } = req.body;
+        if (pricingOptions) pricingOptions = JSON.parse(pricingOptions);
+        if (curriculum) curriculum = JSON.parse(curriculum);
 
-        if (!updatedCourse) {
-            return res.status(404).json({ message: 'الدورة غير موجودة.' });
+        // هنا نقوم بالتحديث في قاعدة البيانات (مثال باستخدام Mongoose)
+        const updatedData = {
+            title,
+            description,
+            level,
+            category,
+            pricingOptions,
+            curriculum
+        };
+
+        // إذا تم رفع صورة جديدة
+        if (req.file) {
+            updatedData.coverImage = `/uploads/${req.file.filename}`;
         }
 
-        res.status(200).json({ 
-            message: 'تم تحديث الدورة بنجاح.', 
-            courseId: updatedCourse._id 
-        });
+        const course = await Course.findByIdAndUpdate(courseId, updatedData, { new: true });
 
-    } catch (err) {
-        console.error("خطأ في تحديث الدورة:", err);
+        if (!course) return res.status(404).json({ message: "الدورة غير موجودة" });
         
-        let errorMessage = 'فشل في تحديث الدورة.';
-        if (err.name === 'ValidationError') {
-            // معالجة أخطاء التحقق من الصحة (Schema Validation)
-            errorMessage = Object.values(err.errors).map(val => val.message).join(', ');
-        }
-        
-        res.status(400).json({ message: errorMessage });
+        res.status(200).json({ message: "تم تحديث الدورة بنجاح", course });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "حدث خطأ أثناء التحديث" });
     }
 };
 

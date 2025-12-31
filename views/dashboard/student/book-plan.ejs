@@ -52,7 +52,7 @@
                             <div class="plan-card p-5 border border-gray-200 rounded-xl cursor-pointer transition" data-course-id="MATH" data-course-name="<%= course.title %>" data-course-description="<%= course.description %> " data-course-category="رياضية">
                                     <div class="bg-white rounded-xl overflow-hidden cursor-pointer course-card-style">
                                 
-                                <img src="https://mta.sa/wp-content/uploads/2024/02/12-9-16.png" alt="<%= course.image_url || 'https://via.placeholder.com/400x200/4f46e5/ffffff?text=Course+Image' %>" 
+                                <img src="<%= course.coverImage || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsiPQRKPG_rImaK4NrROuSy64GGUKSOfnc7A&s' %>" alt="<%= course.image_url || 'https://via.placeholder.com/400x200/4f46e5/ffffff?text=Course+Image' %>" 
                                      alt="<%= course.name %>" 
                                      class="w-full h-40 object-cover">
 

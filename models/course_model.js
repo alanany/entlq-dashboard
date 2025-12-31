@@ -28,7 +28,7 @@ const CourseSchema = new mongoose.Schema({
         required: true,
       
     },
-   
+   coverImage: { type: String },
     curriculum: [SectionSchema], // مصفوفة من الأقسام
     // creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 });

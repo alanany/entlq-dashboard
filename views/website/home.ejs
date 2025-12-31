@@ -133,7 +133,8 @@
                         <% courses.slice(0, 6).forEach(function(course) { %>
                             <div class="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer course-card-style" style="--tw-shadow-color-hover: #<%= course.color_code || '4f46e5' %>">
                                 
-                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROU5z08AlSUkJu-Wfat2rhTCjOFe34GP9gEA&s" alt="<%= course.image_url || 'https://via.placeholder.com/400x200/4f46e5/ffffff?text=Course+Image' %>" 
+                                <img src="<%= course.coverImage || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsiPQRKPG_rImaK4NrROuSy64GGUKSOfnc7A&s' %>"
+                                 alt="<%= course.image_url || 'https://via.placeholder.com/400x200/4f46e5/ffffff?text=Course+Image' %>" 
                                      alt="<%= course.name %>" 
                                      class="w-full h-48 object-cover">
 

@@ -197,7 +197,7 @@
                                     data-category="<%= course.category_slug || '' %>"
                                     data-level="<%= course.level || '' %>">
 
-                                      <img src="https://mta.sa/wp-content/uploads/2024/02/12-9-16.png" alt="<%= course.image_url || 'https://via.placeholder.com/400x200/4f46e5/ffffff?text=Course+Image' %>"
+                                      <img src= "<%= course.coverImage || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsiPQRKPG_rImaK4NrROuSy64GGUKSOfnc7A&s' %>"   alt="<%= course.coverImage || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsiPQRKPG_rImaK4NrROuSy64GGUKSOfnc7A&s' %>"
                                              class="w-full h-40 sm:h-44 object-cover">
 
                                         <div class="p-4 sm:p-5 space-y-3 flex flex-col h-full">

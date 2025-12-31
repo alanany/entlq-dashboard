@@ -2,15 +2,30 @@ const { Router } = require('express');
 const courseController = require('../controllers/courseController');
 const { checkUser, requireAuth } = require('../middleware/authMiddleware');
 const dashboardRoutes = Router();
+const multer = require('multer');
+const path = require('path');
+
+// إعداد مكان تخزين الصور وتسميتها
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/'); // تأكد من إنشاء هذا المجلد في مشروعك
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
 const categoryController = require('../controllers/categoryController');
 dashboardRoutes.get('/admin',requireAuth,checkUser, courseController.getAdminDashboard);
 
 //dashboardRoutes.get('/',requireAuth,checkUser, courseController.getAdminDashboard);
 dashboardRoutes.get('/addCourse',requireAuth,checkUser, courseController.getAddCourse);
-dashboardRoutes.post('/addCourse-post',requireAuth,checkUser, courseController.addCourse);
+dashboardRoutes.post('/addCourse-post', upload.single('coverImage'),requireAuth,checkUser, courseController.addCourse);
 dashboardRoutes.get('/courses',requireAuth,checkUser, courseController.getAllCourses);
 
-dashboardRoutes.post('/edit-course/:id',requireAuth,checkUser, courseController.updateCoursePost);
+dashboardRoutes.post('/edit-course/:id', upload.single('coverImage'),requireAuth,checkUser, courseController.updateCoursePost);
 dashboardRoutes.get('/course/:id',requireAuth,checkUser, courseController.getEditCourse);
 dashboardRoutes.delete('/course/:id',requireAuth,checkUser, courseController.deleteCourse);
 dashboardRoutes.get('/categories',requireAuth,checkUser, categoryController.getAllCategories);

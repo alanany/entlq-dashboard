@@ -29,7 +29,7 @@ const cors = require('cors');
 const multer = require('multer'); // ⭐️ استيراد Multer
 // ⭐️ تعيين مجلد public للملفات الثابتة (CSS/JS/صور) ⭐️
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const port = process.env.PORT || 4000;
 // database connection
