@@ -106,19 +106,6 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <% if (todaysSessions && todaysSessions.length > 0) { %>
             <% todaysSessions.forEach(session => { %>
-                <% 
-            let rawDate = '';
-    if (session.date && !isNaN(new Date(session.date).getTime())) {
-        rawDate = new Date(session.date).toISOString().split('T')[0];
-    } else {
-        // إذا كان التاريخ مفقوداً، نستخدم تاريخ اليوم كقيمة احتياطية أو نتركه فارغاً
-        rawDate = new Date().toISOString().split('T')[0]; 
-    }
-
-    // 2. التأكد من وجود الوقت
-    const rawTime = session.time || '00:00';
-                %>
-              
                 <% if (session.status === 'live' || session.status === 'upcoming') { %>
                     <div class="bg-white border <%= session.status === 'live' ? 'border-indigo-600 ring-2 ring-indigo-50' : 'border-gray-100' %> p-6 rounded-[2rem] shadow-sm relative transition-all hover:shadow-md">
                         <% if (session.status === 'live') { %>
@@ -131,8 +118,8 @@
                         <div class="flex items-center gap-2 mb-2">
                             <i data-feather="clock" class="w-3.5 h-3.5 text-indigo-500"></i>
                             <p class="text-[10px] font-black text-indigo-600 tracking-widest uppercase local-time-display" 
-                               data-utc-date="<%= rawDate %>" 
-                               data-utc-time="<%= rawTime %>">
+                              <%= session.date %>
+                              <%= session.date %>>
                                 <%= session.time %>
                             </p>
                         </div>
@@ -156,8 +143,8 @@
                         
                         <h4 class="font-bold text-gray-400 text-md mb-1 line-through"><%= session.title %></h4>
                         <p class="text-[10px] text-gray-400 mb-2 italic local-time-display text-[8px]" 
-                           data-utc-date="<%= rawDate %>" 
-                           data-utc-time="<%= rawTime %>">
+                          <%= session.date %>
+                          <%= session.time %>>
                            <%= session.time %>
                         </p>
                         <p class="text-[10px] text-gray-400 mb-5 italic">الطالب: <%= session.studentName %></p>

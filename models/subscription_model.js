@@ -13,6 +13,7 @@ const bookingSchema = new mongoose.Schema({
         time: { type: String, required: true },
           endtime: { type: String },
         link: { type: String } ,
+        utcDateAndTime: { type: String },
         attended: { type: Boolean, default: false },
 // تقرير أداء الطالب في هذه الحصة
         report: {

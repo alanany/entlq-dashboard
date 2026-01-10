@@ -44,6 +44,25 @@ const createToken = (id) => {
 const signup_get = (req, res) => {
   res.render("../views/dashboard/teacher/teacher_register");
 };
+
+/**
+ * استخراج التاريخ والوقت من صيغة UTC ISO
+ * @param {string} isoString - "2026-01-09T19:11:00.000Z"
+ * @param {string} timeZone - "Asia/Dubai" أو "Africa/Cairo"
+ */
+const { DateTime } = require("luxon");
+function extractDateTime(utcDate, timeZone) {
+  const dt = DateTime
+    .fromISO(utcDate, { zone: 'utc' })
+    .setZone(timeZone);
+
+  return {
+    date: dt.toFormat('yyyy-MM-dd'),
+    time: dt.toFormat('HH:mm'),
+  };
+}
+
+
 const teacherHome = async (req, res) => {
   try {
     const teacherId = req.user._id;
@@ -78,14 +97,18 @@ const teacherStatic=await teacherStatics(req,res);
           } else if (currentTime > sessionEnd) {
             status = "finished";
           }
-
+const result=extractDateTime(session.utcDateAndTime, req.user.timezone);
+console.log(session.utcDateAndTime,'session.utcDateAndTime');
+console.log(req.user.timezone,'req.user.timezone');
+console.log(result,'result');
           // إضافة البيانات للرابط
           todaysSessions.push({
             bookingId: booking._id, // تأكد من إضافة هذا السطر
             sessionIndex: index, // تأكد من إضافة هذا السطر
             title: booking.courseId?.title,
             studentName: booking.studentId?.name,
-            time: session.time,
+            time: result.time,
+            date:result.date,
             status: status,
             isSendReport:session.report.level == null? false : true,
             link: req.user.zoom_link || booking.zoomLink || "#",
@@ -480,18 +503,23 @@ const getTeacherEvents = async (req, res) => {
     );
 
     let events = [];
+
     bookings.forEach((booking) => {
       if (booking.sessions && booking.sessions.length > 0) {
         booking.sessions.forEach((session, index) => { // نستخدم index مباشرة هنا
+       
           if (session.date && session.time) {
             try {
+              console.log(session.utcDateAndTime,'session.utcDateAndTime');
+console.log(fromUTC(session.utcDateAndTime, req.user.timeZone).date,'session.date');
+console.log(fromUTC(session.utcDateAndTime, req.user.timeZone).time,'session.time');
               // 1. استخراج التاريخ بصيغة YYYY-MM-DD
-              const d = new Date(session.date);
-              const datePart = d.toISOString().split("T")[0];
+              const d = fromUTC(session.utcDateAndTime, req.user.timeZone).date;
+              const datePart = d;
 
               // 2. إضافة حرف "Z" في نهاية السلسلة لإخبار المتصفح أن هذا التوقيت هو UTC
               // هذا هو المفتاح الذي سيجعل المتصفح يضيف +3 ساعات (أو حسب منطقة المستخدم)
-              const startStrUTC = `${datePart}T${session.time}:00Z`;
+              const startStrUTC = session.utcDateAndTime;
 
               events.push({
                 bookingId: booking._id,
@@ -516,6 +544,17 @@ const getTeacherEvents = async (req, res) => {
   }
 };
 // controllers/teacherController.js
+function fromUTC(utcDate, timeZone) {
+  const dt = DateTime
+    .fromISO(utcDate, { zone: 'utc' })
+    .setZone(timeZone);
+
+  return {
+    date: dt.toFormat('yyyy-MM-dd'),
+    time: dt.toFormat('HH:mm'),
+  };
+}
+
 
 const getSchedule = async (req, res) => {
   try {
@@ -561,10 +600,13 @@ if (sessionDate >= startOfWeek && sessionDate <= endOfWeek) {
   // التعديل هنا: ندمج التاريخ والوقت في صيغة ISO موحدة
   // نفترض أن session.time مخزن بصيغة "19:30"
   const isoDateTime = `${dateKey}T${session.time}:00Z`; 
-
+console.log(session.utcDateAndTime,'session.utcDateAndTime');
+console.log(fromUTC(session.utcDateAndTime, req.user.timeZone).date,'session.date');
+console.log(fromUTC(session.utcDateAndTime, req.user.timeZone).time,'session.time');
   weeklySchedule[dateKey].sessions.push({
-    time: session.time, // الوقت الخام للعرض الاحتياطي
-    fullUTC: isoDateTime, // هذا الحقل سيستخدمه JavaScript في الواجهة للتحويل
+    date: fromUTC(session.utcDateAndTime, req.user.timeZone).date,
+    time:fromUTC(session.utcDateAndTime, req.user.timeZone).time, // الوقت الخام للعرض الاحتياطي
+    fullUTC: session.utcDateAndTime, // هذا الحقل سيستخدمه JavaScript في الواجهة للتحويل
     studentName: booking.studentId?.name,
     courseTitle: booking.courseId?.title,
     status: session.status,

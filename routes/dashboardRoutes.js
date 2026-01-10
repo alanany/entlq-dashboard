@@ -39,7 +39,7 @@ dashboardRoutes.post('/booking/:id/confirm-payment',requireAuth,checkUser, cours
 dashboardRoutes.get('/booking/:id/schedule', courseController.getScheduleSessions); 
 
 // مسار معالجة إرسال الجدولة (POST)
-dashboardRoutes.post('/booking/:id/update-sessions', courseController.postUpdateSessions);
+dashboardRoutes.post('/booking/:id/update-sessions',requireAuth,checkUser, courseController.postUpdateSessions);
 // مسار عرض صفحة إدارة الروابط (GET)
 dashboardRoutes.get('/booking/:id/manage-sessions', courseController.getManageSessionsLinks); 
 

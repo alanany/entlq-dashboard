@@ -6,6 +6,7 @@ const User = require('../models/user_model.js');
 const Subscription= require('../models/subscription_model.js');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
+const {DateTime}  =require ("luxon");
 const storage = multer.diskStorage({
         destination: function (req, file, cb) {
             cb(null, 'uploads/');
@@ -459,10 +460,15 @@ const postUpdateSessions = async (req, res) => {
             status: session.status || 'pending',
             date: session.date,
             time: session.time,
+            utcDateAndTime: convertToUTC(session.date, session.time,req.user.timezone), 
             endtime: session.endtime, // تأكد من استقبال وقت النهاية للتايمر
             link: teacherZoomLink     // 👈 هنا أضفنا رابط المعلم لكل حصة
         };
-
+        console.log(sessionData.date,'sessionData.date');
+         console.log(sessionData.time,'sessionData.time');
+         console.log(req.user.timezone,'req.user.timezone');
+const vvv=convertToUTC(sessionData.date, sessionData.time,req.user.timezone);
+console.log(vvv,'vvv');
         // إذا كان هناك ID (تعديل حصة موجودة)
         if (session._id) {
             sessionData._id = session._id;
@@ -488,6 +494,15 @@ const postUpdateSessions = async (req, res) => {
     res.status(500).send('Server Error');
 }
 };
+
+
+function convertToUTC(date, time, zone) {
+  return DateTime
+    .fromISO(`${date}T${time}`, { zone })
+    .toUTC()
+    .toISO();
+}
+
 
 
 // admin.controller.js

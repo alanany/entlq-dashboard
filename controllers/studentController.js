@@ -23,64 +23,7 @@ const getstudentDashboard = async (req, res, next) => {
         courseBookingDetails
       });
     } else if (role === "teacher") {
-       try {
-    const teacherId = req.user._id;
-    const now = new Date();
-
-    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
-    const bookings = await Subscription.find({
-      teacherId: teacherId,
-      'sessions.date': { $gte: startOfDay, $lte: endOfDay }
-    }).populate('studentId courseId');
-
-    let todaysSessions = [];
-console.log(bookings, "bookings in controller");
-    bookings.forEach(booking => {
-      // هنا التعديل: أضفنا الـ index للحصول على ترتيب الحصة
-      booking.sessions.forEach((session, index) => { 
-           console.log(session.time  ,'session.time');
-           console.log(session.date,'session.date');
-        if (new Date(session.date).toDateString() === new Date().toDateString()) {
-       
-          const [hours, minutes] = session.time.split(':').map(Number);
-          const sessionStart = new Date().setHours(hours, minutes-10, 0);
-          const sessionEnd = new Date().setHours(hours + 1, minutes, 0);
-          const currentTime = new Date().getTime();
-
-          let status = 'upcoming';
-          if (currentTime >= sessionStart && currentTime <= sessionEnd) {
-            status = 'live';
-          } else if (currentTime > sessionEnd) {
-            status = 'finished';
-          }
-
-          // إضافة البيانات للرابط
-          todaysSessions.push({
-            bookingId: booking._id,       // تأكد من إضافة هذا السطر
-            sessionIndex: index,          // تأكد من إضافة هذا السطر
-            title: booking.courseId?.title,
-            studentName: booking.studentId?.name,
-            time: session.time,
-            status: status,
-            link: req.user.zoom_link || booking.zoomLink || '#'
-          });
-        }
-      });
-    });
-console.log(todaysSessions,'todaysSessions');
-const teacherStatic=await teacherController.teacherStatics(req,res);
-
-    todaysSessions.sort((a, b) => a.time.localeCompare(b.time));
-    res.render('../views/dashboard/teacher/teacher_dashboard', { 
-      todaysSessions,
-      teacherStatic,
-      todaysSessionsNumbers: todaysSessions.length,
-      currentDate: new Date().toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' })
-    });
-  } catch (err) {
-    res.status(500).send("خطأ في تحميل الصفحة الرئيسية");
-  }
+    await  teacherController.teacherHome(req, res, next);
     } else {
       res.render("dashboard/index");
     }

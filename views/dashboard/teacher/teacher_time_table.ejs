@@ -77,11 +77,11 @@
                                 <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <% dayData.sessions.forEach(session => { 
                                         // ندمج التاريخ والوقت في صيغة UTC Z لضمان التحويل الصحيح في المتصفح
-                                        const utcString = `${dateStr}T${session.time}:00Z`;
+                                      
                                         const isCompleted = session.status === 'completed' || session.isSendReport === true;
                                     %>
                                         <div class="session-card p-5 rounded-3xl bg-white flex flex-col justify-between relative overflow-hidden <%= isCompleted ? 'opacity-60' : '' %>"
-                                             data-utc-start="<%= utcString %>"
+                                          
                                              data-booking-id="<%= session.bookingId %>"
                                              data-index="<%= session.sessionIndex %>"
                                              data-completed="<%= isCompleted %>"
@@ -133,12 +133,9 @@
         // تحويل توقيت العرض الأسبوعي محلياً فور التحميل
         function localizeWeeklyView() {
             document.querySelectorAll('.session-card').forEach(card => {
-                const utcStart = card.getAttribute('data-utc-start');
                 const isCompleted = card.getAttribute('data-completed') === 'true';
                 
-                // تحويل النص "2023-10-01T07:30:00Z" إلى كائن تاريخ محلي
-                const dateObj = new Date(utcStart);
-                const now = new Date();
+             
 
                 // عرض الوقت بالتنسيق المحلي (مثلاً 10:30 م)
                 card.querySelector('.local-time-text').innerText = dateObj.toLocaleTimeString('ar-EG', { 
