@@ -141,7 +141,7 @@
 
     if (nearestSession && nearestSession.sessionDetails) {
         const sd = nearestSession.sessionDetails;
-console.error(sd,'sessionDetails in ejs');
+console.error(sd._id,'sessionDetails in ejs');
         // 1. استخدام البيانات المحولة مسبقاً في السيرفر للعرض النصي
         // تم استخدام حقول displayDay و displayDate و displayTime التي جهزناها في الـ Controller
         fullDateTime = `${sd.displayDay}، ${sd.displayDate} - ${sd.displayTime}`;
@@ -151,7 +151,7 @@ console.error(sd,'sessionDetails in ejs');
         const sessionStart =nearestSession.startTime;
         const sessionEnd = nearestSession.sessionEnd; // حصة لمدة ساعة
         
-        joinUrl = `/student/session-details/${nearestSession.bookingId}/${sd._id}`;
+        joinUrl = `/student/session-details/${nearestSession.bookingId}/${nearestSession.sessionId}`;
         const now = new Date(); // وقت السيرفر الحالي (UTC)
 
         // 3. تحديد حالة الحصة بناءً على الوقت الفعلي

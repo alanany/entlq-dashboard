@@ -420,6 +420,7 @@ async function getNearestSession(studentId, userTimeZone) {
             displayTime: dt.toFormat("hh:mm a"),
             displayDay: dt.toFormat("cccc")
           },
+          sessionId: session._id,
           sessionEnd: sessionEnd,
           startTime: sessionStart // للترتيب فقط
         });
