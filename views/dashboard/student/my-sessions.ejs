@@ -38,46 +38,51 @@
     </div>
 
     <% 
-        const now = new Date();
-        let upcoming = [];
-        let past = [];
+    const now = new Date();
+    let upcoming = [];
+    let past = [];
 
-        if (bookings && bookings.length > 0) {
-            bookings.forEach(booking => {
-                const courseTitle = booking.courseId?.title || 'كورس غير معروف';
-                const studentName = booking.studentId?.name || 'طالب غير معروف';
-                const studentTZ = booking.studentId?.timezone || 'UTC';
+    if (bookings && bookings.length > 0) {
+        bookings.forEach(booking => {
+            const courseTitle = booking.courseId?.title || 'كورس غير معروف';
+            const studentName = booking.studentId?.name || 'طالب غير معروف';
+            const studentTZ = booking.studentId?.timezone || 'Asia/Riyadh';
 
-                (booking.sessions || []).forEach(session => {
-                    // تحويل التاريخ لصيغة ISO لضمان عدم حدوث Invalid Date في الـ JavaScript
-                    const rawDate = session.date ? new Date(session.date).toISOString().split('T')[0] : '';
-                    const rawTime = session.time || '00:00';
+            (booking.sessions || []).forEach(session => {
+                // ملاحظة: نستخدم التاريخ الأصلي utcDateAndTime للمقارنة لأنه الأكثر دقة
+                // ونستخدم displayDate و displayTime اللذين جهزناهما للعرض فقط
+                
+                const sessionStart = new Date(session.utcDateAndTime);
+                // افتراض أن الجلسة مدتها ساعة واحدة (3600000 مللي ثانية)
+                const sessionEnd = new Date(sessionStart.getTime() + 60 * 60 * 1000);
+                
+                const item = { 
+                    session, 
+                    courseTitle, 
+                    studentName, 
+                    displayDate: session.displayDate, 
+                    displayTime: session.displayTime, 
+                    displayDay: session.displayDay,
+                    studentTZ,
+                    // الحصة منتهية إذا كانت حالتها مكتملة أو مر وقتها الفعلي
+                    isCompleted: session.status === 'completed' || sessionEnd < now 
+                };
 
-                    // لغرض التصنيف (قادم/سابق) نستخدم توقيت السيرفر
-                    const sessionStart = new Date(`${rawDate}T${rawTime}:00`);
-                    const sessionEnd = new Date(sessionStart.getTime() + 60*60*1000);
-                    
-                    const item = { 
-                        session, 
-                        courseTitle, 
-                        studentName, 
-                        rawDate, 
-                        rawTime, 
-                        studentTZ,
-                        isCompleted: session.status === 'completed' || sessionEnd < now 
-                    };
-
-                    if (item.isCompleted) {
-                        past.push(item);
-                    } else {
-                        upcoming.push(item);
-                    }
-                });
+                if (item.isCompleted) {
+                    past.push(item);
+                } else {
+                    upcoming.push(item);
+                }
             });
-        }
-        upcoming.sort((a, b) => new Date(`${a.rawDate}T${a.rawTime}`) - new Date(`${b.rawDate}T${b.rawTime}`));
-        past.sort((a, b) => new Date(`${b.rawDate}T${b.rawTime}`) - new Date(`${a.rawDate}T${a.rawTime}`));
-    %>
+        });
+
+        // ترتيب الحصص القادمة من الأقرب للأبعد
+        upcoming.sort((a, b) => new Date(a.session.utcDateAndTime) - new Date(b.session.utcDateAndTime));
+        
+        // ترتيب الحصص السابقة من الأحدث للأقدم
+        past.sort((a, b) => new Date(b.session.utcDateAndTime) - new Date(a.session.utcDateAndTime));
+    }
+%>
 
     <div id="upcoming-content">
         <% if (upcoming.length === 0) { %>
@@ -94,11 +99,11 @@
                         <div class="space-y-3 mt-4 mb-6">
                             <div class="flex items-center gap-2 text-sm font-bold text-gray-600">
                                 <i data-feather="calendar" class="w-4 h-4 text-indigo-400"></i>
-                                <span class="local-date" data-utc="<%= item.rawDate %>" data-time="<%= item.rawTime %>" data-tz="<%= item.studentTZ %>">جاري التحميل...</span>
+                                <span class="local-date"   data-tz="<%= item.displayDate %>"> <%= item.displayDate %></span>
                             </div>
                             <div class="flex items-center gap-2 text-sm font-bold text-indigo-600 bg-indigo-50/50 p-2 rounded-lg w-fit">
                                 <i data-feather="clock" class="w-4 h-4 text-indigo-500"></i>
-                                <span class="local-time font-black" data-utc="<%= item.rawDate %>" data-time="<%= item.rawTime %>" data-tz="<%= item.studentTZ %>">--:--</span>
+                                <span class="local-time font-black" data-utc="<%= item.rawDate %>" data-time="<%= item.rawTime %>" data-tz="<%= item.studentTZ %>"><%= item.displayTime %></span>
                             </div>
                         </div>
 
@@ -173,46 +178,9 @@
      * محرك تحويل التوقيت
      * يقوم بتحويل التاريخ والوقت الخام إلى توقيت الطالب المحلي
      */
-    function processLocalTimestamps() {
-        const elements = document.querySelectorAll('.local-date, .local-time');
-        
-        elements.forEach(el => {
-            const rawDate = el.dataset.utc; // YYYY-MM-DD
-            const rawTime = el.dataset.time; // HH:mm
-            const tz = el.dataset.tz || 'UTC';
-
-            // بناء كائن التاريخ بصيغة ISO كاملة لضمان دقة المعالجة
-            const dateObj = new Date(`${rawDate}T${rawTime}:00`);
-
-            // التأكد من صحة التاريخ
-            if (isNaN(dateObj.getTime())) {
-                el.innerText = "توقيت غير محدد";
-                return;
-            }
-
-            if (el.classList.contains('local-date')) {
-                // عرض التاريخ: الأربعاء، 25 أكتوبر
-                el.innerText = dateObj.toLocaleDateString('ar-EG', {
-                    timeZone: tz,
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long'
-                });
-            } else if (el.classList.contains('local-time')) {
-                // عرض الوقت: 04:30 م
-                el.innerText = dateObj.toLocaleTimeString('ar-EG', {
-                    timeZone: tz,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                });
-            }
-        });
-    }
 
     // التنفيذ عند تحميل الصفحة
     document.addEventListener('DOMContentLoaded', () => {
-        processLocalTimestamps();
     });
 
     // تبديل التابات

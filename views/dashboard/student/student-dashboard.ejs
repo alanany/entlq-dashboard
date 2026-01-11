@@ -132,50 +132,37 @@
 <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 lg:p-8">
     <div class="max-w-7xl mx-auto space-y-8">
 
-        <% 
-        // [EJS Logic] معالجة بيانات الحصة بتوافق المناطق الزمنية
-        let fullDateTime = 'جاري التحميل...';
-        let sessionState = 'none'; 
-        let countdownMs = 0;
-        let joinUrl = '#';
+       <% 
+    // [EJS Logic] معالجة بيانات الحصة بتوافق المناطق الزمنية
+    let fullDateTime = 'جاري التحميل...';
+    let sessionState = 'none'; 
+    let countdownMs = 0;
+    let joinUrl = '#';
 
-        if (nearestSession && nearestSession.sessionDetails && nearestSession.sessionDetails.date) {
-            const sd = nearestSession.sessionDetails;
-            const studentTZ = user.timezone || 'UTC'; // منطقة الطالب من اليوزر
-            
-            // 1. استخراج التاريخ والوقت الخام
-            const rawDate = new Date(sd.date).toISOString().split('T')[0];
-            const rawTime = sd.time; // HH:mm
+    if (nearestSession && nearestSession.sessionDetails) {
+        const sd = nearestSession.sessionDetails;
+console.error(sd,'sessionDetails in ejs');
+        // 1. استخدام البيانات المحولة مسبقاً في السيرفر للعرض النصي
+        // تم استخدام حقول displayDay و displayDate و displayTime التي جهزناها في الـ Controller
+        fullDateTime = `${sd.displayDay}، ${sd.displayDate} - ${sd.displayTime}`;
 
-            // 2. إنشاء كائن التاريخ (يفترض أن المخزن هو وقت السيرفر/الآدمن)
-            const sessionStart = new Date(`${rawDate}T${rawTime}:00`);
-            const sessionEnd = new Date(sessionStart.getTime() + 60*60*1000); // حصة لمدة ساعة
-            
-            // 3. تحويل العرض النصي ليتوافق مع منطقة الطالب الزمنية
-            fullDateTime = sessionStart.toLocaleString('ar-EG', { 
-                timeZone: studentTZ,
-                weekday: 'long', 
-                day: 'numeric', 
-                month: 'long', 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: true
-            });
+        // 2. المقارنة باستخدام التوقيت العالمي لضمان الدقة (UTC)
+        // نستخدم حقل utcDateAndTime الأصلي المخزن في الداتابيز
+        const sessionStart =nearestSession.startTime;
+        const sessionEnd = nearestSession.sessionEnd; // حصة لمدة ساعة
+        
+        joinUrl = `/student/session-details/${nearestSession.bookingId}/${sd._id}`;
+        const now = new Date(); // وقت السيرفر الحالي (UTC)
 
-            joinUrl = `/student/session-details/${nearestSession.bookingId}/${sd._id}`;
-            const now = new Date();
-
-            // 4. تحديد حالة الحصة
-            if(now >= sessionStart && now <= sessionEnd){
-                sessionState = 'ongoing';
-                countdownMs = sessionEnd.getTime() - now.getTime();
-            } else if(now < sessionStart) {
-                // نعتبرها "قادمة اليوم" فقط إذا كان الفرق أقل من 24 ساعة أو في نفس اليوم
-                sessionState = 'upcoming';
-            }
+        // 3. تحديد حالة الحصة بناءً على الوقت الفعلي
+        if(now >= sessionStart && now <= sessionEnd) {
+            sessionState = 'ongoing';
+            countdownMs = sessionEnd.getTime() - now.getTime();
+        } else if(now < sessionStart) {
+            sessionState = 'upcoming';
         }
-        %>
-
+    }
+%>
         <% if(sessionState === 'upcoming'){ %>
             <div class="bg-gradient-to-l from-indigo-700 to-indigo-600 text-white p-6 rounded-2xl shadow-lg border-r-8 border-indigo-400">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -188,7 +175,7 @@
                             <p class="text-indigo-100 mt-1 font-medium"><%= nearestSession.courseTitle %></p>
                             <p class="text-sm text-indigo-200 mt-1 italic flex items-center gap-1">
                                 <i data-feather="clock" class="w-3 h-3"></i>
-                                <%= fullDateTime %> (بتوقيتك المحلي)
+                              <%=  nearestSession.sessionDetails.displayDate %> <%=  nearestSession.sessionDetails.displayDay %>   <%=  nearestSession.sessionDetails.displayTime %> (بتوقيتك المحلي)
                             </p>
                         </div>
                     </div>

@@ -10,10 +10,16 @@ const getstudentDashboard = async (req, res, next) => {
     // c على أقرب حصة
     if (role === "student") {
       const studentId = req.user._id;
-      const nearestSession = await getNearestSession(studentId);
+      const nearestSession = await getNearestSession(studentId, req.user.timezone);
+            console.log(nearestSession.sessionDetails, "nearestSession in controller");
+  const sessionStart =nearestSession.startTime;
+        const sessionEnd = nearestSession.sessionEnd; // حصة لمدة ساعة
+        console.log(sessionStart,'sessionStart');
+        console.log(sessionEnd,'sessionEnd');
+     
+        
      const studentStats =   await     getStudentStats(studentId);
      const courseBookingDetails=await getStudentCourseDetails(studentId);
-      console.log(nearestSession, "nearestSession in controller");
             console.log(courseBookingDetails, "courseBookingDetails in controller");
 
       res.render("dashboard/student/student-dashboard", {
@@ -373,7 +379,9 @@ const getSessionWaitingRoom = async (req, res, next) => {
  */
 const mongoose = require("mongoose");
 const { duration } = require("moment");
-async function getNearestSession(studentId) {
+const { DateTime } = require("luxon");
+
+async function getNearestSession(studentId, userTimeZone) {
   // جلب الاشتراكات المؤكدة
   const subscriptions = await Subscription.find({
     studentId: studentId,
@@ -381,33 +389,47 @@ async function getNearestSession(studentId) {
   }).populate("courseId");
 
   let upcoming = [];
-  const now = new Date(); // الوقت الحالي الفعلي للسيرفر
+  const now = new Date(); // التوقيت الحالي للسيرفر (UTC)
+
+  // نحدد منطقة زمنية افتراضية في حال لم يحدد اليوزر منطقة في بروفايله
+  const tz = userTimeZone || "UTC";
 
   subscriptions.forEach((sub) => {
     (sub.sessions || []).forEach((session) => {
-      // 1. تنظيف التاريخ (YYYY-MM-DD)
-      const rawDate = new Date(session.date).toISOString().split('T')[0];
-      // 2. دمج التاريخ والوقت في كائن واحد
-      const sessionStart = new Date(`${rawDate}T${session.time}:00`);
-      // 3. نهاية الحصة (بعد ساعة مثلاً)
+      // 1. استخدام التوقيت العالمي المخزن
+      const sessionStart = new Date(session.utcDateAndTime);
+      
+      // 2. نهاية الحصة (ساعة من البدء)
       const sessionEnd = new Date(sessionStart.getTime() + 60 * 60 * 1000);
 
-      // إذا كانت الحصة لم تنتهِ بعد ولم يتم تعليمها كمكتملة
+      // 3. الفلترة (لم تنتهِ ولم تكتمل)
       if (sessionEnd > now && session.status !== "completed") {
+        
+        // 4. التحويل لمنطقة اليوزر الممررة للدالة
+        const dt = DateTime.fromJSDate(sessionStart, { zone: "utc" })
+          .setZone(tz)
+          .setLocale('ar');
+
         upcoming.push({
           bookingId: sub._id,
           courseTitle: sub.courseId?.title,
-          sessionDetails: session,
-          startTime: sessionStart // نستخدم هذا للترتيب
+          sessionDetails: {
+            ...session,
+            // إضافة البيانات المنسقة للمنطقة الزمنية الخاصة باليوزر
+            displayDate: dt.toFormat("yyyy-MM-dd"),
+            displayTime: dt.toFormat("hh:mm a"),
+            displayDay: dt.toFormat("cccc")
+          },
+          sessionEnd: sessionEnd,
+          startTime: sessionStart // للترتيب فقط
         });
       }
     });
   });
 
-  // ترتيب الحصص من الأقرب للأبعد
+  // ترتيب من الأقرب للأبعد
   upcoming.sort((a, b) => a.startTime - b.startTime);
-
-  return upcoming[0] || null; // إرجاع أقرب حصة فقط
+  return upcoming[0] || null;
 }
 const getStudentCourseDetails = async (studentId) => {
   try {
@@ -530,26 +552,53 @@ console.log(stats,'stats');
     return null;
   }
 };
-const getMySessionsPage = async (req, res) => {
-  // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
 
+const getMySessionsPage = async (req, res) => {
+  // 1. جلب البيانات من قاعدة البيانات مع الـ Populates
   const acceptedRequests = await Subscription.find({
     studentId: req.user._id,
     status: "confirmed",
   })
     .populate({
-      path: "courseId", // قم بتعبئة الكورس أولاً
-      // داخل الكورس المُعبَّأ، قم بتعبئة التصنيف
+      path: "courseId",
       populate: {
-        path: "category", // اسم الحقل في موديل Course
-        model: "Category", // اسم موديل التصنيف
+        path: "category",
+        model: "Category",
       },
     })
     .populate("studentId");
-  console.log(acceptedRequests, "acceptedRequests");
+
+  // 2. تحديد المنطقة الزمنية للمستخدم (أو افتراضية إذا لم توجد)
+  const userTimeZone =  req.user.timezone || "Asia/Riyadh";
+
+  // 3. معالجة البيانات لتحويل توقيت كل جلسة (Session)
+  const formattedBookings = acceptedRequests.map((sub) => {
+    // تحويل وثيقة Mongoose إلى كائن عادي لنتمكن من التعديل عليه
+    const booking = sub.toObject();
+
+    if (booking.sessions && Array.isArray(booking.sessions)) {
+      booking.sessions = booking.sessions.map((session) => {
+        // تحويل التاريخ من UTC إلى المنطقة الزمنية للمستخدم باستخدام Luxon
+        const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
+                   .setZone(userTimeZone)
+                   .setLocale('ar'); // لجعل الوقت والتاريخ بالعربية
+
+        return {
+          ...session,
+          // إضافة حقول منسقة للعرض في الـ EJS
+          displayDate: dt.toFormat("yyyy-MM-dd"), // التاريخ: 2026-01-11
+          displayTime: dt.toFormat("hh:mm a"),   // الوقت: 01:15 م
+          displayDay: dt.toFormat("cccc"),       // اليوم: الأحد
+        };
+      });
+    }
+    return booking;
+  });
+
+  // 4. إرسال البيانات المنسقة (formattedBookings) بدلاً من الأصلية
   res.render("dashboard/student/my-sessions", {
-    title: "   حصصى المجدوله ",
-    bookings: acceptedRequests,
+    title: "حصصي المجدولة",
+    bookings: formattedBookings, 
   });
 };
 const getStudentSettings = async (req, res, next) => {
