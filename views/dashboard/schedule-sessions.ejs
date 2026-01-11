@@ -1,286 +1,284 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>جدولة حصص الطلب رقم #<%= booking._id.toString().slice(-6) %></title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
-    <style>
-        body { font-family: 'Tajawal', sans-serif; }
-        input:focus { transform: scale(1.01); transition: all 0.2s ease; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة الجدولة | <%= booking.studentId?.name %></title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <style>
+    body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+
+    .dashboard-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    .master-session {
+      border-right: 4px solid #4f46e5 !important;
+      background: linear-gradient(to left, #f5f7ff, #ffffff);
+    }
+
+    .input-field {
+      transition: all 0.2s;
+      border: 2px solid #e2e8f0;
+      background: #ffffff;
+      border-radius: 12px;
+    }
+    .input-field:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+      outline: none;
+    }
+
+    .auto-filled-row { animation: highlight-green 1s ease-out; }
+    @keyframes highlight-green {
+      0% { background-color: #f0fdf4; border-color: #22c55e; }
+      100% { background-color: white; }
+    }
+
+    .day-tag {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-top: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* السايد بار ثابت في مكانه عند التمرير للشاشات الكبيرة فقط */
+    @media (min-width: 1024px) {
+      .sticky-sidebar {
+        position: sticky;
+        top: 2rem;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="text-slate-900 pb-24">
+
+<%
+  const totalSessions   = booking.numberOfSessionsPerMonth || 16;
+  const sessionsPerWeek = booking.numberOfSessionsPerWeek || 4;
+  const studentTZ       = booking.studentId?.timezone || 'UTC';
+  const existingSessions = booking.sessions || [];
+
+  const courseTitle = booking.courseId?.title || 'كورس غير محدد';
+  const teacherName = booking.teacherId?.name || 'لم يتم تعيين معلم';
+  const studentName = booking.studentId?.name || 'طالب مجهول';
+
+  const totalWeeks = Math.ceil(totalSessions / sessionsPerWeek);
+%>
+
+<div class="max-w-7xl mx-auto px-4 pt-10">
+  
+  <div class="flex flex-col lg:flex-row gap-8 items-start">
     
-    <% 
-        const studentName = booking.studentId?.name || 'طالب غير معروف';
-        const studentTZ = booking.studentId?.timezone || 'UTC'; // المنطقة الزمنية للطالب
-        const courseTitle = booking.courseId?.title || 'كورس محذوف';
-        const totalSessions = booking.numberOfSessionsPerMonth || 5; 
-        const existingSessions = booking.sessions || [];
-        const courseStartDate = booking.startDate ? new Date(booking.startDate) : null;
-        const teacherId = booking.teacherId;
-        const sessionDuration = booking.selectedPriceOption;
-        const teacherName = booking.teacherId?.name || 'معلم غير معروف';
-
-        let maxDateLimit = null;
-        if (courseStartDate) {
-            maxDateLimit = new Date(courseStartDate);
-            maxDateLimit.setDate(maxDateLimit.getDate() + 30); 
-        }
-
-        const sessionsMap = {};
-        existingSessions.forEach((session, index) => {
-            const dateStr = session.date ? new Date(session.date).toISOString().split('T')[0] : '';
-            const timeStr = session.time || '';
-            const status = session.status || 'pending';
-            sessionsMap[index] = { 
-                date: dateStr, 
-                time: timeStr, 
-                status: status,
-                _id: session._id 
-            };
-        });
-    %>
-    
-    <div class="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        
-        <div class="mb-6">
-            <a href="#" onclick="history.back(); return false;" 
-                class="text-sm text-indigo-600 hover:text-indigo-800 flex items-center font-bold transition">
-                <i data-feather="arrow-right" class="ml-2 w-4 h-4"></i> 
-                العودة لطلبات الانضمام
-            </a>
+    <aside class="w-full lg:w-1/3 sticky-sidebar order-1">
+      <div class="dashboard-card overflow-hidden border-indigo-100 shadow-lg shadow-indigo-900/5">
+        <div class="bg-slate-900 p-6 text-white relative">
+          <span class="text-indigo-400 text-[10px] font-black uppercase tracking-widest block mb-2">بطاقة حجز الطالب</span>
+          <h2 class="text-xl font-black flex items-center gap-3">
+            <i data-feather="user" class="w-5 h-5 text-indigo-400"></i> <%= studentName %>
+          </h2>
+          <i data-feather="activity" class="absolute top-4 left-4 w-12 h-12 text-white/5 pointer-events-none"></i>
         </div>
 
-        <div class="mb-6 bg-blue-50 border-r-4 border-blue-500 p-4 rounded-xl shadow-sm flex items-center justify-between">
-            <div class="flex items-center">
-                <i data-feather="globe" class="ml-3 text-blue-600"></i>
-                <div>
-                    <p class="text-sm font-bold text-blue-900">توقيت الطالب المتوقع:</p>
-                    <p class="text-xs text-blue-700 font-medium">المنطقة الزمنية للطالب: <span class="font-black"><%= studentTZ %></span></p>
+        <div class="p-6 space-y-6 text-sm">
+          <div>
+            <label class="text-slate-400 font-bold block mb-2 uppercase text-[10px]">الكورس المسجل</label>
+            <div class="font-black text-slate-800 flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+              <i data-feather="book-open" class="w-4 h-4 text-emerald-500"></i> <%= courseTitle %>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+              <label class="text-slate-400 font-bold block mb-1 text-[10px]">حصص/أسبوع</label>
+              <span class="font-black text-indigo-700 text-lg"><%= sessionsPerWeek %></span>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <label class="text-slate-400 font-bold block mb-1 text-[10px]">إجمالي الأسابيع</label>
+              <span class="font-black text-slate-700 text-lg"><%= totalWeeks %></span>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-slate-400 font-bold block mb-2 uppercase text-[10px]">المعلم</label>
+            <div class="font-bold text-slate-700 flex items-center gap-3 p-3 border border-slate-100 rounded-xl">
+              <i data-feather="shield" class="w-4 h-4 text-amber-500"></i> <%= teacherName %>
+            </div>
+          </div>
+
+          <div class="bg-indigo-900 p-4 rounded-2xl text-white shadow-inner">
+            <div class="flex items-center gap-2 mb-1">
+              <i data-feather="globe" class="w-3 h-3 text-indigo-400"></i>
+              <label class="text-[10px] font-bold text-indigo-300">المنطقة الزمنية للطالب</label>
+            </div>
+            <span class="font-bold text-xs"><%= studentTZ %></span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="w-full lg:w-2/3 order-2">
+      <form action="/booking/<%= booking._id %>/update-sessions" method="POST">
+        <div class="space-y-6">
+          <% for (let i = 0; i < totalSessions; i++) {
+            const isMaster     = i < sessionsPerWeek;
+            const savedSession = existingSessions[i] || {};
+            const savedDate    = savedSession.date ? new Date(savedSession.date).toISOString().split('T')[0] : '';
+            const savedTime    = savedSession.time || '';
+            const currentWeek  = Math.floor(i / sessionsPerWeek) + 1;
+          %>
+
+            <% if (i % sessionsPerWeek === 0) { %>
+              <div class="flex items-center gap-4 mt-10 mb-6">
+                <div class="bg-indigo-600 text-white px-5 py-2 rounded-xl font-black text-xs shadow-md shadow-indigo-200 flex items-center gap-2">
+                  <i data-feather="calendar" class="w-3 h-3"></i>
+                  الأسبوع <%= currentWeek %>
                 </div>
-            </div>
-        </div>
-
-        <div class="mb-8 border-b pb-4">
-            <h1 class="text-3xl font-extrabold text-gray-900 flex items-center">
-                <i data-feather="calendar" class="ml-3 w-8 h-8 text-indigo-600"></i> 
-                جدولة حصص: <%= studentName %>
-            </h1>
-            <p class="mt-2 text-gray-500 font-medium">كورس: <span class="text-indigo-600"><%= courseTitle %></span></p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            
-            <div class="lg:col-span-1 space-y-4">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
-                    <h3 class="text-lg font-black text-gray-900 mb-4 border-b pb-3 flex items-center">
-                        <i data-feather="info" class="ml-2 w-5 h-5 text-indigo-500"></i> ملخص الجدولة
-                    </h3>
-                    <dl class="space-y-4 text-sm">
-                        <div class="bg-indigo-50 p-3 rounded-xl">
-                            <dt class="font-bold text-indigo-400 text-[10px] uppercase">المعلم المسؤول</dt>
-                            <dd class="text-indigo-900 font-black flex items-center mt-1">
-                                <%= teacherName %>
-                                <a href="/teacher/calendar/<%= teacherId._id %>" class="mr-auto text-indigo-600 hover:scale-110">
-                                    <i data-feather="external-link" class="w-4 h-4"></i>
-                                </a>
-                            </dd>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="bg-gray-50 p-3 rounded-xl text-center">
-                                <dt class="text-[10px] font-bold text-gray-400">الحصص</dt>
-                                <dd class="text-xl font-black text-gray-800"><%= totalSessions %></dd>
-                            </div>
-                            <div class="bg-gray-50 p-3 rounded-xl text-center">
-                                <dt class="text-[10px] font-bold text-gray-400">المدة</dt>
-                                <dd class="text-xl font-black text-gray-800"><%= sessionDuration %>د</dd>
-                            </div>
-                        </div>
-                    </dl>
-                </div>
-            </div>
-
-            <div class="lg:col-span-3 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                <form action="/booking/<%= booking._id %>/update-sessions" method="POST" class="space-y-6" id="scheduleForm">
-                    
-                    <% 
-                        const minDateString = courseStartDate ? courseStartDate.toISOString().split('T')[0] : '';
-                        const maxDateString = maxDateLimit ? maxDateLimit.toISOString().split('T')[0] : '';
-
-                        for(let i = 0; i < totalSessions; i++) { 
-                            const sessionNumber = i + 1;
-                            const sessionData = sessionsMap[i] || { date: '', time: '', status: 'pending', _id: '' };
-                            const isCompleted = sessionData?.status === 'completed';
-                    %>
-
-                        <div class="group p-5 border border-gray-100 rounded-2xl hover:border-indigo-200 hover:bg-indigo-50/10 transition-all flex flex-col md:flex-row gap-6 items-center">
-                            
-                            <div class="flex-shrink-0 text-center md:text-right">
-                                <span class="text-[10px] font-black text-indigo-400 uppercase block">SESSION</span>
-                                <span class="text-2xl font-black text-gray-800"><%= sessionNumber.toString().padStart(2, '0') %></span>
-                            </div>
-
-                            <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="relative">
-                                    <label class="text-[10px] font-black text-gray-400 mr-2 mb-1 block">تاريخ الحصة</label>
-                                    <input type="date" name="sessions[<%= i %>][date]" id="date_<%= i %>"
-                                           value="<%= sessionData.date %>"
-                                           min="<%= minDateString %>" max="<%= maxDateString %>"
-                                           onchange="checkAvailability(<%= i %>); updateStudentPreview(<%= i %>)"
-                                           class="w-full bg-gray-50 border-none rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none <%= isCompleted ? 'opacity-50 pointer-events-none' : '' %>" required>
-                                </div>
-                                <div class="relative">
-                                    <label class="text-[10px] font-black text-gray-400 mr-2 mb-1 block">الوقت (بتوقيتك كآدمن)</label>
-                                    <input type="time" name="sessions[<%= i %>][time]" id="time_<%= i %>"
-                                           value="<%= sessionData.time %>"
-                                           onchange="checkAvailability(<%= i %>); updateStudentPreview(<%= i %>)"
-                                           class="w-full bg-gray-50 border-none rounded-xl p-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none <%= isCompleted ? 'opacity-50 pointer-events-none' : '' %>" required>
-                                    <p id="student_preview_<%= i %>" class="text-[10px] text-indigo-600 font-bold mt-1 italic"></p>
-                                </div>
-                                <p id="error_<%= i %>" class="md:col-span-2 text-[10px] text-red-500 font-bold hidden"></p>
-                            </div>
-
-                            <div class="flex-shrink-0 w-full md:w-auto">
-                                <% if (isCompleted) { %>
-                                    <div class="bg-emerald-100 text-emerald-600 px-4 py-2 rounded-xl flex items-center gap-2">
-                                        <i data-feather="check-circle" class="w-4 h-4"></i>
-                                        <span class="text-xs font-black">مكتملة</span>
-                                    </div>
-                                <% } else { %>
-                                    <button type="button" 
-                                            data-session-id="<%= sessionData._id %>" 
-                                            data-session-index="<%= i %>"
-                                            class="open-modal-btn w-full md:w-auto bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-600 transition-colors">
-                                        تأكيد الإنجاز
-                                    </button>
-                                <% } %>
-                            </div>
-                            
-                            <input type="hidden" name="sessions[<%= i %>][status]" value="<%= sessionData.status %>">
-                            <input type="hidden" name="sessions[<%= i %>][_id]" value="<%= sessionData._id %>">
-                        </div>
-                    <% } %>
-
-                    <div class="pt-6">
-                        <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-1 transition-all">
-                            حفظ وتحديث الجدول
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div id="confirmationModal" class="fixed inset-0 bg-gray-900/60 hidden z-50 items-center justify-center backdrop-blur-sm">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full m-4 p-8 transform transition-all">
-            <div class="text-center">
-                <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-feather="check" class="text-green-600 w-8 h-8"></i>
-                </div>
-                <h3 class="text-xl font-black text-gray-900 mb-2">تأكيد حضور الحصة</h3>
-                <p class="text-gray-500 text-sm mb-6" id="sessionDetailsText"></p>
-            </div>
-            <div class="flex gap-3">
-                <button id="confirmCompleteBtn" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition">تأكيد</button>
-                <button id="cancelCompleteBtn" class="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        feather.replace();
-
-        // المنطقة الزمنية للطالب القادمة من قاعدة البيانات
-        const studentTimeZone = '<%= studentTZ %>';
-
-        // دالة تحديث توقيت الطالب
-        function updateStudentPreview(index) {
-            const dateInput = document.getElementById(`date_${index}`);
-            const timeInput = document.getElementById(`time_${index}`);
-            const previewSpan = document.getElementById(`student_preview_${index}`);
-
-            if (!dateInput.value || !timeInput.value) return;
-
-            try {
-                // دمج التاريخ والوقت (يفترض المتصفح أن هذا توقيت الجهاز المحلي للآدمن)
-                const adminDate = new Date(`${dateInput.value}T${timeInput.value}`);
-
-                const studentTimeStr = adminDate.toLocaleTimeString('ar-EG', {
-                    timeZone: studentTimeZone,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                });
-
-                previewSpan.innerText = `🕒 عند الطالب: ${studentTimeStr}`;
-            } catch (e) {
-                previewSpan.innerText = "";
-            }
-        }
-
-        // فحص تضارب مواعيد المعلم
-        async function checkAvailability(index) {
-            const dateInput = document.getElementById(`date_${index}`);
-            const timeInput = document.getElementById(`time_${index}`);
-            const errorSpan = document.getElementById(`error_${index}`);
-            
-            if (!dateInput.value || !timeInput.value) return;
-
-            try {
-                const response = await fetch('/admin/check-teacher-conflict', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        teacherId: '<%= booking.teacherId?._id || booking.teacherId %>', 
-                        date: dateInput.value, 
-                        time: timeInput.value, 
-                        bookingId: '<%= booking._id %>' 
-                    })
-                });
-                const result = await response.json();
-                if (result.conflict) {
-                    errorSpan.innerText = "⚠️ " + result.message;
-                    errorSpan.classList.remove('hidden');
-                    [dateInput, timeInput].forEach(el => el.classList.add('ring-2', 'ring-red-500', 'bg-red-50'));
-                } else {
-                    errorSpan.classList.add('hidden');
-                    [dateInput, timeInput].forEach(el => el.classList.remove('ring-2', 'ring-red-500', 'bg-red-50'));
-                }
-            } catch (err) { console.error(err); }
-        }
-
-        // منطق الـ Modal
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('confirmationModal');
-            const detailsText = document.getElementById('sessionDetailsText');
-            let currentSessionId = null;
-
-            document.querySelectorAll('.open-modal-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const idx = e.target.dataset.sessionIndex;
-                    currentSessionId = e.target.dataset.sessionId;
-                    detailsText.innerText = `هل أنت متأكد من اكتمال الحصة رقم ${parseInt(idx)+1}؟`;
-                    modal.classList.replace('hidden', 'flex');
-                });
-            });
-
-            document.getElementById('cancelCompleteBtn').onclick = () => modal.classList.replace('flex', 'hidden');
-
-            document.getElementById('confirmCompleteBtn').onclick = () => {
-                if (currentSessionId) {
-                    window.location.href = `/booking/<%= booking._id %>/session/${currentSessionId}/complete`;
-                }
-            };
-
-            // تشغيل المعاينة الأولية لجميع الحصص
-            <% for(let i = 0; i < totalSessions; i++) { %>
-                updateStudentPreview(<%= i %>);
+                <div class="h-px bg-slate-200 flex-1"></div>
+              </div>
             <% } %>
-        });
-    </script>
+
+            <div
+              id="row_<%= i %>"
+              class="dashboard-card p-5 flex flex-col sm:flex-row items-center gap-6 transition-all hover:border-indigo-300 <%= isMaster ? 'master-session' : '' %>"
+            >
+              <div class="flex flex-col items-center justify-center bg-slate-100 w-14 h-14 rounded-2xl border border-slate-200 flex-shrink-0">
+                <span class="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">حصة</span>
+                <span class="text-xl font-black text-slate-800 leading-none">
+                  <%= (i + 1) %>
+                </span>
+              </div>
+
+              <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <div>
+                  <label class="text-[10px] font-black text-slate-400 mb-1 block">التاريخ</label>
+                  <input
+                    type="date"
+                    name="sessions[<%= i %>][date]"
+                    id="date_<%= i %>"
+                    value="<%= savedDate %>"
+                    onchange="handleUpdate(<%= i %>)"
+                    class="input-field w-full p-3 text-sm font-bold"
+                  >
+                  <div id="day_name_<%= i %>" class="day-tag bg-slate-100 text-slate-400 italic">بانتظار التاريخ...</div>
+                </div>
+
+                <div>
+                  <label class="text-[10px] font-black text-slate-400 mb-1 block uppercase">توقيت المعلم</label>
+                  <input
+                    type="time"
+                    name="sessions[<%= i %>][time]"
+                    id="time_<%= i %>"
+                    value="<%= savedTime %>"
+                    onchange="handleUpdate(<%= i %>)"
+                    class="input-field w-full p-3 text-sm font-bold"
+                  >
+                  <p id="preview_<%= i %>" class="text-[10px] text-indigo-500 font-bold mt-2 flex items-center gap-1 min-h-[14px]"></p>
+                </div>
+              </div>
+
+              <input type="hidden" name="sessions[<%= i %>][status]" value="<%= savedSession.status || 'pending' %>">
+              <input type="hidden" name="sessions[<%= i %>][_id]" value="<%= savedSession._id %>">
+            </div>
+          <% } %>
+        </div>
+
+        <div class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/90 backdrop-blur-md px-4 py-4">
+          <div class="max-w-7xl mx-auto flex justify-center lg:justify-end">
+            <button
+              type="submit"
+              class="w-full lg:w-1/3 bg-slate-900 text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-black transition-all flex items-center justify-center gap-3 active:scale-95"
+            >
+              <i data-feather="check-circle" class="w-5 h-5 text-emerald-400"></i>
+              تأكيد وحفظ الجدول
+            </button>
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+
+<script>
+  feather.replace();
+
+  const sessionsPerWeek = <%= sessionsPerWeek %>;
+  const totalSessions   = <%= totalSessions %>;
+  const studentTZ       = '<%= studentTZ %>';
+
+  function handleUpdate(index) {
+    updateDayAndPreview(index);
+    if (index < sessionsPerWeek) {
+      fillAllFutureWeeks(index);
+    }
+  }
+
+  function fillAllFutureWeeks(index) {
+    const masterDate = document.getElementById(`date_${index}`).value;
+    const masterTime = document.getElementById(`time_${index}`).value;
+    if (!masterDate || !masterTime) return;
+
+    for (let nextIdx = index + sessionsPerWeek; nextIdx < totalSessions; nextIdx += sessionsPerWeek) {
+      const targetDateInput = document.getElementById(`date_${nextIdx}`);
+      const targetTimeInput = document.getElementById(`time_${nextIdx}`);
+      const targetRow       = document.getElementById(`row_${nextIdx}`);
+
+      const weeksCount = (nextIdx - index) / sessionsPerWeek;
+      const d = new Date(masterDate);
+      d.setDate(d.getDate() + (weeksCount * 7));
+
+      targetDateInput.value = d.toISOString().split('T')[0];
+      targetTimeInput.value = masterTime;
+
+      updateDayAndPreview(nextIdx);
+      targetRow.classList.add('auto-filled-row');
+      setTimeout(() => targetRow.classList.remove('auto-filled-row'), 1000);
+    }
+  }
+
+  function updateDayAndPreview(index) {
+    const dateVal  = document.getElementById(`date_${index}`).value;
+    const timeVal  = document.getElementById(`time_${index}`).value;
+    const dayLabel = document.getElementById(`day_name_${index}`);
+    const preview  = document.getElementById(`preview_${index}`);
+
+    if (!dateVal) return;
+
+    const dateObj = new Date(dateVal);
+    const dayName = new Intl.DateTimeFormat('ar-EG', { weekday: 'long' }).format(dateObj);
+    dayLabel.innerText = dayName;
+    dayLabel.className = 'day-tag bg-emerald-50 text-emerald-600 border border-emerald-100';
+
+    if (timeVal) {
+      const fullDateTime = new Date(`${dateVal}T${timeVal}`);
+      const studentTimeStr = fullDateTime.toLocaleTimeString('ar-EG', {
+        timeZone: studentTZ,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      preview.innerHTML = `<i data-feather="globe" class="w-3 h-3"></i> توقيت الطالب: ${studentTimeStr}`;
+      feather.replace();
+    } else {
+      preview.innerHTML = '';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (let i = 0; i < totalSessions; i++) updateDayAndPreview(i);
+  });
+</script>
+
 </body>
 </html>

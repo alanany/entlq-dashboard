@@ -11,11 +11,7 @@ const getstudentDashboard = async (req, res, next) => {
     if (role === "student") {
       const studentId = req.user._id;
       const nearestSession = await getNearestSession(studentId, req.user.timezone);
-            console.log(nearestSession.sessionDetails, "nearestSession in controller");
-  const sessionStart =nearestSession.startTime;
-        const sessionEnd = nearestSession.sessionEnd; // حصة لمدة ساعة
-        console.log(sessionStart,'sessionStart');
-        console.log(sessionEnd,'sessionEnd');
+            
      
         
      const studentStats =   await     getStudentStats(studentId);
@@ -706,7 +702,58 @@ res.status(200).json({ message: "تم تغيير كلمة المرور بنجا�
      
     }
 };
+
+const getStudentSessionsPage = async (req, res) => {
+  const userId = req.params.id;
+  // 1. جلب البيانات من قاعدة البيانات مع الـ Populates
+  const acceptedRequests = await Subscription.find({
+    studentId: userId,
+    status: "confirmed",
+  })
+    .populate({
+      path: "courseId",
+      populate: {
+        path: "category",
+        model: "Category",
+      },
+    })
+    .populate("studentId");
+
+  // 2. تحديد المنطقة الزمنية للمستخدم (أو افتراضية إذا لم توجد)
+  const userTimeZone =  req.user.timezone || "Asia/Riyadh";
+
+  // 3. معالجة البيانات لتحويل توقيت كل جلسة (Session)
+  const formattedBookings = acceptedRequests.map((sub) => {
+    // تحويل وثيقة Mongoose إلى كائن عادي لنتمكن من التعديل عليه
+    const booking = sub.toObject();
+
+    if (booking.sessions && Array.isArray(booking.sessions)) {
+      booking.sessions = booking.sessions.map((session) => {
+        // تحويل التاريخ من UTC إلى المنطقة الزمنية للمستخدم باستخدام Luxon
+        const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
+                   .setZone(userTimeZone)
+                   .setLocale('ar'); // لجعل الوقت والتاريخ بالعربية
+
+        return {
+          ...session,
+          // إضافة حقول منسقة للعرض في الـ EJS
+          displayDate: dt.toFormat("yyyy-MM-dd"), // التاريخ: 2026-01-11
+          displayTime: dt.toFormat("hh:mm a"),   // الوقت: 01:15 م
+          displayDay: dt.toFormat("cccc"),       // اليوم: الأحد
+        };
+      });
+    }
+    return booking;
+  });
+
+  // 4. إرسال البيانات المنسقة (formattedBookings) بدلاً من الأصلية
+  res.render("dashboard/student/my-sessions", {
+    title: "حصصي المجدولة",
+    bookings: formattedBookings, 
+  });
+};
 module.exports = {
+  getStudentSessionsPage,
   getProfilePage,
   updatePassword,
   update_profile,

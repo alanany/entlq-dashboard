@@ -50,7 +50,11 @@ zoom_link: {
 notes: { type: String },
     token: {
       type: String,
-    }
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
 
 });
 

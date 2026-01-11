@@ -249,15 +249,17 @@ console.log(request);
 const getAdminSubscription = async (req, res) => {
 
 try {
-        const subscriptions = await Subscription.find()
-            .populate({
-                path: 'courseId',
-                populate: { path: 'category', model: 'Category' }
-            })
-            .populate('studentId')
-            .populate('teacherId') // أضفنا المعلم أيضاً
-            .sort({ createdAt: -1 });
+        let subscriptions = await Subscription.find()
+    .populate({
+        path: 'courseId',
+        populate: { path: 'category', model: 'Category' }
+    })
+    .populate('studentId')
+    .populate('teacherId')
+    .sort({ createdAt: -1 });
 
+// تصفية النتائج لاستبعاد الاشتراكات التي ليس لها طالب (المحذوفين)
+subscriptions = subscriptions.filter(sub => sub.studentId !== null);
 const now = new Date();
 now.setHours(0, 0, 0, 0); // ضبط الوقت للصفر لضمان دقة حساب الأيام
 
@@ -556,9 +558,9 @@ const getManageStudents = async (req, res) => {
         const { search } = req.query;
         let studentsQuery = {};
 
-        // منطق البحث
+        // 1. إعداد منطق البحث (إذا وجد)
         if (search) {
-            const regex = new RegExp(search, 'i'); // i for case-insensitive
+            const regex = new RegExp(search, 'i');
             studentsQuery = {
                 $or: [
                     { name: { $regex: regex } },
@@ -567,19 +569,45 @@ const getManageStudents = async (req, res) => {
             };
         }
 
-        // جلب الطلاب
-        const students = await User.find(studentsQuery).lean();
-        
-        // (خطوة اختيارية): إضافة عدد الدورات لكل طالب
-        const studentsWithDetails = await Promise.all(students.map(async (student) => {
-            // يمكنك استخدام نموذج حجز Course.countDocuments({ student: student._id }) إذا كان لديك حقل مرجع
-            const coursesCount = await Subscription.countDocuments({ studentId: student._id, status: 'confirmed' });
-            return {
-                ...student,
-                coursesCount: coursesCount
-            };
-        }));
-        
+        // 2. استخدام Aggregate لجلب الطلاب مرتبين مع عدد كورساتهم في طلب واحد
+        const studentsWithDetails = await User.aggregate([
+            // تصفية الطلاب بناءً على البحث
+            { $match: studentsQuery },
+            
+            // الترتيب من الأحدث (الأحدث في الأعلى)
+            // ملاحظة: تأكد من وجود timestamps: true في الموديل أو استبدله بـ _id
+            { $sort: { createdAt: -1 } },
+
+            // ربط جدول المستخدمين بجدول الاشتراكات جلب البيانات المتعلقة
+            {
+                $lookup: {
+                    from: 'subscriptions', // تأكد أن هذا هو اسم الكولكشن في قاعدة البيانات (غالباً جمع وصغير)
+                    localField: '_id',
+                    foreignField: 'studentId',
+                    as: 'subscriptions'
+                }
+            },
+
+            // إضافة حقل عدد الكورسات المؤكدة فقط
+            {
+                $addFields: {
+                    coursesCount: {
+                        $size: {
+                            $filter: {
+                                input: "$subscriptions",
+                                as: "sub",
+                                cond: { $eq: ["$$sub.status", "confirmed"] }
+                            }
+                        }
+                    }
+                }
+            },
+
+            // حذف مصفوفة الاشتراكات لتخفيف حجم البيانات المرسلة
+            { $project: { subscriptions: 0 } }
+        ]);
+
+        // 3. رندر الصفحة وإرسال البيانات
         res.render('dashboard/students', { 
             students: studentsWithDetails,
             searchTerm: search || ''

@@ -21,7 +21,7 @@ studentdashboardRoutes.get('/student/enrolled_subscription',checkUser,requireAut
 studentdashboardRoutes.get('/request-details/:requestId',checkUser,requireAuth, studentController.getRequestDetails);
 studentdashboardRoutes.get('/student/session-details/:bookingId/:sessionId',checkUser,requireAuth, studentController.getSessionWaitingRoom);
 studentdashboardRoutes.get('/student/my-sessions',checkUser,requireAuth, studentController.getMySessionsPage);
-
+studentdashboardRoutes.get('/student/student-sessions/:id',checkUser,requireAuth, studentController.getStudentSessionsPage);
 studentdashboardRoutes.get('/student/settings', studentController.getStudentSettings);
 studentdashboardRoutes.get('/student/billing',checkUser,requireAuth, studentController.getStudentBillingPage);
 studentdashboardRoutes.post('/settings/update-profile',checkUser,requireAuth, studentController.update_profile);
