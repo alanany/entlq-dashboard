@@ -1,10 +1,10 @@
 const { Router } = require('express');
 const courseController = require('../controllers/courseController');
-const { checkUser, requireAuth } = require('../middleware/authMiddleware');
+const { checkUser, requireAuth,requireAdmin } = require('../middleware/authMiddleware');
 const dashboardRoutes = Router();
 const multer = require('multer');
 const path = require('path');
-
+const teacherController = require('../controllers/teacher_controller');
 // إعداد مكان تخزين الصور وتسميتها
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -53,4 +53,11 @@ dashboardRoutes.get('/admin/teachers', courseController.adminTeachersPage);
 dashboardRoutes.post('/admin/teachers/update/:id', courseController.updateTeacher);
 dashboardRoutes.post('/admin/teachers/add', courseController.addTeacher);
 dashboardRoutes.post('/admin/check-teacher-conflict', courseController.checkConflict);
+dashboardRoutes.get('/admin/teacher/:id', teacherController.getTeacherPage);
+dashboardRoutes.get('/admin/teacher/:id/financial',requireAuth,checkUser, teacherController.getAdminTeacherFinancial);
+dashboardRoutes.post('/admin/teacher/update-status',requireAuth,checkUser,requireAdmin, teacherController.updateTeacherStatus);
+
+// الحذف النهائي (اختياري)
+dashboardRoutes.post('/admin/teachers/delete/:id',requireAuth,checkUser,requireAdmin, teacherController.deleteTeacher);
+dashboardRoutes.post('/admin/teacher/pay-salary',requireAuth,checkUser,requireAdmin, teacherController.processTeacherSalary);
 module.exports = dashboardRoutes;

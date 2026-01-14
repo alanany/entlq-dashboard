@@ -45,5 +45,21 @@ const checkUser = (req, res, next) => {
         next();
     }
 };
-
-module.exports = { requireAuth, checkUser };
+const requireAdmin = (req, res, next) => {
+    // 1. التأكد أولاً أن المستخدم مسجل دخول (بياناته موجودة في req.user)
+    if (req.user) {
+        // 2. التحقق من رتبة المستخدم (افترضنا أن الحقل اسمه role وقيمته admin)
+        if (req.user.role === 'admin') {
+            next(); // مستخدم أدمن، اسمح له بالمرور
+        } else {
+            // مستخدم مسجل دخول ولكنه ليس أدمن (مثلاً طالب أو معلم)
+            res.status(403).send('غير مسموح لك بالدخول، هذه المنطقة للمسؤولين فقط');
+            // أو يمكنك عمل redirect لصفحة معينة:
+            // res.redirect('/home');
+        }
+    } else {
+        // لا توجد بيانات مستخدم (غير مسجل دخول)
+        res.redirect('/');
+    }
+};
+module.exports = { requireAuth, checkUser, requireAdmin };

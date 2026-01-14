@@ -13,7 +13,8 @@ teacherdashboardRoutes.get('/teacher/calendar/:id',checkUser,requireAuth, teache
 // 2. مسار جلب بيانات الحصص (JSON) للتقويم
 teacherdashboardRoutes.get('/teacher/events/:id',checkUser,requireAuth, teacherController.getTeacherEvents);
 teacherdashboardRoutes.get('/teacher/schedule',checkUser,requireAuth, teacherController.getSchedule);
-// routes/teacher.js
+ teacherdashboardRoutes.get('/teacher/schedule/:id',checkUser,requireAuth, teacherController.getAdminScheduleTeacher);
+
 teacherdashboardRoutes.get('/teacher/session/:bookingId/:sessionIndex',checkUser,requireAuth,  teacherController.getSessionPage);
 teacherdashboardRoutes.post('/teacher/save-session-report',checkUser,requireAuth, teacherController.saveSessionReport);
 teacherdashboardRoutes.get('/teacher/finanical_page',checkUser,requireAuth, teacherController.finanical_page);

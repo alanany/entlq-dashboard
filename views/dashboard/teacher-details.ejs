@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل المعلم | <%= teacher.name %></title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 text-right">
+
+   <header class="bg-white border-b p-6 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-4">
+            <button onclick="history.back()" class="p-2 bg-gray-100 rounded-full hover:bg-indigo-100 text-indigo-600 transition">
+                <i data-feather="arrow-right"></i>
+            </button>
+            <div>
+             
+                <h1 class="text-xl font-black text-gray-800"><%= teacher.name %></h1>
+                <button onclick="window.location.href='/teacher/schedule/<%= teacher._id %>'" 
+                        class="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition mt-1">
+                    <i data-feather="calendar" class="w-3 h-3"></i>
+                    عرض جدول الحصص الأسبوعي
+                </button>
+            </div>
+        </div>
+        <p class="text-sm font-bold text-gray-400"><%= currentDate %></p>
+    </header>
+
+    <main class="p-6 max-w-7xl mx-auto space-y-6">
+        
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
+            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <p class="text-gray-400 text-xs font-bold mb-1 uppercase">إجمالي الطلاب</p>
+                <h2 class="text-2xl font-black text-gray-900"><%= stats.totalStudents %></h2>
+            </div>
+         <div class="relative overflow-hidden bg-indigo-600 p-6 rounded-[2.5rem] shadow-xl shadow-indigo-100 group transition-all duration-300 hover:shadow-indigo-200">
+    
+    <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500 rounded-full opacity-20 transition-transform group-hover:scale-150"></div>
+
+    <div class="relative z-10">
+        <div class="flex justify-between items-start mb-5">
+            <div>
+                <p class="text-indigo-100 text-[10px] font-black uppercase tracking-widest mb-1">المحفظة المالية</p>
+                <h2 class="text-3xl font-black text-white italic">
+                    <%= stats.totalEarnings %> <span class="text-xs font-medium not-italic opacity-80">ر.س</span>
+                </h2>
+            </div>
+            
+            <button onclick="window.location.href='/admin/teacher/<%= teacher.id %>/financial'"
+                class="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-md text-white rounded-2xl hover:bg-white hover:text-indigo-600 transition-all duration-300 shadow-lg border border-white/10"
+                title="عرض التفاصيل المالية">
+                <i data-feather="dollar-sign" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            <p class="text-[10px] text-indigo-100 font-bold">جاهز للمراجعة والتصدير</p>
+        </div>
+    </div>
+</div>
+<div onclick="window.location.href='/teacher/schedule/<%= teacher._id %>'" 
+     class="cursor-pointer bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all group">
+    <div class="flex justify-between items-start">
+        <div>
+            <p class="text-gray-400 text-xs font-bold mb-1 uppercase">  الجدول الاسبوعى والشهرى</p>
+            <h2 class="text-xl font-black text-gray-900 group-hover:text-indigo-600 transition">جدول الحصص  </h2>
+        </div>
+        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <i data-feather="calendar" class="w-5 h-5"></i>
+        </div>
+    </div>
+    <p class="text-[10px] text-gray-400 mt-4 font-bold">عرض  مواعيد الحصص</p>
+</div>
+            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <p class="text-gray-400 text-xs font-bold mb-1 uppercase">حصص منجزة</p>
+                <h2 class="text-2xl font-black text-gray-900"><%= stats.completedSessionsCount %></h2>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <p class="text-gray-400 text-xs font-bold mb-1 uppercase">حصص متبقية</p>
+                <h2 class="text-2xl font-black text-orange-500"><%= stats.totalRemainingSessions %></h2>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
+                <h3 class="font-black text-gray-800 italic">سجل حصص الطلاب بالتفصيل</h3>
+                
+                <button onclick="exportToExcel()" class="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-2xl text-xs font-black hover:bg-green-700 transition shadow-lg shadow-green-100">
+                    <i data-feather="file-text" class="w-4 h-4"></i>
+                    تصدير Excel
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table id="studentsTable" class="w-full text-right">
+                    <thead class="bg-gray-50 text-[11px] font-black text-gray-400">
+                        <tr>
+                            <th class="p-5 italic">اسم الطالب</th>
+                            <th class="p-5">الجدول</th>
+                            <th class="p-5 text-center">الكورس</th>
+                            <th class="p-5 text-center italic">بداية الاشتراك</th>
+                            <th class="p-5 text-center">عدد الحصص  </th>
+                             <th class="p-5 text-center">الحصص المنجزة </th>
+                            <th class="p-5 text-center text-indigo-600">المتبقي</th>
+                            <th class="p-5 text-center">حالة الاشتراك</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50 text-sm">
+                        <% students.forEach(s => { %>
+                        <tr class="hover:bg-indigo-50/30 transition">
+                            <td class="p-5 font-bold text-gray-800"><%= s.name %></td>
+                            <td class="p-5">
+                                <button onclick="window.location.href='/student/student-sessions/<%= s.id %>'"
+                                    class="text-indigo-600 font-bold text-sm bg-indigo-100 px-3 py-1 rounded-lg hover:bg-indigo-200 transition">
+                                    <i data-feather="table" class="w-4 h-4"></i>
+                                </button>
+                            </td>
+                            <td class="p-5 text-center text-gray-500"><%= s.courseTitle %></td>
+                            <td class="p-5 text-center text-gray-400 font-bold"><%= s.startDate %></td>
+                          
+                              <td class="p-5 text-center font-black text-indigo-600">
+                                <span class="text-lg"><%= s.totalSessions %></span>
+                                <span class="text-[9px] text-gray-400 block uppercase">حصة</span>
+                            </td>
+                            <td class="p-5 text-center font-black text-indigo-600">
+                                <span class="text-lg"><%= s.completedSessions %></span>
+                                <span class="text-[9px] text-gray-400 block uppercase">حصة</span>
+                            </td>
+                            <td class="p-5 text-center font-black text-orange-500">
+                                <span class="text-lg"><%= s.remainingSessions %></span>
+                                <span class="text-[9px] text-gray-400 block uppercase">حصة</span>
+                            <td class="p-5 text-center">
+                                <span class="px-3 py-1 rounded-lg text-[10px] font-black <%= s.status !== 'completed' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' %>">
+                                    <%= s.status !== 'completed' ? 'نشط' : 'منتهي' %>
+                                </span>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // تشغيل أيقونات Feather
+        feather.replace();
+
+        // وظيفة التصدير لإكسيل
+        function exportToExcel() {
+            // 1. الحصول على عنصر الجدول
+            const table = document.getElementById("studentsTable");
+            
+            // 2. تحويل الجدول لبيانات (Worksheet)
+            // ملاحظة: قمنا بتعطيل raw لضمان قراءة الأرقام والنصوص كما تظهر في المتصفح
+            const ws = XLSX.utils.table_to_sheet(table);
+
+            // 3. إنشاء "كتاب" (Workbook) جديد
+            const wb = XLSX.utils.book_new();
+            
+            // 4. إضافة البيانات للكتاب وتسمية الورقة
+            XLSX.utils.book_append_sheet(wb, ws, "بيانات الطلاب");
+
+            // 5. إنشاء اسم الملف (اسم المعلم + التاريخ)
+            const date = new Date().toISOString().split('T')[0];
+            const teacherName = "<%= teacher.name %>".replace(/\s+/g, '_');
+            const fileName = `Report_${teacherName}_${date}.xlsx`;
+
+            // 6. تفعيل عملية التحميل للمستخدم
+            XLSX.writeFile(wb, fileName);
+        }
+    </script>
+</body>
+</html>

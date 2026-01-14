@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
 zoom_link: {
     type: String,
   },  
+  isActive: { type: Boolean, default: true }, // الحقل الجديد
   password: {
     type: String,
     required: [true, 'Please enter a password'],

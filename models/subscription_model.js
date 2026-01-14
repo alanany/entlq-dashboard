@@ -15,6 +15,7 @@ const bookingSchema = new mongoose.Schema({
         link: { type: String } ,
         utcDateAndTime: { type: String },
         attended: { type: Boolean, default: false },
+         isPaidByAdmin: { type: Boolean, default: false }, // أضف هذا الحقل هنا
 // تقرير أداء الطالب في هذه الحصة
         report: {
             level: { type: String, enum: ['A', 'B', 'C'] }, // التقييم (ممتاز، متوسط، ضعيف)
