@@ -39,7 +39,7 @@ zoom_link: {
   timezone: { type: String, default: 'UTC' }, // مثال: 'Asia/Riyadh'
   status:{
     type: String,
-    enum: ['active', 'banned'],
+    enum: ['active', 'archived'],
     default: 'active'
   },
   hour_rate: {

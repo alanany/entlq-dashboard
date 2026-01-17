@@ -27,6 +27,15 @@ studentdashboardRoutes.get('/student/billing',checkUser,requireAuth, studentCont
 studentdashboardRoutes.post('/settings/update-profile',checkUser,requireAuth, studentController.update_profile);
 studentdashboardRoutes.post('/settings/update-password',checkUser,requireAuth, studentController.updatePassword);
 studentdashboardRoutes.get('/student/profile',checkUser,requireAuth, studentController.getProfilePage);
+// إضافة طالب جديد
+studentdashboardRoutes.post('/student/register', studentController.addStudent);
 
+// تغيير حالة الطالب (أرشفة / تنشيط)
+studentdashboardRoutes.post('/student/update-status', studentController.toggleStatus);
+
+// حذف الطالب نهائياً
+studentdashboardRoutes.get('/admin/student/profile/:id',checkUser,requireAuth, studentController.getStudentProfilePage);
+
+studentdashboardRoutes.post('/student/delete/:id', studentController.deleteStudent);
 
 module.exports = studentdashboardRoutes;

@@ -555,70 +555,21 @@ const postUpdateSessionsLinks = async (req, res) => {
 
 const getManageStudents = async (req, res) => {
     try {
-        const { search } = req.query;
-        let studentsQuery = {};
+       
+        // 3. التنفيذ الفعلي لـ find
+        const students = await User.find({ role: 'student' })
+        
+            .select('name email phone_number country_code isActive status createdAt role')
+            .sort({ createdAt: -1 });
 
-        // 1. إعداد منطق البحث (إذا وجد)
-        if (search) {
-            const regex = new RegExp(search, 'i');
-            studentsQuery = {
-                $or: [
-                    { name: { $regex: regex } },
-                    { email: { $regex: regex } }
-                ]
-            };
-        }
-
-        // 2. استخدام Aggregate لجلب الطلاب مرتبين مع عدد كورساتهم في طلب واحد
-        const studentsWithDetails = await User.aggregate([
-            // تصفية الطلاب بناءً على البحث
-            { $match: studentsQuery },
-            
-            // الترتيب من الأحدث (الأحدث في الأعلى)
-            // ملاحظة: تأكد من وجود timestamps: true في الموديل أو استبدله بـ _id
-            { $sort: { createdAt: -1 } },
-
-            // ربط جدول المستخدمين بجدول الاشتراكات جلب البيانات المتعلقة
-            {
-                $lookup: {
-                    from: 'subscriptions', // تأكد أن هذا هو اسم الكولكشن في قاعدة البيانات (غالباً جمع وصغير)
-                    localField: '_id',
-                    foreignField: 'studentId',
-                    as: 'subscriptions'
-                }
-            },
-
-            // إضافة حقل عدد الكورسات المؤكدة فقط
-            {
-                $addFields: {
-                    coursesCount: {
-                        $size: {
-                            $filter: {
-                                input: "$subscriptions",
-                                as: "sub",
-                                cond: { $eq: ["$$sub.status", "confirmed"] }
-                            }
-                        }
-                    }
-                }
-            },
-
-            // حذف مصفوفة الاشتراكات لتخفيف حجم البيانات المرسلة
-            { $project: { subscriptions: 0 } }
-        ]);
-
-        // 3. رندر الصفحة وإرسال البيانات
         res.render('dashboard/students', { 
-            students: studentsWithDetails,
-            searchTerm: search || ''
+            students: students,
+            user: req.user 
         });
-
+console.log(students[0],'students');
     } catch (error) {
-        console.error("Error fetching students:", error);
-        res.render('admin/manage_students', { 
-            students: [],
-            error: 'حدث خطأ أثناء جلب بيانات الطلاب.'
-        });
+        console.error("Error:", error);
+        res.status(500).send("حدث خطأ في جلب البيانات");
     }
 };
 // bookingController.js

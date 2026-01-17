@@ -27,9 +27,12 @@ const getstudentDashboard = async (req, res, next) => {
     } else if (role === "teacher") {
     await  teacherController.teacherHome(req, res, next);
     } else {
+     
+      
       res.render("dashboard/index");
     }
   } catch (error) {
+      res.render("website/home");
     console.error("Error loading dashboard:", error);
     res
       .status(500)
@@ -51,6 +54,68 @@ const signup_get = (req, res) => {
 const login_get = (req, res) => {
   res.render("../views/dashboard/student/login");
 };
+
+
+
+// إضافة طالب جديد (الحقول الـ 8)
+const addStudent = async (req, res) => {
+    try {
+        const { name, email, country_code, phone_number, gender, password, timezone } = req.body;
+        
+        const existingStudent = await User.findOne({ email });
+        if (existingStudent) {
+            return res.status(400).json({ success: false, message: 'البريد الإلكتروني مسجل مسبقاً' });
+        }
+
+        const newStudent = new User({
+            name, email, country_code, phone_number,
+            gender, password, timezone,
+            status: 'active'
+        });
+
+        await newStudent.save();
+        // الرد بـ JSON وليس Redirect
+        res.status(200).json({ success: true, message: 'تم تسجيل الطالب بنجاح' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'حدث خطأ أثناء التسجيل' });
+    }
+};
+
+// تبديل الحالة (أرشفة / تنشيط)
+const toggleStatus = async (req, res) => {
+ try {
+    const { studentId, isActive } = req.body;
+    console.log(studentId, isActive, "بيانات التحديث");
+
+    // تحديث الحالة في موديل المستخدم
+    await User.findByIdAndUpdate(studentId, { isActive: isActive });
+
+    res.json({
+      success: true,
+      message: isActive
+        ? "تم تفعيل حساب الطالب بنجاح"
+        : "تم نقل الطالب للأرشيف بنجاح",
+    });
+  } catch (error) {
+    console.error("Error in updateTeacherStatus:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "حدث خطأ في السيرفر أثناء تحديث الحالة" });
+  }
+};
+
+// حذف الطالب
+const deleteStudent = async (req, res) => {
+  console.log(req.params.id,'req.params.id');
+    try {
+        await User.findByIdAndDelete(req.params.id);
+        res.status(200).json({ success: true, message: 'تم الحذف بنجاح' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'حدث خطأ أثناء الحذف' });
+    }
+};
+
+
 const registerStudent = async (req, res) => {
   // استخراج البيانات من جسم الطلب
   const {
@@ -131,6 +196,13 @@ const registerStudent = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+
+
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id) => {
   return jwt.sign({ id }, "01115699209", {
@@ -673,6 +745,54 @@ const getProfilePage = async (req, res) => {
            
         });
 };
+const getStudentProfilePage = async (req, res) => {
+    try {
+        const studentId = req.params.id;
+
+        // 1. جلب بيانات الطالب الأساسية
+        const student = await User.findById(studentId);
+        if (!student) {
+            return res.status(404).send('الطالب غير موجود');
+        }
+
+        // 2. جلب جميع اشتراكات الطالب مع بيانات الكورسات والمعلمين
+        const subscriptions = await Subscription.find({ studentId: studentId })
+            .populate('courseId') // لجلب اسم الكورس
+            .populate('teacherId', 'name email'); // لجلب اسم وإيميل المعلم
+
+        // 3. تجهيز البيانات للعرض في التصميم
+        // سنقوم بتجميع كل الحصص من جميع الاشتراكات في مصفوفة واحدة لسجل الحصص
+        let allSessions = [];
+        subscriptions.forEach(sub => {
+            sub.sessions.forEach(session => {
+                allSessions.push({
+                    courseName: sub.courseId ? sub.courseId.title : 'كورس غير مسمى',
+                    teacherName: sub.teacherId ? sub.teacherId.name : 'غير محدد',
+                    date: session.date,
+                    time: session.time,
+                    status: session.status,
+                    report: session.report
+                });
+            });
+        });
+
+        // ترتيب الحصص من الأحدث للأقدم
+        allSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // 4. إرسال البيانات إلى صفحة EJS
+        res.render('dashboard/student_profile', {
+            student: student,
+            subscriptions: subscriptions,
+            allSessions: allSessions,
+            // استخراج الحرف الأول للايقونة
+            initials: student.name ? student.name.charAt(0) : 'S'
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('حدث خطأ في السيرفر');
+    }
+};
 const updatePassword = async (req, res) => {
     try {
         const { currentPassword, newPassword, confirmPassword } = req.body;
@@ -728,6 +848,7 @@ const getStudentSessionsPage = async (req, res) => {
     const booking = sub.toObject();
 
     if (booking.sessions && Array.isArray(booking.sessions)) {
+      console.log(booking.sessions.length,'booking.sessions.length');
       booking.sessions = booking.sessions.map((session) => {
         // تحويل التاريخ من UTC إلى المنطقة الزمنية للمستخدم باستخدام Luxon
         const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
@@ -745,7 +866,6 @@ const getStudentSessionsPage = async (req, res) => {
     }
     return booking;
   });
-
   // 4. إرسال البيانات المنسقة (formattedBookings) بدلاً من الأصلية
   res.render("dashboard/student/my-sessions", {
     title: "حصصي المجدولة",
@@ -753,6 +873,7 @@ const getStudentSessionsPage = async (req, res) => {
   });
 };
 module.exports = {
+  getStudentProfilePage,
   getStudentSessionsPage,
   getProfilePage,
   updatePassword,
@@ -771,5 +892,7 @@ module.exports = {
   getEnrolledSubscription,
   getRequestDetails,
   getSessionWaitingRoom,
-  getNearestSession,
+  getNearestSession, addStudent,
+  toggleStatus,
+  deleteStudent
 };

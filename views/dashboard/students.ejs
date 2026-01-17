@@ -5,273 +5,249 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الطلاب - لوحة التحكم</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        .swal2-popup { border-radius: 1.5rem !important; width: 35em !important; }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    
-    <% 
-        // 💡 افتراض: المتحكم يمرر قائمة الطلاب (students)
-        // مثال لبيانات الطلاب لغرض المحاكاة إذا لم تكن موجودة
-    
-
-        // 💡 افتراض: المتحكم يمرر رسائل الخطأ/النجاح
-        const successMessage = locals.success || null;
-        const errorMessage = locals.error || null;
-    %>
+<body class="text-gray-800">
 
     <div class="flex h-screen overflow-hidden">
+        <%- include('./_admin_sidebar.ejs', { currentPage: 'students', user: user }) %>
         
-    <div class="flex h-screen overflow-hidden">
-    
-    <%- include('./_admin_sidebar.ejs', { currentPage: 'students', user: user }) %>
-    
-    <div class="flex-1 flex flex-col overflow-hidden">
-        </div>
-</div>
         <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center px-8">
-                <h2 class="text-xl font-bold text-gray-800">إدارة الطلاب</h2>
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center px-8 justify-between shadow-sm">
+                <h2 class="text-xl font-black text-gray-800">إدارة الطلاب</h2>
+                <button onclick="showAddStudentPopup()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center shadow-lg">
+                    <i data-feather="user-plus" class="ml-2 w-4 h-4"></i> إضافة طالب جديد
+                </button>
             </header>
 
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
-                
-                <% if (successMessage) { %>
-                    <div class="p-4 mb-4 bg-green-100 rounded-lg text-green-700 font-medium flex items-center">
-                        <i data-feather="check-circle" class="w-5 h-5 ml-2"></i> <%= successMessage %>
-                    </div>
-                <% } %>
-                <% if (errorMessage) { %>
-                    <div class="p-4 mb-4 bg-red-100 rounded-lg text-red-700 font-medium flex items-center">
-                        <i data-feather="alert-triangle" class="w-5 h-5 ml-2"></i> <%= errorMessage %>
-                    </div>
-                <% } %>
-
-
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    
-                    <div class="p-4 border-b border-gray-100 flex justify-between items-center flex-wrap gap-4">
-                        
-                        <div class="flex items-center gap-4">
-                            <form action="/admin/students" method="GET" class="relative">
-                                <i data-feather="search" class="absolute top-2.5 right-3 w-4 h-4 text-gray-400"></i>
-                                <input type="text" name="search" placeholder="بحث باسم الطالب أو البريد..." 
-                                       value="<%= locals.searchTerm || '' %>"
-                                       class="w-64 pr-10 pl-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                                <button type="submit" hidden></button>
-                            </form>
-                        </div>
-
-                        <button onclick="showAddStudentModal()" class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
-                            <i data-feather="user-plus" class="ml-2 w-5 h-5"></i>
-                            إضافة طالب جديد
-                        </button>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-right">
-                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-medium">
-                                <tr>
-                                    <th class="px-6 py-3">الاسم</th>
-                                    <th class="px-6 py-3">البريد الإلكتروني</th>
-                                    <th class="px-6 py-3">الحالة</th> 
-                                    <th class="px-6 py-3">الدورات</th>
-                                      <th class="px-6 py-3">الجدول</th>
-                                    <th class="px-6 py-3">الإجراءات</th>
+            <main class="flex-1 overflow-y-auto p-8">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <table class="w-full text-right border-collapse">
+                        <thead class="bg-gray-50 text-gray-500 text-[11px] font-black uppercase tracking-widest border-b border-gray-100">
+                            <tr>
+                                <th class="px-6 py-4">الطالب</th>
+                                <th class="px-6 py-4">البريد</th>
+                                <th class="px-6 py-4">الهاتف</th>
+                                <th class="px-6 py-4">الحالة</th>
+                                <th class="px-6 py-4 text-left">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50 text-sm">
+                            <% students.forEach(student => { %>
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <a href="/admin/student/profile/<%= student.id %>" class="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                                            <%= student.name %>
+                                        </a>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-500"><%= student.email %></td>
+                                    <td class="px-6 py-4 text-gray-500"><%= student.country_code %> <%= student.phone_number %></td>
+                                    <td class="px-6 py-4">
+                                    <% if (student.isActive == false) { %>
+    <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600">
+        غير نشط
+    </span>
+<% } else { %> 
+    <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-600">
+        نشط
+    </span>
+<% } %>
+                                    </td>
+                                    <td class="px-6 py-4 flex justify-end gap-2">
+                                        <% if (student.isActive == true) { %>
+                                        <button onclick="handleAccountStatus('<%= student._id %>', 'archive')" class="p-3 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all" title="أرشفة">
+                                            <i data-feather="user-x" class="w-4 h-4"></i>
+                                        </button>
+                                    <% } else { %>
+                                        <button onclick="handleAccountStatus('<%= student._id %>', 'activate')" class="p-3 text-slate-400 hover:text-green-500 hover:bg-green-50 rounded-xl transition-all" title="تفعيل">
+                                            <i data-feather="user-check" class="w-4 h-4"></i>
+                                        </button>
+                                    <% } %>
+                                        
+                                        <button onclick="confirmDelete('<%= student._id %>', '<%= student.name %>')" class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
+                                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
-                                
-                                <% students.forEach(student => { 
-                                    const isActive = student.status === 'active';
-                                    const statusText = isActive ? 'نشط' : 'محظور';
-                                    const statusClass = isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                                    const banAction = isActive ? 'حظر' : 'تفعيل';
-                                    const banIcon = isActive ? 'user-x' : 'user-check';
-                                    const banColor = isActive ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-100' : 'text-green-600 hover:text-green-800 hover:bg-green-100';
-                                %>
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 font-medium"><%= student.name %></td>
-                                        <td class="px-6 py-4"><%= student.email %></td>
-                                        <td class="px-6 py-4">
-                                            <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium <%= statusClass %>">
-                                                <%= statusText %>
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4"><%= student.coursesCount %></td>
-                                        <td class="px-6 py-4"><button onclick="window.location.href='/student/student-sessions/<%= student._id %>'"
-                                                    class="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100" title="تعديل">
-                                                <i data-feather="table" class="w-4 h-4"></i>
-                                            </button></td>
-                                        <td class="px-6 py-4 flex gap-2">
-                                            
-                                            <button onclick="showEditStudentModal('<%= student._id %>', '<%= student.name %>', '<%= student.email %>', '<%= student.phone || '' %>')" 
-                                                    class="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100" title="تعديل">
-                                                <i data-feather="edit" class="w-4 h-4"></i>
-                                            </button>
-                                            
-                                            <button onclick="confirmAction('<%= banAction %>', '<%= student.name %>', '/api/admin/students/<%= student._id %>/status')" 
-                                                    class="<%= banColor %> p-1 rounded" title="<%= banAction %>">
-                                                <i data-feather="<%= banIcon %>" class="w-4 h-4"></i>
-                                            </button>
-                                            
-                                            <button onclick="confirmAction('حذف', '<%= student.name %>', '/api/admin/students/<%= student._id %>/delete')" 
-                                                    class="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-100" title="حذف">
-                                                <i data-feather="trash-2" class="w-4 h-4"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <% }) %>
-
-                                <% if (students.length === 0) { %>
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-6 text-center text-gray-500">
-                                            لا يوجد طلاب لعرضهم.
-                                        </td>
-                                    </tr>
-                                <% } %>
-                                
-                            </tbody>
-                        </table>
-                    </div>
+                            <% }) %>
+                        </tbody>
+                    </table>
                 </div>
-                
-                </main>
-        </div>
-    </div>
-
-    <div id="addStudentModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
-            
-            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
-                <h3 class="text-xl font-bold text-indigo-600">إضافة طالب جديد يدوياً</h3>
-                <button onclick="hideAddStudentModal()" class="text-gray-400 hover:text-red-500">
-                    <i data-feather="x" class="w-6 h-6"></i>
-                </button>
-            </div>
-
-            <form action="/api/admin/students/add" method="POST" class="space-y-4">
-                <div><label for="studentName" class="block text-sm font-medium text-gray-700">الاسم الكامل</label><input type="text" id="studentName" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></div>
-                <div><label for="studentEmail" class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label><input type="email" id="studentEmail" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></div>
-                <div><label for="studentPhone" class="block text-sm font-medium text-gray-700">رقم الهاتف (اختياري)</label><input type="tel" id="studentPhone" name="phone" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></div>
-                <div><label for="studentPassword" class="block text-sm font-medium text-gray-700">تعيين كلمة المرور الأولية</label><input type="password" id="studentPassword" name="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></div>
-                <div class="pt-2">
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-                        تسجيل الطالب
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="editStudentModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
-            
-            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
-                <h3 class="text-xl font-bold text-blue-600">تعديل بيانات الطالب</h3>
-                <button onclick="hideEditStudentModal()" class="text-gray-400 hover:text-red-500">
-                    <i data-feather="x" class="w-6 h-6"></i>
-                </button>
-            </div>
-
-            <form id="editStudentForm" method="POST" class="space-y-4">
-                <input type="hidden" id="editStudentId" name="studentId"> 
-                
-                <div>
-                    <label for="editStudentName" class="block text-sm font-medium text-gray-700">الاسم الكامل</label>
-                    <input type="text" id="editStudentName" name="name" required 
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                
-                <div>
-                    <label for="editStudentEmail" class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
-                    <input type="email" id="editStudentEmail" name="email" required 
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                
-                <div>
-                    <label for="editStudentPhone" class="block text-sm font-medium text-gray-700">رقم الهاتف</label>
-                    <input type="tel" id="editStudentPhone" name="phone" 
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                
-                <div>
-                    <label for="editStudentPassword" class="block text-sm font-medium text-gray-700">كلمة المرور الجديدة (اترك فارغاً لعدم التغيير)</label>
-                    <input type="password" id="editStudentPassword" name="password" 
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-
-                <div class="pt-2">
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                        حفظ التعديلات
-                    </button>
-                </div>
-            </form>
+            </main>
         </div>
     </div>
 
     <script>
         feather.replace();
 
-        // ------------------ وظائف عرض/إخفاء Modal ------------------
-        function showAddStudentModal() {
-            document.getElementById('addStudentModal').classList.remove('hidden');
-            document.getElementById('addStudentModal').classList.add('flex');
+        // دالة إضافة طالب (نفس الحقول الـ 8)
+    async function showAddStudentPopup() {
+    const { value: formValues } = await Swal.fire({
+        title: '<span class="font-black text-2xl text-gray-800">تسجيل طالب جديد</span>',
+        html: `
+            <div class="text-right mt-6 space-y-4 px-2">
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black text-gray-400 uppercase mr-1">الاسم الكامل</label>
+                    <input id="sw-name" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-bold text-sm" placeholder="أدخل اسم الطالب الثلاثي">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black text-gray-400 uppercase mr-1">البريد الإلكتروني</label>
+                    <input id="sw-email" type="email" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-bold text-sm" placeholder="example@mail.com">
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-1 space-y-1">
+                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">الكود</label>
+                        <input id="sw-code" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-bold text-sm text-center" value="+966">
+                    </div>
+                    <div class="col-span-2 space-y-1">
+                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">رقم الهاتف</label>
+                        <input id="sw-phone" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-bold text-sm" placeholder="50xxxxxxx">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">الجنس</label>
+                        <select id="sw-gender" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white outline-none transition-all font-bold text-sm appearance-none">
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">المنطقة الزمنية</label>
+                        <input id="sw-timezone" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white outline-none transition-all font-bold text-sm text-center" value="Asia/Riyadh">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">كلمة المرور</label>
+                        <input id="sw-pass" type="password" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white outline-none transition-all font-bold text-sm" placeholder="******">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">تأكيد الكلمة</label>
+                        <input id="sw-conf-pass" type="password" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white outline-none transition-all font-bold text-sm" placeholder="******">
+                    </div>
+                </div>
+            </div>`,
+        padding: '2rem',
+        background: '#fff',
+        borderRadius: '2rem',
+        confirmButtonText: 'إتمام التسجيل',
+        confirmButtonColor: '#4f46e5',
+        cancelButtonText: 'إلغاء',
+        showCancelButton: true,
+        customClass: {
+            confirmButton: 'rounded-xl px-8 py-3 text-sm font-black shadow-lg shadow-indigo-200',
+            cancelButton: 'rounded-xl px-8 py-3 text-sm font-bold text-gray-400'
+        },
+        preConfirm: async () => {
+            // ... (نفس منطق الجلب الخاص بك)
+            const data = {
+                name: document.getElementById('sw-name').value,
+                email: document.getElementById('sw-email').value,
+                country_code: document.getElementById('sw-code').value,
+                phone_number: document.getElementById('sw-phone').value,
+                gender: document.getElementById('sw-gender').value,
+                password: document.getElementById('sw-pass').value,
+                confirm_Password: document.getElementById('sw-conf-pass').value,
+                timezone: document.getElementById('sw-timezone').value
+            };
+
+            if (!data.name || !data.email || !data.password) return Swal.showValidationMessage('يرجى ملء الحقول الأساسية');
+            if (data.password !== data.confirm_Password) return Swal.showValidationMessage('كلمات المرور غير متطابقة');
+            
+            try {
+                const res = await fetch('/student/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.message || 'حدث خطأ أثناء التسجيل');
+                return result;
+            } catch (e) { Swal.showValidationMessage(e.message); }
         }
+    });
+    if (formValues) {
+        Swal.fire({ icon: 'success', title: 'تمت الإضافة', showConfirmButton: false, timer: 1500 });
+        setTimeout(() => location.reload(), 1500);
+    }
+}
+   async function handleAccountStatus(studentId, action) {
+            const isArchiving = action === 'archive';
+            const { value: confirm } = await Swal.fire({
+                title: isArchiving ? 'أرشفة حساب الطالب؟' : 'إعادة تفعيل الحساب؟',
+                text: isArchiving ? 'لن يظهر الطالب في القوائم النشطة، ولكن بياناته محفوظة.' : 'سيعود الطالب للعمل والظهور في القوائم مرة أخرى.',
+                icon: isArchiving ? 'warning' : 'info',
+                showCancelButton: true,
+                confirmButtonColor: isArchiving ? '#f97316' : '#22c55e',
+                confirmButtonText: isArchiving ? 'نعم، أرشِف' : 'نعم، تفعيل',
+                cancelButtonText: 'إلغاء',
+                customClass: { popup: 'rounded-[2rem]' }
+            });
 
-        function hideAddStudentModal() {
-            document.getElementById('addStudentModal').classList.add('hidden');
-            document.getElementById('addStudentModal').classList.remove('flex');
-        }
-        
-        // ------------------ وظائف تعديل طالب ------------------
-        function showEditStudentModal(id, name, email, phone) {
-            // ملء حقول التعديل ببيانات الطالب
-            document.getElementById('editStudentId').value = id;
-            document.getElementById('editStudentName').value = name;
-            document.getElementById('editStudentEmail').value = email;
-            document.getElementById('editStudentPhone').value = phone;
-            document.getElementById('editStudentPassword').value = ''; // مسح حقل كلمة المرور
-
-            // تحديث مسار الإرسال (Action) في النموذج ليحتوي على ID الطالب
-            const form = document.getElementById('editStudentForm');
-            // 💡 سيتم إرسال الطلب إلى هذا المسار (PUT/POST)
-            form.action = `/api/admin/students/${id}/edit`; 
-
-            document.getElementById('editStudentModal').classList.remove('hidden');
-            document.getElementById('editStudentModal').classList.add('flex');
-        }
-
-        function hideEditStudentModal() {
-            document.getElementById('editStudentModal').classList.add('hidden');
-            document.getElementById('editStudentModal').classList.remove('flex');
-        }
-
-        // ------------------ وظائف الحظر والحذف (باستخدام نموذج مخفي) ------------------
-        // لإنشاء طلبات POST/PUT/DELETE من زر عادي (غير موجود داخل النموذج)
-        function confirmAction(action, studentName, endpoint) {
-            if (confirm(`هل أنت متأكد من رغبتك في ${action} الطالب ${studentName}؟`)) {
-                // إنشاء نموذج ديناميكي لإرسال الطلب (افتراضياً، سنستخدم POST)
-                const form = document.createElement('form');
-                form.method = 'POST'; 
-                // 💡 إذا كنت تستخدم method-override، يمكنك تعيين القيمة هنا
-                // form.innerHTML = '<input type="hidden" name="_method" value="DELETE">';
-                form.action = endpoint; 
-                
-                document.body.appendChild(form);
-                form.submit();
+            if (confirm) {
+                try {
+                    const response = await fetch(`/student/update-status`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ studentId, isActive: !isArchiving })
+                    });
+                    const data = await response.json();
+                    if (response.ok) location.reload();
+                    else Swal.fire({ title: 'تنبيه', text: data.error, icon: 'error', customClass: { popup: 'rounded-[2rem]' } });
+                } catch (err) { Swal.fire('خطأ', 'تعذر الاتصال بالسيرفر', 'error'); }
             }
         }
-        
-        // ------------------ إغلاق الـ Modals عند النقر خارجها ------------------
-        document.getElementById('addStudentModal').addEventListener('click', function(event) {
-            if (event.target === this) { hideAddStudentModal(); }
-        });
-        document.getElementById('editStudentModal').addEventListener('click', function(event) {
-            if (event.target === this) { hideEditStudentModal(); }
-        });
-        // -----------------------------------------------------------------------
+
+        // --- 2. نظام الحذف ال
+        // دالة الأرشفة (Toggle Archive)
+       
+        // --- 2. نظام الحذف النهائي (SweetAlert2 - نفس التصميم) ---
+        async function handleDeleteTeacher(teacherId, teacherName) {
+            const { value: confirm } = await Swal.fire({
+                title: 'حذف المعلم نهائياً؟',
+                text: `هل أنت متأكد من حذف المدرب (${teacherName})؟ لا يمكن التراجع عن هذا الإجراء وسيتم مسح كافة البيانات.`,
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'نعم، احذف نهائياً',
+                cancelButtonText: 'تراجع',
+                customClass: { popup: 'rounded-[2rem]' }
+            });
+
+            if (confirm) {
+                try {
+                    const response = await fetch(`/admin/teachers/delete/${teacherId}`, { method: 'POST' });
+                    const data = await response.json();
+                    if (data.success) location.reload();
+                    else Swal.fire({ title: 'فشل الحذف', text: data.message, icon: 'error', customClass: { popup: 'rounded-[2rem]' } });
+                } catch (err) { Swal.fire('خطأ', 'فشل الاتصال بالسيرفر', 'error'); }
+            }
+        }
+
+        async function confirmDelete(id, name) {
+            const result = await Swal.fire({
+                title: 'حذف نهائي؟',
+                text: `سيتم حذف ${name} تماماً من قاعدة البيانات`,
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444'
+            });
+            if (result.isConfirmed) {
+                const res = await fetch(`/student/delete/${id}`, { method: 'POST' });
+                if (res.ok) location.reload();
+            }
+        }
     </script>
 </body>
 </html>

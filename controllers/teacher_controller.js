@@ -933,65 +933,70 @@ const getTeacherPage = async (req, res) => {
 
     const teacherHourlyRate = Number(teacher.hour_rate) || 0;
 
-    // جلب الاشتراكات
     const allSubscriptions = await Subscription.find({ teacherId: teacherId })
       .populate("studentId")
       .populate("courseId")
       .lean();
 
-    let totalPendingEarnings = 0; // الأرباح التي لم تدفع بعد
+    let totalPendingEarnings = 0;
     let completedSessionsCountAll = 0;
     let totalRemainingAll = 0;
 
-    const processedStudents = allSubscriptions.map((sub) => {
-      // 1. حساب الحصص المنجزة (الكلية) للمؤشر المرئي
-      const actualCompleted = sub.sessions
-        ? sub.sessions.filter((s) => s.status === "completed").length
-        : 0;
+    // 💡 الحل هنا: استخدام Object لتجميع الاشتراكات لكل طالب
+    const studentsMap = {};
 
-      // 2. حساب الحصص المنجزة "ولم تدفع بعد" لحساب الأرباح المعلقة فقط
-      const unpaidCompleted = sub.sessions
-        ? sub.sessions.filter(
-            (s) => s.status === "completed" && s.isPaidByAdmin !== true
-          ).length
-        : 0;
+    allSubscriptions.forEach((sub) => {
+      const student = sub.studentId;
+      if (!student) return;
 
-      // 3. إجمالي الحصص المتعاقد عليها
+      const studentId = student._id.toString();
+
+      // حسابات الحصص والأرباح لهذا الاشتراك المعين
+      const actualCompleted = sub.sessions ? sub.sessions.filter((s) => s.status === "completed").length : 0;
+      const unpaidCompleted = sub.sessions ? sub.sessions.filter((s) => s.status === "completed" && s.isPaidByAdmin !== true).length : 0;
       const totalPlanned = sub.sessions ? sub.sessions.length : 0;
-
-      // 4. المتبقي
       const remaining = Math.max(0, totalPlanned - actualCompleted);
-
-      // 5. حساب الأرباح المعلقة (فقط التي لم يدفعها الأدمن)
+      
       const duration = Number(sub.selectedPriceOption) || 60;
-      const subPendingEarnings =
-        unpaidCompleted * (teacherHourlyRate * (duration / 60));
+      const subPendingEarnings = unpaidCompleted * (teacherHourlyRate * (duration / 60));
 
-      // تحديث الإحصائيات العامة للموجز العلوي
+      // تحديث الإحصائيات العامة
       totalPendingEarnings += subPendingEarnings;
       completedSessionsCountAll += actualCompleted;
       totalRemainingAll += remaining;
 
-      return {
-        id: sub.studentId?._id,
-        name: sub.studentId?.name || "طالب محذوف",
-        courseTitle: sub.courseId?.title || "كورس غير محدد",
-        totalSessions: totalPlanned,
-        completedSessions: actualCompleted,
-        remainingSessions: remaining,
-        startDate: sub.startDate
-          ? new Date(sub.startDate).toLocaleDateString("ar-EG")
-          : "غير محدد",
-        status: remaining === 0 ? "completed" : "in-progress",
-      };
+      // إذا كان الطالب موجود مسبقاً، نحدث بياناته، وإذا لم يكن موجوداً ننشئه
+      if (studentsMap[studentId]) {
+        studentsMap[studentId].courses.push(sub.courseId?.title || "كورس غير محدد");
+        studentsMap[studentId].totalSessions += totalPlanned;
+        studentsMap[studentId].completedSessions += actualCompleted;
+        studentsMap[studentId].remainingSessions += remaining;
+        // نحدث الحالة: إذا كان لسه عنده حصص في أي كورس يبقى "in-progress"
+        if (remaining > 0) studentsMap[studentId].status = "in-progress";
+      } else {
+        studentsMap[studentId] = {
+          id: studentId,
+          name: student.name || "طالب محذوف",
+          image: student.image, 
+          courses: [sub.courseId?.title || "كورس غير محدد"],
+          totalSessions: totalPlanned,
+          completedSessions: actualCompleted,
+          remainingSessions: remaining,
+          startDate: sub.startDate ? new Date(sub.startDate).toLocaleDateString("ar-EG") : "غير محدد",
+          status: remaining === 0 ? "completed" : "in-progress",
+        };
+      }
     });
+
+    // تحويل الـ Map إلى مصفوفة لعرضها في EJS
+    const processedStudents = Object.values(studentsMap);
 
     res.render("dashboard/teacher-details.ejs", {
       teacher,
       students: processedStudents,
       stats: {
-        totalStudents: processedStudents.length,
-        totalEarnings: totalPendingEarnings.toFixed(2), // الآن يعرض المستحقات المعلقة فقط
+        totalStudents: processedStudents.length, // الآن سيعطي 1 بدلاً من 3 إذا كان نفس الطالب
+        totalEarnings: totalPendingEarnings.toFixed(2),
         completedSessionsCount: completedSessionsCountAll,
         totalRemainingSessions: totalRemainingAll,
       },
