@@ -16,6 +16,7 @@ const bodyParser = require('body-parser');
 // ⭐️ الإعداد الصحيح لمجلد العرض ⭐️
 // يتم تعيين مجلد 'views' كمسار افتراضي للـ EJS
 app.set("views", path.join(__dirname, 'views')); 
+
 app.set("view engine", "ejs");
 // 1. لتحليل البيانات القادمة بتنسيق JSON (مثل تطبيقات React/Mobile)
 
@@ -26,6 +27,7 @@ app.use(methodOverride('_method'));
 app.use(express.json());
 app.use(cookieParser());
 const cors = require('cors');
+
 const multer = require('multer'); // ⭐️ استيراد Multer
 // ⭐️ تعيين مجلد public للملفات الثابتة (CSS/JS/صور) ⭐️
 app.use(express.static(path.join(__dirname, 'public')));
