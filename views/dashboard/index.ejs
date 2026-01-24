@@ -1,182 +1,376 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="<%= currentLang %>" dir="<%= dir %>">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الرئيسية - لوحة تحكم أكاديمية انطلق</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - لوحة تحكم الإدارة</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&family=Alexandria:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-card {
+            border: none;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.03);
+            padding: 1.25rem;
+            height: 100%;
+            transition: all 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+        }
+
+        .stats-icon-kider {
+            position: relative;
+            width: 30px;
+            height: 30px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+
+        .stats-icon-kider::before {
+            position: absolute;
+            content: "";
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, .8);
+            border-radius: 30px;
+            z-index: -1;
+            transition: .5s;
+        }
+
+        .stats-card:hover .stats-icon-kider::before {
+            background: transparent;
+        }
+
+        .stats-card:hover .stats-icon-kider i {
+            color: #fff !important;
+        }
+
+        .section-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .table-custom thead th {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            color: #6c757d;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-custom tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.8rem;
+        }
+
+        .btn-kider {
+            background-color: var(--primary);
+            color: #fff;
+            border-radius: 0.75rem;
+            padding: 0.4rem 1.25rem;
+            font-weight: 700;
+            border: none;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .btn-kider:hover { background-color: #e44d2d; transform: translateY(-2px); box-shadow: 0 0.5rem 1rem rgba(254, 93, 55, 0.2); }
+
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
 
-    <div class="flex h-screen overflow-hidden">
+<body>
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'home', user: user }) %>
 
-        <%- include('./_admin_sidebar.ejs', { currentPage: 'home', user: user }) %>
-        <div class="flex-1 flex flex-col overflow-hidden">
-            
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-                <div class="flex items-center">
-                    <button class="md:hidden text-gray-500 hover:text-gray-700 ml-4">
-                        <i data-feather="menu"></i>
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="top-nav px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fa fa-bars fs-5"></i>
                     </button>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <i data-feather="search" class="w-4 h-4 text-gray-400"></i>
-                        </span>
-                        <input type="text" placeholder="بحث عن دورة، طالب..." class="pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm w-64 transition-all">
+                    <div>
+                        <h2 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.5rem;">لوحة التحكم</h2>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Dashboard Overview & Analytics</small>
                     </div>
                 </div>
-                
-                <div class="flex items-center gap-4">
-                    <button class="relative p-2 text-gray-400 hover:text-indigo-600 transition-colors">
-                        <i data-feather="bell" class="w-5 h-5"></i>
-                        <span class="absolute top-1 left-1 h-2 w-2 bg-red-500 rounded-full"></span>
-                    </button>
-                    <a href="/addCourse" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        + إضافة دورة جديدة
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-none d-md-flex position-relative me-3">
+                        <input type="text" placeholder="بحث سريع..." class="form-control form-control-sm border-0 bg-light rounded-pill px-4 outfit-font" style="width: 200px; font-size: 0.75rem;">
+                        <i class="fa fa-search position-absolute end-0 top-50 translate-middle-y me-3 text-muted small"></i>
+                    </div>
+
+                    <a href="/addCourse" class="btn btn-kider d-none d-sm-block">
+                        <i class="fa fa-plus-circle me-1"></i> إضافة دورة
                     </a>
-                </div>
-            </header>
 
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
-                
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800">لوحة المعلومات</h2>
-                    <p class="text-gray-500 mt-1">مرحباً بك مجدداً، إليك ملخص أداء المنصة اليوم.</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-gray-500 text-sm font-medium">إجمالي الطلاب</h3>
-                            <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                                <i data-feather="users" class="w-5 h-5"></i>
-                            </div>
-                        </div>
-                        <div class="flex items-baseline">
-                            <span class="text-3xl font-bold text-gray-800">12,450</span>
-                            <span class="mr-2 text-sm text-green-500 flex items-center">
-                                <i data-feather="arrow-up" class="w-3 h-3"></i> 12%
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-gray-500 text-sm font-medium">إجمالي الإيرادات</h3>
-                            <div class="p-2 bg-green-50 rounded-lg text-green-600">
-                                <i data-feather="dollar-sign" class="w-5 h-5"></i>
-                            </div>
-                        </div>
-                        <div class="flex items-baseline">
-                            <span class="text-3xl font-bold text-gray-800">$45,200</span>
-                            <span class="mr-2 text-sm text-green-500 flex items-center">
-                                <i data-feather="arrow-up" class="w-3 h-3"></i> 5.4%
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-gray-500 text-sm font-medium">الدورات النشطة</h3>
-                            <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
-                                <i data-feather="book" class="w-5 h-5"></i>
-                            </div>
-                        </div>
-                        <div class="flex items-baseline">
-                            <span class="text-3xl font-bold text-gray-800">184</span>
-                            <span class="mr-2 text-sm text-gray-500">دورة</span>
-                        </div>
-                    </div>
-
-                     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-gray-500 text-sm font-medium">إجمالي المدربين</h3>
-                            <div class="p-2 bg-orange-50 rounded-lg text-orange-600">
-                                <i data-feather="video" class="w-5 h-5"></i>
-                            </div>
-                        </div>
-                        <div class="flex items-baseline">
-                            <span class="text-3xl font-bold text-gray-800">48</span>
-                            <span class="mr-2 text-sm text-green-500 flex items-center">
-                                <i data-feather="arrow-up" class="w-3 h-3"></i> 3 مدربين جدد
-                            </span>
-                        </div>
+                    <div class="d-flex align-items-center gap-2 ps-3 border-start border-light">
+                        <button onclick="openLogoutModal(event)" class="btn btn-light rounded-circle p-2 text-danger" title="تسجيل الخروج">
+                            <i class="fa fa-sign-out-alt"></i>
+                        </button>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h3 class="font-bold text-gray-800 mb-4">مقارنة أداء الطلاب (آخر 6 أشهر)</h3>
-                        <div class="h-64 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center text-gray-400">
-                            مكان مخصص لعرض الرسم البياني الخطي
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h3 class="font-bold text-gray-800 mb-4">أكثر الدورات مبيعاً</h3>
-                        <ul class="space-y-3">
-                            <li class="flex justify-between items-center text-sm text-gray-700 border-b border-gray-100 pb-2">
-                                <span>1. تطوير تطبيقات React</span>
-                                <span class="text-indigo-600 font-medium">950 طالب</span>
-                            </li>
-                            <li class="flex justify-between items-center text-sm text-gray-700 border-b border-gray-100 pb-2">
-                                <span>2. التسويق الرقمي المتقدم</span>
-                                <span class="text-indigo-600 font-medium">620 طالب</span>
-                            </li>
-                            <li class="flex justify-between items-center text-sm text-gray-700 border-b border-gray-100 pb-2">
-                                <span>3. أساسيات Figma</span>
-                                <span class="text-indigo-600 font-medium">410 طالب</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">أحدث عمليات التسجيل</h3>
-                        <a href="/admin/reports" class="text-indigo-600 text-sm font-medium hover:underline">عرض الكل</a>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-right">
-                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-medium">
-                                <tr>
-                                    <th class="px-6 py-3">الطالب</th>
-                                    <th class="px-6 py-3">الدورة التدريبية</th>
-                                    <th class="px-6 py-3">التاريخ</th>
-                                    <th class="px-6 py-3">المبلغ</th>
-                                    <th class="px-6 py-3">الحالة</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 font-medium">أحمد محمد</td>
-                                    <td class="px-6 py-4">برمجة بايثون للمبتدئين</td>
-                                    <td class="px-6 py-4">05 ديسمبر 2025</td>
-                                    <td class="px-6 py-4 font-bold text-green-600">$49.00</td>
-                                    <td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">مدفوع</span></td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 font-medium">سارة علي</td>
-                                    <td class="px-6 py-4">التسويق الرقمي الشامل</td>
-                                    <td class="px-6 py-4">04 ديسمبر 2025</td>
-                                    <td class="px-6 py-4 font-bold text-green-600">$89.00</td>
-                                    <td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">مدفوع</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </main>
+            </div>
         </div>
+
+        <!-- Welcome Message -->
+        <div class="mb-4 animate__animated animate__fadeIn">
+            <h3 class="fw-black text-dark mb-1"><%= t('welcome_back') %>, <%= user.name %>! 👋</h3>
+            <p class="text-muted small">إليك ملخص أداء المنصة التعليمية خلال الفترة الحالية.</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="row g-3 mb-4 animate__animated animate__fadeInUp">
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon-kider bg-primary text-primary me-3">
+                            <i class="fa fa-user-graduate"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;">12,450</h3>
+                            <small class="text-muted fw-bold" style="font-size: 0.7rem;">إجمالي الطلاب</small>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <span class="badge bg-success bg-opacity-10 text-success small p-1" style="font-size: 0.6rem;">
+                            <i class="fa fa-arrow-up me-1"></i> 12%
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon-kider bg-success text-success me-3">
+                            <i class="fa fa-wallet"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;">$45,200</h3>
+                            <small class="text-muted fw-bold" style="font-size: 0.7rem;">إجمالي الإيرادات</small>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <span class="badge bg-success bg-opacity-10 text-success small p-1" style="font-size: 0.6rem;">
+                            <i class="fa fa-arrow-up me-1"></i> 5.4%
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon-kider bg-info text-info me-3">
+                            <i class="fa fa-book"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;">184</h3>
+                            <small class="text-muted fw-bold" style="font-size: 0.7rem;">الدورات النشطة</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon-kider bg-warning text-warning me-3">
+                            <i class="fa fa-chalkboard-teacher"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;">48</h3>
+                            <small class="text-muted fw-bold" style="font-size: 0.7rem;">إجمالي المدربين</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4 animate__animated animate__fadeInUp">
+            <!-- Charts Section (Placeholder) -->
+            <div class="col-lg-8">
+                <div class="section-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0">مقارنة أداء الطلاب</h5>
+                        <select class="form-select form-select-sm w-auto border-0 bg-light rounded-pill px-3" style="font-size: 0.75rem;">
+                            <option>آخر 6 أشهر</option>
+                            <option>آخر سنة</option>
+                        </select>
+                    </div>
+                    <div class="bg-light rounded-4 d-flex align-items-center justify-content-center" style="height: 300px;">
+                        <div class="text-center">
+                            <i class="fa fa-chart-line fs-1 text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted small">رسم بياني لأداء التسجيل (قريباً)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Best Sellers -->
+            <div class="col-lg-4">
+                <div class="section-card h-100">
+                    <h5 class="fw-bold mb-4">الدورات الأكثر طلباً</h5>
+                    <div class="list-group list-group-flush border-0">
+                        <div class="list-group-item px-0 py-3 bg-transparent border-bottom">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0 fw-bold small">تطوير تطبيقات React</h6>
+                                    <small class="text-muted">برمجة</small>
+                                </div>
+                                <span class="badge bg-primary text-white rounded-pill small">950 طالب</span>
+                            </div>
+                        </div>
+                        <div class="list-group-item px-0 py-3 bg-transparent border-bottom">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0 fw-bold small">التسويق الرقمي المتقدم</h6>
+                                    <small class="text-muted">أعمال</small>
+                                </div>
+                                <span class="badge bg-primary text-white rounded-pill small">620 طالب</span>
+                            </div>
+                        </div>
+                        <div class="list-group-item px-0 py-3 bg-transparent border-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0 fw-bold small">أساسيات Figma</h6>
+                                    <small class="text-muted">تصميم</small>
+                                </div>
+                                <span class="badge bg-primary text-white rounded-pill small">410 طالب</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Registrations -->
+        <div class="section-card p-0 overflow-hidden animate__animated animate__fadeInUp">
+            <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">أحدث عمليات التسجيل</h5>
+                <a href="/admin/reports" class="btn btn-link text-primary text-decoration-none fw-bold small">عرض الكل</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">الطالب</th>
+                            <th>الدورة التدريبية</th>
+                            <th>التاريخ</th>
+                            <th>المبلغ</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-4 fw-bold">أحمد محمد</td>
+                            <td>برمجة بايثون للمبتدئين</td>
+                            <td class="outfit-font">05 Dec 2025</td>
+                            <td class="fw-bold text-success">$49.00</td>
+                            <td><span class="badge rounded-pill bg-success text-white small px-3 py-2">مدفوع</span></td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4 fw-bold">سارة علي</td>
+                            <td>التسويق الرقمي الشامل</td>
+                            <td class="outfit-font">04 Dec 2025</td>
+                            <td class="fw-bold text-success">$89.00</td>
+                            <td><span class="badge rounded-pill bg-success text-white small px-3 py-2">مدفوع</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer class="mt-auto py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية 2024 - جميع الحقوق محفوظة</small>
+        </footer>
     </div>
 
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // تفعيل الأيقونات
-        feather.replace();
+        $('#sidebarCollapse').on('click', () => $('#sidebar').toggleClass('active'));
     </script>
 </body>
+
 </html>

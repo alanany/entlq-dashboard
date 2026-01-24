@@ -22,7 +22,8 @@ const getstudentDashboard = async (req, res, next) => {
         title: "لوحة تحكم الطالب",
         nearestSession,
         studentStats,
-        courseBookingDetails
+        courseBookingDetails,
+        user: req.user
       });
     } else if (role === "teacher") {
     await  teacherController.teacherHome(req, res, next);
@@ -52,9 +53,42 @@ const signup_get = (req, res) => {
 };
 
 const login_get = (req, res) => {
-  res.render("../views/dashboard/student/login");
+   res.render("../views/dashboard/student/login");
 };
 
+const main_dashboard_get = async (req, res) => {
+  try {
+    const role = req.user?.role;
+    
+    // If user is a student, fetch student data
+    if (role === "student") {
+      const studentId = req.user._id;
+      const nearestSession = await getNearestSession(studentId, req.user.timezone);
+      const studentStats = await getStudentStats(studentId);
+      const courseBookingDetails = await getStudentCourseDetails(studentId);
+      
+      res.render("../views/dashboard/index", {
+        title: "لوحة تحكم الطالب",
+        nearestSession,
+        studentStats,
+        courseBookingDetails,
+        user: req.user
+      });
+    } else {
+      // For non-students, render without student data
+      res.render("../views/dashboard/index", {
+        title: "Dashboard",
+        user: req.user
+      });
+    }
+  } catch (error) {
+    console.error("Error loading dashboard:", error);
+    res.render("../views/dashboard/index", {
+      title: "Dashboard",
+      user: req.user
+    });
+  }
+};
 
 
 // إضافة طالب جديد (الحقول الـ 8)
@@ -130,21 +164,52 @@ const registerStudent = async (req, res) => {
   } = req.body;
 
   try {
+    // التحقق من الحقول المطلوبة
+    const requiredFields = {
+      name: "الاسم",
+      email: "البريد الإلكتروني",
+      phone_number: "رقم الجوال",
+      gender: "النوع",
+      password: "كلمة المرور",
+      confirm_Password: "تأكيد كلمة المرور",
+      timezone: "المنطقة الزمنية",
+    };
+
+    const missingFields = [];
+    for (const [field, label] of Object.entries(requiredFields)) {
+      if (!req.body[field] || req.body[field].trim() === "") {
+        missingFields.push(label);
+      }
+    }
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        error: `الحقول التالية مطلوبة: ${missingFields.join(", ")}`,
+        errors: {
+          general: `الحقول التالية مطلوبة: ${missingFields.join(", ")}`,
+        },
+      });
+    }
+
     // التحقق من وجود مستخدم بنفس البريد الإلكتروني
     const existingStudent = await User.findOne({ email });
     if (existingStudent) {
       console.log("Email already exists");
-      // يمكنك استخدام نظام رسائل flash للمستخدم
       return res.status(400).json({
         error: "هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.",
+        errors: {
+          email: "هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.",
+        },
       });
     }
 
     // التحقق من تطابق كلمات المرور (يتم يدوياً قبل محاولة الحفظ)
     if (password !== confirm_Password) {
-      // نرسل رسالة الخطأ المباشرة
       return res.status(400).json({
         error: "كلمتا المرور غير متطابقتين. يرجى التأكد من الإدخال.",
+        errors: {
+          password: "كلمتا المرور غير متطابقتين. يرجى التأكد من الإدخال.",
+        },
       });
     }
     // إنشاء طالب جديد
@@ -171,28 +236,35 @@ const registerStudent = async (req, res) => {
     console.log(err, "err");
 
     let errorMessage = "حدث خطأ غير متوقع أثناء التسجيل.";
+    let errors = {};
 
     // 🟢 الخطوة الحاسمة: تحليل خطأ Mongoose Validation
     if (err.name === "ValidationError") {
-      // تجميع رسائل الأخطاء في مصفوفة (Array)
-      const validationMessages = Object.values(err.errors).map(
-        (val) => val.message
-      );
+      // تجميع رسائل الأخطاء حسب الحقل
+      Object.keys(err.errors).forEach((key) => {
+        errors[key] = err.errors[key].message;
+      });
 
-      // دمج الرسائل في سلسلة نصية واحدة مفصولة بعلامة خاصة (نستخدم هنا ||)
-      // هذا يسمح لنا بتقسيمها بسهولة في الجافاسكريبت
-      errorMessage = validationMessages.join(" || ");
-
-      // يتم إرسال errorMessage ليكون:
-      // "Minimum password length is 6 characters || Please enter a phone number || Please enter a country code"
+      // إنشاء رسالة عامة من جميع الأخطاء
+      const validationMessages = Object.values(errors);
+      errorMessage = validationMessages.join(" | ");
     } else if (err.code === 11000) {
       // خطأ تكرار (Duplicate Key Error)
-      errorMessage = "هذا البريد الإلكتروني مسجل بالفعل.";
+      const duplicateField = Object.keys(err.keyPattern)[0];
+      if (duplicateField === "email") {
+        errorMessage = "هذا البريد الإلكتروني مسجل بالفعل.";
+        errors.email = "هذا البريد الإلكتروني مسجل بالفعل.";
+      } else {
+        errorMessage = `هذا ${duplicateField} مسجل بالفعل.`;
+        errors[duplicateField] = `هذا ${duplicateField} مسجل بالفعل.`;
+      }
     }
 
-    // 📢 عرض الخطأ في الفرونت-إند عبر متغير 'error'
+    // 📢 عرض الخطأ في الفرونت-إند مع دعم الأخطاء المحددة حسب الحقل
     res.status(400).json({
-      error: errorMessage, // تمرير الرسالة المجمعة
+      error: errorMessage,
+      errors: Object.keys(errors).length > 0 ? errors : undefined,
+      message: errorMessage, // للتوافق مع الأنماط الأخرى
     });
   }
 };
@@ -894,5 +966,6 @@ module.exports = {
   getSessionWaitingRoom,
   getNearestSession, addStudent,
   toggleStatus,
-  deleteStudent
+  deleteStudent,
+  main_dashboard_get
 };

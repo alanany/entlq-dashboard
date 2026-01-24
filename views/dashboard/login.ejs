@@ -1,277 +1,349 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول - لوحة التحكم</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - تسجيل دخول الإدارة</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&family=Alexandria:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
     <style>
-        body { font-family: 'Tajawal', sans-serif; }
-        /* ضمان أن نص الزر المختار يظهر باللون الأبيض عند التحديد */
-        input[type="radio"]:checked + label span {
-            color: white !important;
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
         }
-        /* ⭐️ كود الـ Spinner ⭐️ */
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #fff;
-            border-radius: 50%;
-            width: 1.5rem;
-            height: 1.5rem;
-            animation: spin 1s linear infinite;
+
+        body {
+            background-color: var(--secondary);
+            overflow-x: hidden;
+            font-family: 'Cairo', sans-serif;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .login-card {
+            border: none;
+            border-radius: 2rem;
+            overflow: hidden;
+            box-shadow: 0 1rem 3rem rgba(0,0,0,.175);
+        }
+
+        .login-img {
+            background: linear-gradient(rgba(16, 55, 65, .85), rgba(16, 55, 65, .85)), url('/img/carousel-1.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            color: #fff;
+            text-align: center;
+        }
+
+        .login-form-container {
+            padding: 3.5rem;
+            background: #fff;
+        }
+
+        .form-floating > .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(254, 93, 55, .25);
+        }
+
+        .btn-login {
+            background-color: var(--primary);
+            border: none;
+            color: #fff;
+            padding: 0.8rem;
+            font-weight: 700;
+            border-radius: 1rem;
+            transition: all .3s ease;
+        }
+
+        .btn-login:hover {
+            background-color: #e44d2d;
+            transform: translateY(-2px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+        }
+
+        /* Role Selector Styling */
+        .role-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .role-item {
+            flex: 1;
+            position: relative;
+        }
+
+        .role-item input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .role-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            background: var(--light);
+            border: 2px solid transparent;
+            border-radius: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .role-label i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #adb5bd;
+        }
+
+        .role-label span {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #6c757d;
+        }
+
+        .role-item input:checked + .role-label {
+            background: var(--secondary);
+            border-color: var(--primary);
+        }
+
+        .role-item input:checked + .role-label i,
+        .role-item input:checked + .role-label span {
+            color: var(--primary);
+        }
+
+        .timezone-badge {
+            background: var(--light);
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.7rem;
+            color: #6c757d;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
         }
     </style>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen text-gray-800">
 
-    <div class="w-full max-w-md">
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-indigo-600">أكاديمية انطلق</h1>
-            <p class="mt-2 text-xl text-gray-600">لوحة تحكم النظام</p>
+<body>
+    <div class="container-xxl bg-white p-0">
+        <!-- Spinner Start -->
+        <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center" style="z-index: 9999;">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">جاري التحميل...</span>
+            </div>
         </div>
 
-        <div class="bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
-            <h2 class="text-2xl font-bold text-center mb-6">تسجيل الدخول</h2>
+        <div class="container-fluid py-5" style="background-color: var(--secondary); min-height: 100vh; display: flex; align-items: center;">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-11 col-xl-10">
+                        <div class="card login-card animate__animated animate__fadeIn border-0">
+                            <div class="row g-0">
+                                <div class="col-md-5 login-img d-none d-md-flex">
+                                    <div class="mb-4">
+                                        <i class="fa fa-user-shield display-1 text-primary"></i>
+                                    </div>
+                                    <h2 class="lobster-font display-5 mb-4">نظام الإدارة</h2>
+                                    <p class="fs-6 mb-5 opacity-75">"القوة لا تأتي من ما يمكنك فعله، بل من التغلب على الأشياء التي كنت تعتقد أنك لا تستطيع فعلها."</p>
+                                    <div class="mt-auto">
+                                        <h4 class="lobster-font text-primary mb-0">Kider Academy</h4>
+                                        <p class="small mb-0 opacity-50">&copy; 2024 جميع الحقوق محفوظة</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-7 login-form-container">
+                                    <div class="mb-5 text-center text-md-end">
+                                        <h2 class="fw-900 mb-2">تسجيل الدخول</h2>
+                                        <p class="text-muted small">أهلاً بك مجدداً، يرجى إدخال بياناتك للوصول للوحة التحكم</p>
+                                    </div>
 
-            <form onsubmit="handleSubmit(event)" class="space-y-6">
-                
-                <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700">تسجيل الدخول كـ</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        
-                        <div class="relative">
-                            <input type="radio" id="role-admin" name="role" value="admin" class="hidden peer" required checked>
-                            <label for="role-admin" class="flex flex-col justify-center items-center py-3 px-4 rounded-lg border border-gray-300 cursor-pointer transition-all duration-200 hover:bg-indigo-50 peer-checked:bg-indigo-600 peer-checked:border-indigo-600 shadow-md">
-                                <span class="font-bold text-lg text-gray-700 peer-checked:text-white">مدير عام / أدمن</span>
-                            </label>
+                                    <form onsubmit="handleSubmit(event)">
+                                        <!-- Role Selection -->
+                                        <div class="mb-4">
+                                            <label class="form-label small fw-bold text-muted mb-3">الدخول بصفتك:</label>
+                                            <div class="role-group">
+                                                <div class="role-item">
+                                                    <input type="radio" id="role-admin" name="role" value="admin" required checked>
+                                                    <label for="role-admin" class="role-label text-center">
+                                                        <i class="fa fa-crown"></i>
+                                                        <span>مدير النظام</span>
+                                                    </label>
+                                                </div>
+                                                <div class="role-item">
+                                                    <input type="radio" id="role-instructor" name="role" value="teacher">
+                                                    <label for="role-instructor" class="role-label text-center">
+                                                        <i class="fa fa-chalkboard-teacher"></i>
+                                                        <span>معلم / مدرب</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Credentials -->
+                                        <div class="form-floating mb-3">
+                                            <input type="email" class="form-control outfit-font" id="email" placeholder="name@example.com" required>
+                                            <label for="email">البريد الإلكتروني</label>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-4">
+                                            <input type="password" class="form-control outfit-font" id="password" placeholder="Password" required>
+                                            <label for="password">كلمة المرور</label>
+                                        </div>
+
+                                        <!-- Auto Timezone Display -->
+                                        <div class="timezone-badge outfit-font shadow-sm border border-light">
+                                            <i class="fa fa-globe-africa text-primary"></i>
+                                            <span id="timezoneDisplay">--:--</span>
+                                            <input type="hidden" name="timezone" id="timezoneHiddenInput">
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="remember-me">
+                                                <label class="form-check-label small fw-bold text-muted" for="remember-me">
+                                                    تذكرني
+                                                </label>
+                                            </div>
+                                            <a href="#" class="text-primary small fw-bold text-decoration-none">نسيت كلمة المرور؟</a>
+                                        </div>
+
+                                        <button id="saveBtn" type="submit" class="btn btn-login w-100 mb-4 shadow-sm">
+                                            <i class="fa fa-sign-in-alt me-2"></i> دخول النظام
+                                        </button>
+
+                                        <div class="text-center">
+                                            <p class="mt-4 mb-0 small text-muted">
+                                                هذه اللوحة مخصصة للموظفين فقط. 
+                                                <a href="/admin_register" class="text-primary fw-bold text-decoration-none ms-1">طلب انضمام جديد</a>
+                                            </p>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="relative">
-                            <input type="radio" id="role-instructor" name="role" value="teacher" class="hidden peer">
-                            <label for="role-instructor" class="flex flex-col justify-center items-center py-3 px-4 rounded-lg border border-gray-300 cursor-pointer transition-all duration-200 hover:bg-indigo-50 peer-checked:bg-indigo-600 peer-checked:border-indigo-600 shadow-md">
-                                <span class="font-bold text-lg text-gray-700 peer-checked:text-white">معلم / مدرب</span>
-                            </label>
-                        </div>
                     </div>
                 </div>
-                
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
-                    <input id="email" name="email" type="email" autocomplete="email" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors">
-                </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">كلمة المرور</label>
-                    <input id="password" name="password" type="password" autocomplete="current-password" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors">
-                </div>
-<div class="space-y-2">
-    <label class="text-sm font-bold text-gray-700">المنطقة الزمنية (تحديد تلقائي)</label>
-    
-    <select disabled id="timezoneSelectDisplay" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none opacity-70">
-    </select>
-    
-    <input type="hidden" name="timezone" id="timezoneHiddenInput">
-</div>
-
-
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                        <label for="remember-me" class="mr-2 block text-sm text-gray-900">تذكرني</label>
-                    </div>
-
-                    <div class="text-sm">
-                        <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">هل نسيت كلمة المرور؟</a>
-                    </div>
-                </div>
-
-                <div>
-                    <button id="saveBtn" type="submit" class="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-                        تسجيل الدخول
-                        <div id="spinner" class="spinner ml-2 hidden"></div>
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
+    </div>
 
-        <p class="mt-6 text-center text-sm text-gray-500">
-            هذه اللوحة مخصصة للمديرين والمدربين فقط.
-            <br>
-            <a href="/admin_register" class="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">لإضافة  جديد، انتقل إلى صفحة التسجيل.</a>
-        </p>
-    </div>
-    
-    <div id="toastContainer" class="fixed bottom-4 right-4 z-[70] space-y-3">
-    </div>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-4" style="z-index: 1050"></div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/wow/wow.min.js"></script>
+    <script src="/js/main.js"></script>
 
     <script>
-        feather.replace();
+        // Spinner handling
+        setTimeout(function () {
+            if ($('#spinner').length > 0) {
+                $('#spinner').removeClass('show');
+            }
+        }, 100);
 
-    const timeZones = Intl.supportedValuesOf('timeZone');
-    const selectDisplay = document.getElementById('timezoneSelectDisplay');
-    const hiddenInput = document.getElementById('timezoneHiddenInput');
-    const userDefault = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    // تعيين القيمة للحقل المخفي فوراً
-    hiddenInput.value = userDefault;
-console.error('userDefault',userDefault);
-    timeZones.forEach(tz => {
-        const option = document.createElement('option');
-        option.value = tz;
-        option.text = tz.replace('_', ' '); 
-        if (tz === userDefault) option.selected = true; 
-        selectDisplay.appendChild(option);
-    });
+        // Timezone Logic
+        const hiddenInput = document.getElementById('timezoneHiddenInput');
+        const displaySpan = document.getElementById('timezoneDisplay');
+        const userDefault = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        
+        hiddenInput.value = userDefault;
+        displaySpan.textContent = userDefault.replace('_', ' ');
 
         const saveBtn = document.getElementById("saveBtn");
-        const spinner = document.getElementById("spinner");
-        const originalButtonText = saveBtn.textContent.trim(); 
+        const originalButtonText = saveBtn.innerHTML; 
 
-        // ----------------- دوال التحكم في حالة الزر -----------------
-
-        /**
-         * تفعيل وضع التحميل (Loading) على الزر.
-         * @param {boolean} isLogin - لتحديد النص (تسجيل الدخول vs إنشاء).
-         */
-        function startLoading(isLogin = false) {
+        function startLoading() {
             saveBtn.disabled = true;
-            saveBtn.textContent = isLogin ? 'جاري الدخول...' : 'جاري الإنشاء...';
-            spinner.classList.remove("hidden");
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري المحاولة...';
         }
 
-        /**
-         * إيقاف وضع التحميل وإعادة الزر للحالة الأصلية.
-         * @param {boolean} isLogin - لتحديد النص.
-         */
-        function stopLoading(isLogin = false) {
+        function stopLoading() {
             saveBtn.disabled = false;
-            saveBtn.textContent = originalButtonText; 
-            spinner.classList.add("hidden");
+            saveBtn.innerHTML = originalButtonText; 
         }
 
-        // ----------------- دوال عرض الإشعارات (Toast) -----------------
-
-        /**
-         * عرض إشعار منبثق (Toast Notification)
-         * @param {string} message - نص الرسالة.
-         * @param {string} type - نوع الإشعار: 'success', 'error', 'info'.
-         */
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            
-            let bgColor = 'bg-blue-600';
-            let icon = 'info';
+            let bgClass = 'bg-primary';
+            if (type === 'success') bgClass = 'bg-success';
+            if (type === 'error') bgClass = 'bg-danger';
 
-            switch (type) {
-                case 'success':
-                    bgColor = 'bg-green-600';
-                    icon = 'check-circle';
-                    break;
-                case 'error':
-                    bgColor = 'bg-red-600';
-                    icon = 'alert-triangle';
-                    break;
-                case 'info':
-                default:
-                    bgColor = 'bg-blue-600';
-                    icon = 'info';
-                    break;
-            }
-
-            toast.className = `p-4 max-w-xs text-white ${bgColor} rounded-lg shadow-xl flex items-center transform transition-transform duration-300 translate-x-full`;
-            toast.innerHTML = `
-                <i data-feather="${icon}" class="w-5 h-5 ml-3"></i>
-                <span class="text-sm font-medium">${message}</span>
-                <button onclick="this.closest('div').remove()" class="mr-2 text-white/80 hover:text-white transition-colors">
-                    <i data-feather="x" class="w-4 h-4"></i>
-                </button>
-            `;
-            container.appendChild(toast);
-            feather.replace(); 
-            
-            
-            setTimeout(() => {
-                toast.classList.remove('translate-x-full');
-            }, 10);
-
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-                toast.addEventListener('transitionend', () => toast.remove(), {once: true});
-            }, 5000); 
+            const toastElem = document.createElement('div');
+            toastElem.className = `toast align-items-center text-white ${bgClass} border-0 mb-3 animate__animated animate__slideInRight`;
+            toastElem.setAttribute('role', 'alert');
+            toastElem.setAttribute('aria-live', 'assertive');
+            toastElem.setAttribute('aria-atomic', 'true');
+            toastElem.innerHTML = `
+                <div class="d-flex p-2">
+                    <div class="toast-body fw-bold">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>`;
+            container.appendChild(toastElem);
+            const bsToast = new bootstrap.Toast(toastElem);
+            bsToast.show();
+            toastElem.addEventListener('hidden.bs.toast', () => toastElem.remove());
         }
 
-        // ----------------- دالة الإرسال الرئيسية (Handle Submit) -----------------
-
-        /**
-         * معالجة إرسال نموذج تسجيل الدخول واستدعاء Fetch API.
-         */
         async function handleSubmit(event) {
             event.preventDefault(); 
-            
-            const form = event.target;
             const userData = {
-                role: form.querySelector('input[name="role"]:checked').value,
+                role: document.querySelector('input[name="role"]:checked').value,
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value,
                 timezone: userDefault
             };
 
-            startLoading(true); // تفعيل وضع التحميل (باستخدام نص تسجيل الدخول)
-
+            startLoading();
             try {
                 const response = await fetch('/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
                 });
-
                 if (!response.ok) {
                     const errorData = await response.json();
-                    // طرح كائن الخطأ كاملاً
                     throw errorData; 
                 }
-
-                // حالة النجاح:
-                const successData = await response.json();
-                stopLoading(true);
-                
-                // عرض رسالة النجاح في Toast
-                showToast("تم تسجيل الدخول بنجاح!", 'success'); 
-                
-                // التحويل إلى لوحة التحكم
-                 setTimeout(() => {
-                window.location.href = '/'; // تحويل المتصفح إلى صفحة تسجيل الدخول
-            }, 800);
-
-
+                showToast("تم تسجيل الدخول بنجاح! جاري التحويل...", 'success'); 
+                setTimeout(() => window.location.href = '/', 1000);
             } catch (error) {
-                // معالجة الخطأ
-                stopLoading(true);
-
-                // 1. محاولة استخلاص رسالة الخطأ الخاصة بالحقول
-                const fieldError = 
-                    error?.errors?.email || 
-                    error?.errors?.password || 
-                    error?.errors?.general; 
-                
-                // 2. استخدام رسالة الخطأ العامة
-                const generalError = error?.message || "فشل تسجيل الدخول. تأكد من اتصال الشبكة.";
-                
-                // 3. الرسالة النهائية
-                const finalMessage = fieldError || generalError;
-
-                // عرض الـ Toast
-                showToast("خطأ: " + finalMessage, 'error');
+                stopLoading();
+                const msg = error?.errors?.email || error?.errors?.password || error?.message || "فشل تسجيل الدخول";
+                showToast("خطأ: " + msg, 'error');
             }
         }
-        
     </script>
 </body>
+
 </html>

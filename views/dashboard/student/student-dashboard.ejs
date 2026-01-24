@@ -1,308 +1,449 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="<%= currentLang %>" dir="<%= dir %>">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم الطالب - الرئيسية</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <meta charset="utf-8">
+    <title><%= t('dashboard') %> - <%= t('brand_name') %></title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Lobster+Two:wght@700&family=Cairo:wght@400;600;700;900&family=Alexandria:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
     <style>
-        /* شريط التابات الأساسي */
-.mobile-bottom-nav {
-    @apply lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-t border-gray-100 flex items-center justify-around px-2 pb-5 z-[9999] shadow-[0_-5px_20px_rgba(0,0,0,0.05)];
-}
-
-/* التاب في الحالة العادية */
-.nav-tab {
-    @apply flex flex-col items-center justify-center flex-1 h-full transition-all duration-300;
-    color: #9ca3af; /* رمادي */
-}
-
-/* التاب في الحالة النشطة (Active) */
-.nav-tab.active {
-    color: #5e35b1 !important; /* بنفسجي ألف باء */
-}
-
-/* حركة الأيقونة فقط عند النشاط */
-.nav-tab.active i {
-    transform: translateY(-3px); /* رفعة بسيطة للأيقونة */
-    stroke-width: 2.5px; /* جعل خط الأيقونة أوضح */
-    transition: all 0.3s ease;
-}
-
-/* النص عند النشاط */
-.nav-tab.active span {
-    font-weight: 800; /* جعل الخط عريض */
-    font-size: 11px; /* تكبير بسيط جداً للنص */
-}
-
-/* تأثير الضغط (Feedback) */
-.nav-tab:active {
-    transform: scale(0.95);
-}
-        body { font-family: 'Tajawal', sans-serif; }
-        .sidebar-link { transition: all 0.2s; }
-        .sidebar-link.active { background-color: #eef2ff; color: #4f46e5; font-weight: 700; border-right: 4px solid #4f46e5; }
-        .sidebar-link:not(.active):hover { background-color: #f3f4f6; color: #4f46e5; }
-        
-        /* تحسينات القائمة الجانبية للموبايل */
-        @media (max-width: 1024px) {
-            .sidebar-closed { transform: translateX(100%); }
-            .sidebar-open { transform: translateX(0); }
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
         }
-        
-        @media (max-width: 1024px) {
-    body { padding-bottom: 100px; } /* نفس ارتفاع الشريط السفلي */
-}
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            background: #fff;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.05);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar { margin-right: -260px; }
+            .sidebar.active { margin-right: 0; }
+            .main-content { margin-right: 0; }
+        }
+
+        .nav-link {
+            color: #6c757d;
+            padding: 0.8rem 1.25rem;
+            border-radius: 0.75rem;
+            margin: 0.2rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .nav-link i {
+            margin-left: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary);
+            background-color: var(--secondary);
+        }
+
+        .nav-link.active {
+            font-weight: 700;
+        }
+
+        .stats-card {
+            border: none;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.03);
+            padding: 1.25rem;
+            height: 100%;
+            transition: all 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+        }
+
+        .stats-icon-kider {
+            position: relative;
+            width: 30px;
+            height: 30px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+
+        .stats-icon-kider::before {
+            position: absolute;
+            content: "";
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: rgba(255, 255, 255, .8);
+            border-radius: 30px;
+            z-index: -1;
+            transition: .5s;
+        }
+
+        .stats-card:hover .stats-icon-kider::before {
+            background: transparent;
+        }
+
+        .stats-card:hover .stats-icon-kider i {
+            color: #fff !important;
+        }
+
+        .stats-card * {
+            transition: .5s;
+        }
+
+        .session-banner {
+            background: linear-gradient(rgba(254, 93, 55, .9), rgba(254, 93, 55, .9)), url('/img/carousel-1.jpg');
+            background-size: cover;
+            background-position: center;
+            border-radius: 2rem;
+            color: #fff;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .countdown-box {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            display: inline-block;
+            font-family: monospace;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-kider {
+            background-color: #fff;
+            color: var(--primary);
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-kider:hover {
+            transform: scale(1.05);
+            background-color: var(--light);
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
 
-    <div class="flex h-screen overflow-hidden">
-        
-        <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
-
-        <aside id="sidebar" class="fixed inset-y-0 right-0 z-50 w-64 bg-white border-l border-gray-200 flex flex-col transition-transform duration-300 sidebar-closed lg:translate-x-0 lg:static lg:inset-0">
-            <div class="h-16 flex items-center justify-between px-6 border-b border-gray-200">
-                <span class="text-xl font-extrabold text-indigo-700">🎓 منصة انطلق</span>
-                <button onclick="toggleSidebar()" class="lg:hidden text-gray-500">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            
-            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-                <a href="/" class="sidebar-link active flex items-center px-4 py-3 rounded-lg text-gray-700">
-                    <i data-feather="home" class="ml-3 w-5 h-5"></i>
-                    الرئيسية
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="p-4 text-center border-bottom">
+            <h3 class="m-0 text-primary lobster-font" style="font-size: 2rem;">
+                <i class="fa fa-laptop-code me-2"></i><%= t('brand_name') %>
+            </h3>
+        </div>
+        <div class="py-4">
+            <a href="/" class="nav-link active">
+                <i class="fa fa-home"></i> <%= t('home') %>
+            </a>
+            <a href="/student/my-sessions" class="nav-link text-dark">
+                <i class="fa fa-calendar-alt"></i> <%= t('sessions') %>
+            </a>
+            <a href="/student/courses_list" class="nav-link text-dark">
+                <i class="fa fa-book"></i> <%= t('courses') %>
+            </a>
+            <a href="/student/enrolled_subscription" class="nav-link text-dark">
+                <i class="fa fa-file-invoice"></i> <%= t('subscriptions') %>
+            </a>
+            <a href="/student/billing" class="nav-link text-dark">
+                <i class="fa fa-wallet"></i> <%= t('billing') %>
+            </a>
+            <div class="mt-4 pt-4 border-top mx-3">
+                <a href="/student/profile" class="nav-link text-dark">
+                    <i class="fa fa-user-cog"></i> <%= t('settings') %>
                 </a>
-                
-                <a href="/student/my-sessions" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-gray-700">
-                    <i data-feather="calendar" class="ml-3 w-5 h-5"></i>
-                    جدول الحصص
+                <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal" class="nav-link text-danger mt-2">
+                    <i class="fa fa-sign-out-alt"></i> <%= t('logout') %>
                 </a>
-
-                <a href="/student/courses_list" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-gray-700">
-                    <i data-feather="book-open" class="ml-3 w-5 h-5"></i>
-                    استعراض الكورسات
-                </a>
-
-                <a href="/student/enrolled_subscription" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-gray-700">
-                    <i data-feather="file-text" class="ml-3 w-5 h-5"></i> 
-                    طلبات الانضمام
-                </a>
-                
-                <a href="/student/billing" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-gray-700">
-                    <i data-feather="dollar-sign" class="ml-3 w-5 h-5"></i>
-                    الرصيد والدفع
-                </a>
-
-                <div class="pt-4 border-t border-gray-200 mt-4 space-y-1">
-                    <a href="/student/profile" class="sidebar-link flex items-center px-4 py-3 rounded-lg text-gray-700">
-                        <i data-feather="settings" class="ml-3 w-5 h-5"></i>
-                        الإعدادات
-                    </a>
-                    <a href="#" onclick="openLogoutModal(event)" class="flex items-center justify-center p-2 mt-4 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors font-medium">
-                        <i data-feather="log-out" class="ml-2 w-5 h-5"></i>
-                        تسجيل الخروج
-                    </a>
-                </div>
-            </nav>
-        </aside>
-
-        <div class="flex-1 flex flex-col overflow-hidden">
-            
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 flex-shrink-0">
-                <div class="flex items-center gap-3">
-                    <button onclick="toggleSidebar()" class="lg:hidden text-gray-600 p-2 hover:bg-gray-100 rounded-md">
-                        <i data-feather="menu"></i>
-                    </button>
-                    <h2 class="text-lg lg:text-xl font-semibold text-gray-800 truncate">أهلاً، <%= user.name %>!</h2>
-                </div>
-                
-                <div class="flex items-center space-x-3 space-x-reverse">
-                    <div class="hidden md:flex items-center gap-2 border-l pl-4 ml-4">
-                        <span class="text-sm font-medium text-gray-600">الرصيد:  <%= studentStats.totalPlan-studentStats.completedSessions  %>  حصص</span>
-                    </div>
-                    <button class="text-gray-500 hover:text-indigo-600 p-1">
-                        <i data-feather="bell" class="w-6 h-6"></i>
-                    </button>
-                </div>
-            </header>
-<main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 lg:p-8">
-    <div class="max-w-7xl mx-auto space-y-8">
-
-       <% 
-    // [EJS Logic] معالجة بيانات الحصة بتوافق المناطق الزمنية
-    let fullDateTime = 'جاري التحميل...';
-    let sessionState = 'none'; 
-    let countdownMs = 0;
-    let joinUrl = '#';
-
-    if (nearestSession && nearestSession.sessionDetails) {
-        const sd = nearestSession.sessionDetails;
-console.error(sd._id,'sessionDetails in ejs');
-        // 1. استخدام البيانات المحولة مسبقاً في السيرفر للعرض النصي
-        // تم استخدام حقول displayDay و displayDate و displayTime التي جهزناها في الـ Controller
-        fullDateTime = `${sd.displayDay}، ${sd.displayDate} - ${sd.displayTime}`;
-
-        // 2. المقارنة باستخدام التوقيت العالمي لضمان الدقة (UTC)
-        // نستخدم حقل utcDateAndTime الأصلي المخزن في الداتابيز
-        const sessionStart =nearestSession.startTime;
-        const sessionEnd = nearestSession.sessionEnd; // حصة لمدة ساعة
-        
-        joinUrl = `/student/session-details/${nearestSession.bookingId}/${nearestSession.sessionId}`;
-        const now = new Date(); // وقت السيرفر الحالي (UTC)
-
-        // 3. تحديد حالة الحصة بناءً على الوقت الفعلي
-        if(now >= sessionStart && now <= sessionEnd) {
-            sessionState = 'ongoing';
-            countdownMs = sessionEnd.getTime() - now.getTime();
-        } else if(now < sessionStart) {
-            sessionState = 'upcoming';
-        }
-    }
-%>
-        <% if(sessionState === 'upcoming'){ %>
-            <div class="bg-gradient-to-l from-indigo-700 to-indigo-600 text-white p-6 rounded-2xl shadow-lg border-r-8 border-indigo-400">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div class="flex items-start gap-4">
-                        <div class="p-3 bg-indigo-500/30 rounded-xl">
-                            <i data-feather="monitor" class="w-8 h-8"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl lg:text-2xl font-bold">لديك حصة قادمة</h3>
-                            <p class="text-indigo-100 mt-1 font-medium"><%= nearestSession.courseTitle %></p>
-                            <p class="text-sm text-indigo-200 mt-1 italic flex items-center gap-1">
-                                <i data-feather="clock" class="w-3 h-3"></i>
-                              <%=  nearestSession.sessionDetails.displayDate %> <%=  nearestSession.sessionDetails.displayDay %>   <%=  nearestSession.sessionDetails.displayTime %> (بتوقيتك المحلي)
-                            </p>
-                        </div>
-                    </div>
-                    <a href="<%= joinUrl %>" class="w-full md:w-auto text-center px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition shadow-md">
-                        دخول غرفة الانتظار
-                    </a>
-                </div>
-            </div>
-
-        <% } else if(sessionState === 'ongoing'){ %>
-            <div class="bg-gradient-to-r from-red-600 to-orange-500 text-white p-6 rounded-2xl shadow-2xl border-2 border-yellow-400 animate-pulse">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-right">
-                    <div class="space-y-2">
-                        <h2 class="text-2xl lg:text-3xl font-black tracking-tight">🔥 الحصة جارية الآن!</h2>
-                        <p class="text-lg opacity-90"><%= nearestSession.courseTitle %></p>
-                        <p class="font-bold text-xl">الوقت المتبقي: <span id="countdown" class="bg-white text-red-600 px-3 py-1 rounded-lg font-mono">--:--</span></p>
-                    </div>
-                    <a href="<%= joinUrl %>" class="w-full md:w-auto px-10 py-4 bg-yellow-400 text-red-700 font-extrabold text-xl rounded-2xl hover:scale-105 transition-transform shadow-xl">
-                        انضم الآن
-                    </a>
-                </div>
-            </div>
-            <script>
-                let countdownMs = <%= countdownMs %>;
-                function updateCountdown() {
-                    const el = document.getElementById('countdown');
-                    if(!el) return;
-                    if(countdownMs <= 0) { el.innerText = "00:00"; return; }
-                    const mins = Math.floor(countdownMs / 60000);
-                    const secs = Math.floor((countdownMs % 60000) / 1000);
-                    el.innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
-                    countdownMs -= 1000;
-                }
-                setInterval(updateCountdown, 1000); updateCountdown();
-            </script>
-
-        <% } else { %>
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center flex flex-col items-center">
-                <div class="w-20 h-20 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-4">
-                    <i data-feather="calendar" class="w-10 h-10"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-800">لا توجد حصص مجدولة حالياً</h3>
-                <p class="text-gray-500 mt-2 max-w-sm">يمكنك مراجعة دروسك السابقة أو تصفح الجدول الزمني للحصص القادمة.</p>
-                <a href="/student/my-sessions" class="mt-6 inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">
-                    <i data-feather="list" class="ml-2 w-5 h-5"></i> عرض الجدول الكامل
-                </a>
-            </div>
-        <% } %>
-
-        <% if (courseBookingDetails != null) { %>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                    <div class="p-3 bg-green-100 rounded-full text-green-600"><i data-feather="check-square"></i></div>
-                    <div>
-                        <p class="text-xs font-medium text-gray-500">حصص مكتملة</p>
-                        <p class="text-2xl font-bold text-gray-900"><%= studentStats.completedSessions %></p>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                    <div class="p-3 bg-yellow-100 rounded-full text-yellow-600"><i data-feather="star"></i></div>
-                    <div>
-                        <p class="text-xs font-medium text-gray-500">تقييمك الأكاديمي</p>
-                        <p class="text-2xl font-bold text-gray-900"><%= studentStats.rating %></p>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm">
-                    <div class="p-3 bg-red-100 rounded-full text-red-600"><i data-feather="zap"></i></div>
-                    <div>
-                        <p class="text-xs font-medium text-gray-500">إجمالي المدفوع/الدقائق</p>
-                        <p class="text-2xl font-bold text-gray-900"><%= courseBookingDetails.totalCalculatedPrice %></p>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4 shadow-sm overflow-hidden">
-                    <div class="p-3 bg-indigo-100 rounded-full text-indigo-600 flex-shrink-0"><i data-feather="package"></i></div>
-                    <div class="truncate">
-                        <p class="text-xs font-medium text-gray-500">باقة الكورس</p>
-                        <p class="text-lg font-bold text-gray-900 truncate"><%= courseBookingDetails.courseName %> (<%= studentStats.totalPlan %> حصص)</p>
-                    </div>
-                </div>
-            </div>
-        <% } %>  
-    </div>
-</main>
-    </div>
-<%- include('../../partials/bottom-nav.ejs', {currentPage: 'dashboard'}) %>        </div>
-
-    <div id="logoutModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden transform transition-all scale-95">
-            <div class="p-8 text-center">
-                <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i data-feather="log-out" class="w-10 h-10"></i>
-                </div>
-                <h3 class="text-xl font-extrabold text-gray-900">تأكيد الخروج</h3>
-                <p class="text-gray-500 mt-3 text-sm leading-relaxed">هل أنت متأكد أنك تريد تسجيل الخروج من حسابك الآن؟</p>
-            </div>
-            <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3">
-                <a href="/student/logout" class="w-full sm:flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm text-center hover:bg-red-700 shadow-lg shadow-red-200">نعم، اخرج</a>
-                <button onclick="closeLogoutModal()" class="w-full sm:flex-1 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-100">إلغاء</button>
             </div>
         </div>
     </div>
 
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <div class="top-nav px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-3" id="sidebarCollapse">
+                    <i class="fa fa-bars fs-5"></i>
+                </button>
+                <h2 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.5rem;"><%= t('welcome_back') %>, <%= user.name %>! 👋</h2>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-success p-2 px-3 rounded-pill small fw-bold d-none d-md-block">
+                    <i class="fa fa-ticket-alt me-1"></i>
+                    الرصيد المتبقي: <%= studentStats.totalPlan - studentStats.completedSessions %> <%= t('sessions_short') %>
+                </div>
+                <div class="position-relative">
+                    <i class="fa fa-bell text-muted fs-4"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-danger p-1"><span class="visually-hidden">unread messages</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Status -->
+        <% 
+            let sessionState = 'none'; 
+            let countdownMs = 0;
+            let joinUrl = '#';
+
+            if (nearestSession && nearestSession.sessionDetails) {
+                const sd = nearestSession.sessionDetails;
+                const sessionStart = nearestSession.startTime;
+                const sessionEnd = nearestSession.sessionEnd;
+                const now = new Date();
+
+                joinUrl = `/student/session-details/${nearestSession.bookingId}/${nearestSession.sessionId}`;
+
+                if(now >= sessionStart && now <= sessionEnd) {
+                    sessionState = 'ongoing';
+                    countdownMs = sessionEnd.getTime() - now.getTime();
+                } else if(now < sessionStart) {
+                    sessionState = 'upcoming';
+                }
+            }
+        %>
+
+        <% if(sessionState === 'ongoing' || sessionState === 'upcoming'){ %>
+            <div class="session-banner mb-4 animate__animated animate__fadeIn">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge bg-<%= sessionState === 'ongoing' ? 'danger' : 'success' %> rounded-pill px-3 py-2 me-2">
+                                <%= sessionState === 'ongoing' ? 'مباشر الآن 🔥' : 'حصة قادمة 🎓' %>
+                            </span>
+                            <span class="text-white-50">| <%= nearestSession.courseTitle %></span>
+                        </div>
+                        <h3 class="display-5 fw-bold mb-3">
+                            <%= sessionState === 'ongoing' ? 'حصتك بدأت بالفعل!' : 'استعد لحصتك القادمة' %>
+                        </h3>
+                        <p class="fs-5 opacity-75 mb-4">
+                            <i class="fa fa-clock me-2"></i>
+                            <%= nearestSession.sessionDetails.displayDay %>، <%= nearestSession.sessionDetails.displayDate %> - <%= nearestSession.sessionDetails.displayTime %>
+                        </p>
+                        <% if(sessionState === 'ongoing'){ %>
+                            <div class="mb-4">
+                                <small class="d-block mb-2 text-white-50">الوقت المتبقي لانتهاء الحصة:</small>
+                                <div id="countdown" class="countdown-box">--:--</div>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="col-lg-4 text-lg-start">
+                        <a href="<%= joinUrl %>" class="btn btn-kider fs-5 shadow-lg px-5 py-3">
+                            <i class="fa fa-play-circle me-2"></i> <%= sessionState === 'ongoing' ? 'انضم الآن' : 'التوجه للقاعة' %>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        <% } else { %>
+            <div class="stats-card p-5 text-center mb-4">
+                <div class="stats-icon bg-light text-muted mx-auto mb-4" style="width: 80px; height: 80px;">
+                    <i class="fa fa-calendar-times fs-2"></i>
+                </div>
+                <h3 class="fw-bold">لا توجد حصص مجدولة اليوم</h3>
+                <p class="text-muted">يمكنك استعراض جدولك الكامل أو حجز دورات جديدة</p>
+                <a href="/student/my-sessions" class="btn btn-primary rounded-pill px-4 py-2 mt-2">
+                    عرض الجدول الكامل
+                </a>
+            </div>
+        <% } %>
+
+        <!-- Statistics Grid -->
+        <% if (courseBookingDetails != null) { %>
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="stats-icon-kider bg-success text-success me-3">
+                                <i class="fa fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;"><%= studentStats.completedSessions %></h3>
+                                <small class="text-muted fw-bold" style="font-size: 0.7rem;">حصة مكتملة</small>
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: <%= Math.round((studentStats.completedSessions / studentStats.totalPlan * 100) || 0) %>%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="stats-icon-kider bg-warning text-warning me-3">
+                                <i class="fa fa-star text-warning"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;"><%= studentStats.rating || '5.0' %></h3>
+                                <small class="text-muted fw-bold" style="font-size: 0.7rem;">التقييم الأكاديمي</small>
+                            </div>
+                        </div>
+                        <div class="text-warning small" style="font-size: 0.7rem;">
+                            <% for(let i=1; i<=5; i++){ %>
+                                <i class="fa fa-star <%= i <= Math.round(studentStats.rating || 5) ? '' : 'text-muted opacity-25' %>"></i>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="stats-icon-kider bg-danger text-danger me-3">
+                                <i class="fa fa-award"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;"><%= courseBookingDetails.totalCalculatedPrice %></h3>
+                                <small class="text-muted fw-bold" style="font-size: 0.7rem;">إجمالي الاستثمار</small>
+                            </div>
+                        </div>
+                        <div class="mt-1">
+                            <span class="badge rounded-pill bg-success text-white" style="font-size: 0.65rem; font-weight: 800;">تم الدفع</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="stats-icon-kider bg-primary text-primary me-3">
+                                <i class="fa fa-laptop-code"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <h6 class="mb-0 fw-900 text-truncate text-primary" style="max-width: 100px; font-size: 0.85rem;"><%= courseBookingDetails.courseName %></h6>
+                                <small class="text-muted fw-bold" style="font-size: 0.7rem;">باقة الكورس</small>
+                            </div>
+                        </div>
+                        <div class="mt-1 text-end">
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill small" style="font-size: 0.65rem;"><%= studentStats.totalPlan %> حصة</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+        <!-- Bottom Footer (Inside content) -->
+        <footer class="mt-auto py-4 text-center text-muted">
+            <small>&copy; <%= t('brand_name') %> 2024 - <%= t('all_rights_reserved') %></small>
+        </footer>
+    </div>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 1.5rem;">
+                <div class="modal-body p-5 text-center">
+                    <div class="stats-icon bg-danger bg-opacity-10 text-danger mx-auto mb-4 animate__animated animate__pulse animate__infinite" style="width: 100px; height: 100px; border-radius: 50%;">
+                        <i class="fa fa-sign-out-alt" style="font-size: 3rem;"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3 text-dark">تسجيل الخروج؟</h3>
+                    <p class="text-muted mb-4 fs-5">هل أنت متأكد أنك تريد مغادرة حسابك؟ سنفتقدك!</p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <button type="button" class="btn btn-light rounded-pill px-4 py-2 flex-grow-1" data-bs-dismiss="modal">إلغاء</button>
+                        <a href="/student/logout" class="btn btn-danger rounded-pill px-4 py-2 flex-grow-1">تسجيل الخروج</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/wow/wow.min.js"></script>
+    
     <script>
-        feather.replace();
+        // Sidebar Toggle
+        $('#sidebarCollapse').on('click', function() {
+            $('#sidebar').toggleClass('active');
+        });
 
-        // التحكم في القائمة الجانبية (Sidebar Toggle)
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            sidebar.classList.toggle('sidebar-closed');
-            sidebar.classList.toggle('sidebar-open');
-            overlay.classList.toggle('hidden');
-        }
-
-        // تحكم نافذة تسجيل الخروج
-        const modal = document.getElementById('logoutModal');
-        function openLogoutModal(e) {
-            e.preventDefault();
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => modal.firstElementChild.nextElementSibling.classList.remove('scale-95'), 10);
-        }
-        function closeLogoutModal() {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
+        // Countdown Script
+        <% if(sessionState === 'ongoing'){ %>
+            let countdownMs = Number("<%= countdownMs || 0 %>");
+            function updateCountdown() {
+                const el = document.getElementById('countdown');
+                if(!el) return;
+                if(countdownMs <= 0) { el.innerText = "00:00"; return; }
+                const mins = Math.floor(countdownMs / 60000);
+                const secs = Math.floor((countdownMs % 60000) / 1000);
+                el.innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
+                countdownMs -= 1000;
+            }
+            setInterval(updateCountdown, 1000); 
+            updateCountdown();
+        <% } %>
     </script>
 </body>
+
 </html>

@@ -1,314 +1,392 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قائمة الكورسات المتاحة</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+<head>
+    <meta charset="utf-8">
+    <title>منصة انطلق - استعراض الكورسات</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
 
     <style>
-        /* شريط التابات الأساسي */
-.mobile-bottom-nav {
-    @apply lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-t border-gray-100 flex items-center justify-around px-2 pb-5 z-[9999] shadow-[0_-5px_20px_rgba(0,0,0,0.05)];
-}
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
 
-/* التاب في الحالة العادية */
-.nav-tab {
-    @apply flex flex-col items-center justify-center flex-1 h-full transition-all duration-300;
-    color: #9ca3af; /* رمادي */
-}
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
 
-/* التاب في الحالة النشطة (Active) */
-.nav-tab.active {
-    color: #5e35b1 !important; /* بنفسجي ألف باء */
-}
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
 
-/* حركة الأيقونة فقط عند النشاط */
-.nav-tab.active i {
-    transform: translateY(-3px); /* رفعة بسيطة للأيقونة */
-    stroke-width: 2.5px; /* جعل خط الأيقونة أوضح */
-    transition: all 0.3s ease;
-}
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            background: #fff;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.05);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
 
-/* النص عند النشاط */
-.nav-tab.active span {
-    font-weight: 800; /* جعل الخط عريض */
-    font-size: 11px; /* تكبير بسيط جداً للنص */
-}
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
 
-/* تأثير الضغط (Feedback) */
-.nav-tab:active {
-    transform: scale(0.95);
-}
-        body { font-family: 'Tajawal', sans-serif; }
-            @media (max-width: 1024px) {
-    body { padding-bottom: 80px; } /* نفس ارتفاع الشريط السفلي */
-}
+        @media (max-width: 991.98px) {
+            .sidebar { margin-right: -260px; }
+            .sidebar.active { margin-right: 0; }
+            .main-content { margin-right: 0; }
+        }
+
+        .nav-link {
+            color: #6c757d;
+            padding: 0.8rem 1.25rem;
+            border-radius: 0.75rem;
+            margin: 0.2rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .nav-link i { margin-left: 1rem; font-size: 1.2rem; }
+        .nav-link:hover, .nav-link.active { color: var(--primary); background-color: var(--secondary); }
+        .nav-link.active { font-weight: 700; }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .course-card {
+            border: none;
+            border-radius: 1.5rem;
+            background: #fff;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s;
+        }
+
+        .course-card:hover { transform: translateY(-5px); }
+
+        .course-img {
+            height: 180px;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .btn-kider {
+            background-color: var(--primary);
+            color: #fff;
+            border-radius: 0.75rem;
+            padding: 0.4rem 1.2rem;
+            font-weight: 700;
+            border: none;
+            font-size: 0.8rem;
+        }
+
+        .btn-kider:hover { background-color: #e44d2d; color: #fff; }
+
+        .filter-section {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            border-radius: 1rem;
+            padding-right: 3rem;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+        }
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800">
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-4 text-center border-bottom">
+            <h1 class="m-0 text-primary lobster-font" style="font-size: 2rem;">
+                <i class="fa fa-book-reader me-2"></i>Kider
+            </h1>
+        </div>
+        <div class="py-4">
+            <a href="/" class="nav-link">
+                <i class="fa fa-home"></i> الرئيسية
+            </a>
+            <a href="/student/my-sessions" class="nav-link">
+                <i class="fa fa-calendar-alt"></i> جدول الحصص
+            </a>
+            <a href="/student/courses_list" class="nav-link active">
+                <i class="fa fa-book"></i> استعراض الكورسات
+            </a>
+            <a href="/student/enrolled_subscription" class="nav-link text-dark">
+                <i class="fa fa-file-invoice"></i> طلبات الانضمام
+            </a>
+            <a href="/student/billing" class="nav-link text-dark">
+                <i class="fa fa-wallet"></i> الرصيد والدفع
+            </a>
+            <div class="mt-4 pt-4 border-top mx-3">
+                <a href="/student/profile" class="nav-link text-dark">
+                    <i class="fa fa-user-cog"></i> الإعدادات
+                </a>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal" class="nav-link text-danger mt-2">
+                    <i class="fa fa-sign-out-alt"></i> تسجيل الخروج
+                </a>
+            </div>
+        </div>
+    </div>
 
-<div class="flex min-h-screen overflow-hidden">
-
-    <div class="flex-1 flex flex-col overflow-hidden">
-
-        <!-- Header -->
-        <header class="bg-white border-b border-gray-200 
-        flex flex-col sm:flex-row gap-3 sm:gap-0
-        items-start sm:items-center justify-between 
-        px-4 sm:px-8 py-4">
-
-            <h2 class="text font-bold text-gray-800">
-                استكشاف الكورسات المتاحة
-            </h2>
-
-          
-        </header>
-
-        <main class="flex-1 overflow-y-auto p-4 sm:p-8">
-
-            <div class="max-w-7xl mx-auto space-y-8">
-
-                <!-- Search -->
-                <div class="bg-white p-5 rounded-xl shadow-md border">
-                    <h1 class="text-xl font-abold text-indigo-700 mb-4">
-                        البحث عن الكورسات
-                    </h1>
-
-                    <div class="flex flex-col lg:flex-row gap-4">
-
-                        <div class="flex-1 relative">
-                            <input type="text"
-                                   id="globalSearch"
-                                   placeholder="ابحث باسم الكورس أو كلمة مفتاحية..."
-                                   onkeyup="filterCourses()"
-                                   class="w-full pl-12 pr-4 py-3 border rounded-lg
-                                   focus:ring-indigo-500 focus:border-indigo-500">
-
-                            <i data-feather="search"
-                               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"></i>
-                        </div>
-
-                        <button onclick="toggleAdvancedFilter()"
-                                class="w-full lg:w-auto px-5 py-3 bg-gray-100
-                                border rounded-lg font-medium hover:bg-gray-200
-                                flex items-center justify-center">
-                            <i data-feather="filter" class="ml-2 w-5 h-5"></i>
-                            فلاتر متقدمة
-                        </button>
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="top-nav px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-3" id="sidebarCollapse">
+                        <i class="fa fa-bars fs-5"></i>
+                    </button>
+                    <div class="d-none d-sm-block">
+                        <h2 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.5rem;">استكشاف الكورسات</h2>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Browse available learning paths</small>
                     </div>
                 </div>
 
-                <!-- Advanced Filters -->
-                <div id="advancedFilterArea"
-                     class="hidden bg-white p-6 rounded-xl shadow-lg border">
-
-                    <h3 class="text-lg font-semibold mb-4 border-b pb-2">
-                        خيارات التصفية
-                    </h3>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                        <div>
-                            <label class="block text-sm font-medium mb-2">التصنيف</label>
-                        <select id="categoryFilter"
-        onchange="filterCourses()"
-        class="w-full border rounded-lg">
-
-    <option value="">جميع التصنيفات</option>
-
-    <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
-        <% categories.forEach(function(cat) { %>
-            <option value="<%= cat.slug %>">
-                <%= cat.name %>
-            </option>
-        <% }); %>
-    <% } %>
-
-</select>
-
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium mb-2">المستوى</label>
-                            <select id="levelFilter"
-                                    onchange="filterCourses()"
-                                    class="w-full border rounded-lg">
-                                <option value="">جميع المستويات</option>
-                                <option value="beginner">مبتدئ</option>
-                                <option value="intermediate">متوسط</option>
-                                <option value="advanced">متقدم</option>
-                            </select>
-                        </div>
-
-                        <div class="flex items-end">
-                            <button onclick="resetFilters()"
-                                    class="w-full px-4 py-2 bg-red-100 text-red-700
-                                    rounded-lg hover:bg-red-200 font-medium">
-                                إعادة تعيين
-                            </button>
-                        </div>
+                <div class="d-flex align-items-center gap-4">
+                    <div class="d-none d-md-flex align-items-center bg-light rounded-pill px-3 py-2 border border-white shadow-sm">
+                        <i class="fa-solid fa-graduation-cap text-primary me-2 fs-6"></i>
+                        <span id="courseCount" class="outfit-font fw-900 text-dark me-1">0</span>
+                        <span class="text-muted small fw-bold">كورس متاح</span>
                     </div>
-                </div>
 
-                <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+                    <div class="vr d-none d-md-block mx-2 text-muted opacity-25" style="height: 30px;"></div>
 
-                    <!-- Sidebar -->
-                    <aside class="hidden lg:block lg:col-span-3 bg-white p-6
-                    rounded-xl shadow border sticky top-24 h-fit">
-
-                        <h2 class="text-xl font-bold mb-4 border-b pb-3">
-                            فلاتر أساسية
-                        </h2>
-
-                        <p class="text-sm mb-2">
-                            <i data-feather="book-open"
-                               class="inline w-4 h-4 ml-1 text-indigo-500"></i>
-                            عدد الكورسات: <span id="courseCount">0</span>
-                        </p>
-
-                        <p class="text-sm">
-                            <i data-feather="bar-chart-2"
-                               class="inline w-4 h-4 ml-1 text-indigo-500"></i>
-                            أعلى تقييم: 4.9
-                        </p>
-                    </aside>
-
-                    <!-- Courses -->
-                    <div class="lg:col-span-9">
-
-                        <p class="text-lg text-gray-600 border-b pb-2 mb-6">
-                            اختر الكورس الذي يناسب خطتك التعليمية
-                        </p>
-
-                        <div id="course-list-container"
-                             class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-
-                            <% if (courses?.length) { %>
-                                <% courses.forEach(course => { %>
-
-                                    <div class="course-card bg-white rounded-xl overflow-hidden
-                                    shadow hover:shadow-xl transition-all duration-300 flex flex-col"
-                                    data-name="<%= course.name %>"
-                                    data-category="<%= course.category_slug || '' %>"
-                                    data-level="<%= course.level || '' %>">
-
-                                      <img src= "<%= course.coverImage || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsiPQRKPG_rImaK4NrROuSy64GGUKSOfnc7A&s' %>"   alt="<%= course.coverImage || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsiPQRKPG_rImaK4NrROuSy64GGUKSOfnc7A&s' %>"
-                                             class="w-full h-40 sm:h-44 object-cover">
-
-                                        <div class="p-4 sm:p-5 space-y-3 flex flex-col h-full">
-
-                                            <% if (course.category_name) { %>
-                                                <span class="text-xs bg-indigo-100 text-indigo-700
-                                                px-2 py-1 rounded-full w-fit">
-                                                    <%= course.category_name %>
-                                                </span>
-                                            <% } %>
-
-                                            <h3 class="font-bold text-lg line-clamp-2">
-                                                <%= course.name %>
-                                            </h3>
-
-                                            <p class="text-sm text-gray-600 line-clamp-3">
-                                                <%= course.description %>
-                                            </p>
-
-                                            <div class="flex items-center text-sm">
-                                                <i data-feather="star"
-                                                   class="w-4 h-4 text-yellow-400 fill-current"></i>
-                                                <span class="mr-1 font-medium">
-                                                    <%= course.rating || 'N/A' %>
-                                                </span>
-                                                <span class="text-xs text-gray-500">
-                                                    (<%= course.reviews_count || 0 %>)
-                                                </span>
-                                            </div>
-
-                                            <a href="/website-course/<%= course.id %>"
-                                               class="mt-auto text-center py-2 bg-indigo-600
-                                               text-white rounded-lg hover:bg-indigo-700
-                                               font-medium text-sm">
-                                                عرض تفاصيل الكورس
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                <% }) %>
-                            <% } else { %>
-
-                                <div class="col-span-full text-center text-gray-500 py-12">
-                                    <i data-feather="inbox"
-                                       class="w-10 h-10 mx-auto mb-3"></i>
-                                    لا توجد كورسات متاحة
-                                </div>
-
-                            <% } %>
-
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="position-relative cursor-pointer hover-scale transition">
+                            <div class="bg-light p-2 rounded-circle">
+                                <i class="fa-regular fa-bell text-dark fs-5"></i>
+                            </div>
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle animate-pulse"></span>
                         </div>
-
-                        <div id="noResults"
-                             class="hidden text-center text-gray-500 py-12">
-                            <i data-feather="inbox"
-                               class="w-10 h-10 mx-auto mb-3"></i>
-                            لا توجد نتائج مطابقة
+                        
+                        <div class="d-flex align-items-center gap-2 ps-3 border-start border-light cursor-pointer">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold outfit-font" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                <%= user.name.charAt(0).toUpperCase() %>
+                            </div>
+                            <div class="d-none d-xl-block">
+                                <div class="small fw-800 text-dark lh-1"><%= user.name %></div>
+                                <small class="text-muted outfit-font" style="font-size: 0.7rem;">Student Account</small>
+                            </div>
                         </div>
-
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filter-section animate__animated animate__fadeIn py-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-lg-6">
+                    <div class="position-relative">
+                        <input type="text" id="globalSearch" placeholder="ابحث باسم الكورس..." onkeyup="filterCourses()" class="form-control search-input border-0 bg-light shadow-none" style="font-size: 0.85rem;">
+                        <i class="fa fa-search search-icon" style="font-size: 0.8rem;"></i>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="categoryFilter" onchange="filterCourses()" class="form-select border-0 bg-light rounded-3 shadow-none" style="font-size: 0.85rem;">
+                        <option value="">جميع التصنيفات</option>
+                        <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+                            <% categories.forEach(function(cat) { %>
+                                <option value="<%= cat.slug %>"><%= cat.name %></option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="levelFilter" onchange="filterCourses()" class="form-select border-0 bg-light rounded-3 shadow-none" style="font-size: 0.85rem;">
+                        <option value="">جميع المستويات</option>
+                        <option value="beginner">مبتدئ</option>
+                        <option value="intermediate">متوسط</option>
+                        <option value="advanced">متقدم</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course List -->
+        <div class="row g-4" id="course-list-container">
+            <% if (courses?.length) { %>
+                <% courses.forEach(course => { %>
+                    <div class="col-md-6 col-xl-4 course-card-wrapper animate__animated animate__fadeIn" 
+                         data-name="<%= course.title|| 'Test Course' %>"
+                         data-category="<%= course.category_slug || '' %>"
+                         data-level="<%= course.level || '' %>">
+                        <div class="course-card">
+                            <img src="<%= course.coverImage || '/img/classes-1.jpg' %>" class="course-img" alt="<%= course.name %>">
+                            <div class="p-4 flex-grow-1 d-flex flex-column">
+                                <div class="mb-2">
+                                    <% if (course.category_name) { %>
+                                        <span class="badge bg-secondary text-primary rounded-pill px-2 py-1 small">
+                                            <%= course.category_name %>
+                                        </span>
+                                    <% } %>
+                                    <span class="badge bg-light text-muted rounded-pill px-2 py-1 small ms-1">
+                                        <%= course.level === 'beginner' ? 'مبتدئ' : (course.level === 'intermediate' ? 'متوسط' : 'متقدم') %>
+                                    </span>
+                                </div>
+                                <h5 class="fw-bold mb-3"><%= course.title %></h5>
+                                <p class="text-muted small line-clamp-3 mb-4"><%= course.description.slice(0, 250) %><%= course.description.length > 250 ? '...' : '' %></p>
+                                
+                                <div class="mt-auto">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="text-warning me-2">
+                                            <% for(let i=1; i<=5; i++){ %>
+                                                <i class="fa fa-star <%= i <= Math.round(course.rating || 5) ? '' : 'text-muted opacity-25' %> small"></i>
+                                            <% } %>
+                                        </div>
+                                        <small class="text-muted">(<%= course.reviews_count || 0 %> تقييم)</small>
+                                    </div>
+                                    <a href="/website-course/<%= course.id %>" class="btn btn-kider w-100">
+                                        عرض التفاصيل
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="col-12 text-center py-5">
+                    <div class="stats-icon bg-light text-muted mx-auto mb-4" style="width: 80px; height: 80px;">
+                        <i class="fa fa-book-open fs-2"></i>
+                    </div>
+                    <h3 class="fw-bold">لا توجد كورسات متاحة حالياً</h3>
+                    <p class="text-muted">عد لاحقاً لاستكشاف الكورسات الجديدة</p>
+                </div>
+            <% } %>
+        </div>
+
+        <div id="noResults" class="col-12 text-center py-5 d-none animate__animated animate__fadeIn">
+            <div class="stats-icon bg-light text-muted mx-auto mb-4" style="width: 80px; height: 80px;">
+                <i class="fa fa-search fs-2"></i>
+            </div>
+            <h3 class="fw-bold">لا توجد نتائج مطابقة لبحثك</h3>
+            <p class="text-muted">جرب البحث بكلمات أخرى أو تغيير الفلاتر</p>
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة كيدر التعليمية 2024 - جميع الحقوق محفوظة</small>
+        </footer>
     </div>
-</div>
-<%- include('../../partials/bottom-nav.ejs', {currentPage: 'courses'}) %>        </div>
 
-<script>
-    feather.replace();
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 1.5rem;">
+                <div class="modal-body p-5 text-center">
+                    <div class="stats-icon bg-danger bg-opacity-10 text-danger mx-auto mb-4 animate__animated animate__pulse animate__infinite" style="width: 100px; height: 100px; border-radius: 50%;">
+                        <i class="fa fa-sign-out-alt fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">تسجيل الخروج؟</h3>
+                    <p class="text-muted mb-4 fs-5">هل أنت متأكد أنك تريد مغادرة حسابك؟</p>
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-light rounded-pill flex-grow-1" data-bs-dismiss="modal">إلغاء</button>
+                        <a href="/student/logout" class="btn btn-danger rounded-pill flex-grow-1">خروج</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    document.addEventListener('DOMContentLoaded', updateCount);
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Sidebar Toggle
+        $('#sidebarCollapse').on('click', () => $('#sidebar').toggleClass('active'));
 
-    function updateCount() {
-        const visible = document.querySelectorAll('.course-card:not([style*="display: none"])').length;
-        document.getElementById('courseCount').textContent = visible;
-        document.getElementById('noResults').classList.toggle('hidden', visible > 0);
-    }
+        // Filter Logic
+        function updateCount() {
+            const visible = $('.course-card-wrapper:not(.d-none)').length;
+            $('#courseCount').text(visible);
+            if(visible === 0) $('#noResults').removeClass('d-none');
+            else $('#noResults').addClass('d-none');
+        }
 
-    function toggleAdvancedFilter() {
-        document.getElementById('advancedFilterArea').classList.toggle('hidden');
-    }
+        function filterCourses() {
+            const search = $('#globalSearch').val().toLowerCase();
+            const category = $('#categoryFilter').val();
+            const level = $('#levelFilter').val();
 
-    function filterCourses() {
-        const search = document.getElementById('globalSearch').value.toLowerCase();
-        const category = document.getElementById('categoryFilter')?.value || '';
-        const level = document.getElementById('levelFilter')?.value || '';
+            $('.course-card-wrapper').each(function() {
+                const name = $(this).data('name');
+                const cat = $(this).data('category');
+                const lvl = $(this).data('level');
 
-        document.querySelectorAll('.course-card').forEach(card => {
-            const name = card.dataset.name;
-            const cat = card.dataset.category;
-            const lvl = card.dataset.level;
+                const matchesSearch = name.includes(search);
+                const matchesCategory = !category || cat === category;
+                const matchesLevel = !level || lvl === level;
 
-            const show =
-                name.includes(search) &&
-                (!category || cat === category) &&
-                (!level || lvl === level);
+                if (matchesSearch && matchesCategory && matchesLevel) {
+                    $(this).removeClass('d-none');
+                } else {
+                    $(this).addClass('d-none');
+                }
+            });
+            updateCount();
+        }
 
-            card.style.display = show ? '' : 'none';
+        $(document).ready(() => {
+            updateCount();
         });
-
-        updateCount();
-    }
-
-    function resetFilters() {
-        globalSearch.value = '';
-        categoryFilter && (categoryFilter.value = '');
-        levelFilter && (levelFilter.value = '');
-        filterCourses();
-        advancedFilterArea.classList.add('hidden');
-    }
-</script>
-
+    </script>
 </body>
+
 </html>

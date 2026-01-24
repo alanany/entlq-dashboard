@@ -1,22 +1,22 @@
 <nav class="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/90 backdrop-blur-md border-t border-gray-200 flex items-center justify-around px-2 pb-5 z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
     <a href="/" class="nav-tab <%= currentPage === 'dashboard' ? 'active' : '' %>">
         <i data-feather="home" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">الرئيسية</span>
+        <span class="text-[10px]"><%= t('home') %></span>
     </a>
     
     <a href="/student/my-sessions/" class="nav-tab <%= currentPage === 'sessions' ? 'active' : '' %>">
         <i data-feather="calendar" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">حصصي</span>
+        <span class="text-[10px]"><%= t('sessions_short') %></span>
     </a>
 
     <a href="/student/courses_list" class="nav-tab <%= currentPage === 'courses' ? 'active' : '' %>">
         <i data-feather="grid" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">الكورسات</span>
+        <span class="text-[10px]"><%= t('courses_short') %></span>
     </a>
 
     <a href="/student/profile" class="nav-tab <%= currentPage === 'settings' ? 'active' : '' %>">
         <i data-feather="user" class="w-6 h-6 mb-1"></i>
-        <span class="text-[10px]">حسابي</span>
+        <span class="text-[10px]"><%= t('profile_short') %></span>
     </a>
 </nav>
 

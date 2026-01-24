@@ -1,6 +1,10 @@
 (function ($) {
     "use strict";
 
+    // Initiate the wowjs
+    new WOW().init();
+
+
     // Spinner
     var spinner = function () {
         setTimeout(function () {
@@ -9,20 +13,26 @@
             }
         }, 1);
     };
-    spinner(0);
+    spinner();
+
+
+    // Sticky Navbar
+    $(window).scroll(function () {
+        if ($(this).scrollTop() > 300) {
+            $('.sticky-top').addClass('shadow-sm').css('top', '0px');
+        } else {
+            $('.sticky-top').removeClass('shadow-sm').css('top', '-100px');
+        }
+    });
     
     
-    // Initiate the wowjs
-    new WOW().init();
-    
-    
-   // Back to top button
-   $(window).scroll(function () {
-    if ($(this).scrollTop() > 300) {
-        $('.back-to-top').fadeIn('slow');
-    } else {
-        $('.back-to-top').fadeOut('slow');
-    }
+    // Back to top button
+    $(window).scroll(function () {
+        if ($(this).scrollTop() > 300) {
+            $('.back-to-top').fadeIn('slow');
+        } else {
+            $('.back-to-top').fadeOut('slow');
+        }
     });
     $('.back-to-top').click(function () {
         $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
@@ -30,54 +40,50 @@
     });
 
 
-    // Testimonial carousel
-
-    $(".testimonial-carousel").owlCarousel({
+    // Header carousel
+    $(".header-carousel").owlCarousel({
         autoplay: true,
         smartSpeed: 1500,
-        center: true,
+        items: 1,
         dots: true,
         loop: true,
-        margin: 50,
-        responsiveClass: true,
+        nav : true,
+        rtl: ($("html").attr("dir") === "rtl"),
+        navText : [
+            '<i class="bi bi-chevron-left"></i>',
+            '<i class="bi bi-chevron-right"></i>'
+        ]
+    });
+
+
+    // Testimonials carousel
+    $(".testimonial-carousel").owlCarousel({
+        autoplay: true,
+        smartSpeed: 1000,
+        margin: 24,
+        dots: false,
+        loop: true,
+        nav : true,
+        rtl: ($("html").attr("dir") === "rtl"),
+        navText : [
+            '<i class="bi bi-arrow-left"></i>',
+            '<i class="bi bi-arrow-right"></i>'
+        ],
         responsive: {
             0:{
                 items:1
             },
-            576:{
-                items:1
-            },
-            768:{
-                items:2
-            },
             992:{
                 items:2
-            },
-            1200:{
-                items:3
             }
         }
     });
 
-
-    // Modal Video
-    $(document).ready(function () {
-        var $videoSrc;
-        $('.btn-play').click(function () {
-            $videoSrc = $(this).data("src");
-        });
-        console.log($videoSrc);
-
-        $('#videoModal').on('shown.bs.modal', function (e) {
-            $("#video").attr('src', $videoSrc + "?autoplay=1&amp;modestbranding=1&amp;showinfo=0");
-        })
-
-        $('#videoModal').on('hide.bs.modal', function (e) {
-            $("#video").attr('src', $videoSrc);
-        })
+    // CounterUp
+    $('[data-toggle="counter-up"]').counterUp({
+        delay: 10,
+        time: 2000
     });
-
-
-
+    
 })(jQuery);
 

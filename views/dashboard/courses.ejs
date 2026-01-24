@@ -1,247 +1,405 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> - لوحة التحكم</title> 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
-</head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="flex h-screen overflow-hidden">
+    <meta charset="utf-8">
+    <title>كيدر - إدارة الدورات التدريبية</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-section {
+            background: #fff;
+            padding: 1.25rem;
+            border-radius: 1.25rem;
+            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.03);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .course-admin-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .course-admin-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 1rem 2rem rgba(0,0,0,0.1);
+        }
+
+        .course-img-wrapper {
+            position: relative;
+            height: 180px;
+            overflow: hidden;
+        }
+
+        .course-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .course-admin-card:hover .course-img-wrapper img {
+            transform: scale(1.1);
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 10;
+        }
+
+        .card-price {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(254, 93, 55, 0.95);
+            color: #fff;
+            padding: 0.3rem 0.8rem;
+            border-radius: 0.75rem;
+            font-weight: 800;
+            font-size: 0.85rem;
+            box-shadow: 0 0.5rem 1rem rgba(254, 93, 55, 0.3);
+        }
+
+        .btn-action {
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: 700;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-edit { background-color: var(--secondary); color: var(--primary); }
+        .btn-edit:hover { background-color: var(--primary); color: #fff; }
         
-         <%- include('./_admin_sidebar.ejs', { currentPage: 'courses', user: user }) %>
+        .btn-delete { background-color: #fff5f5; color: #ff4d4d; }
+        .btn-delete:hover { background-color: #ff4d4d; color: #fff; }
 
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-                <h2 class="text-xl font-bold text-gray-800"><%= title %></h2>
-                <a href="/addCourse" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                    + دورة جديدة
-                </a>
-            </header>
+        .search-input-group {
+            background: #f8f9fa;
+            border-radius: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            display: flex;
+            align-items: center;
+            border: 1px solid #eee;
+        }
 
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
-                
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-wrap gap-4 items-center justify-between">
-                    <div class="flex items-center gap-4 flex-1">
-                        <div class="relative flex-1 max-w-md">
-                            <i data-feather="search" class="absolute top-3 right-3 w-4 h-4 text-gray-400"></i>
-                            <input type="text" placeholder="بحث عن دورة..." class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                        </div>
-                        <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none">
-                            <option>جميع التصنيفات</option>
-                            <option>برمجة</option>
-                            <option>تسويق</option>
-                            <option>تصميم</option>
-                        </select>
-                        <select class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none">
-                            <option>الحالة: الكل</option>
-                            <option>منشور</option>
-                            <option>مسودة</option>
-                        </select>
+        .search-input-group input {
+            border: none;
+            background: transparent;
+            padding: 0.5rem;
+            font-size: 0.85rem;
+            outline: none;
+            width: 100%;
+        }
+
+    </style>
+</head>
+
+<body>
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'courses', user: user }) %>
+
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="top-nav px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fa fa-bars fs-5"></i>
+                    </button>
+                    <div>
+                        <h2 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.5rem;"><%= title %></h2>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Manage academy curriculum</small>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="/addCourse" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fa fa-plus-circle me-1"></i> دورة جديدة
+                    </a>
                     
-                    <% if (courses && courses.length > 0) { %>
-                        <% courses.forEach(course => { %>
-
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
-                            <div class="relative h-48 bg-gray-200">
-                            <img src=<%= course.coverImage %> alt="Course" class="w-full h-full object-cover">
-                                
-                                <% 
-                                    const statusClass = course.isPublished ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600';
-                                    const statusText = course.isPublished ? 'منشور' : 'مسودة';
-                                %>
-                                <span class="absolute top-3 right-3 <%= statusClass %> text-xs font-bold px-2 py-1 rounded"><%= statusText %></span>
-                            </div>
-                            <div class="p-5">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h3 class="font-bold text-lg text-gray-800 group-hover:text-indigo-600 transition-colors"><%= course.title %></h3>
-                                    <span class="text-indigo-600 font-bold">$<%= course.price ? course.price.toFixed(2) : '0.00' %></span>
-                                </div>
-                                <p class="text-sm text-gray-500 mb-4 line-clamp-2"><%= course.description %></p>
-                                
-                                <div class="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-4">
-                                    <span class="flex items-center gap-1"><i data-feather="users" class="w-4 h-4"></i> <%= course.studentsCount || 0 %> طالب</span>
-                                    <span class="flex items-center gap-1"><i data-feather="star" class="w-4 h-4 text-yellow-400"></i> <%= course.averageRating || '-' %></span>
-                                </div>
-                                
-                                <div class="mt-4 flex gap-2">
-                                    <a href="/course/<%= course._id %>" class="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50 text-center">تعديل</a>
-<button onclick="showModal('<%= course._id %>', '<%= course.title %>')" class="p-2 border border-red-100 text-red-600 bg-red-50 rounded-lg hover:bg-red-100">
-        <i data-feather="trash-2" class="w-4 h-4"></i>
-    </button>                                </div>
-                            </div>
-                        </div>
-
-                        <% }); %>
-                    <% } else { %>
-                        <div class="md:col-span-3 text-center py-10 bg-white rounded-xl shadow-sm border border-gray-100">
-                            <i data-feather="alert-circle" class="w-10 h-10 text-gray-400 mx-auto mb-3"></i>
-                            <p class="text-lg font-medium text-gray-600">لا توجد دورات حاليًا.</p>
-                            <a href="/dashboard/add-course" class="mt-4 inline-block text-indigo-600 hover:text-indigo-800 font-medium">ابدأ بإضافة دورتك الأولى.</a>
-                        </div>
-                    <% } %>
-
+                    <div class="d-flex align-items-center gap-2 ps-3 border-start border-light">
+                        <button onclick="openLogoutModal(event)" class="btn btn-light rounded-circle p-2 text-danger" title="تسجيل الخروج">
+                            <i class="fa fa-sign-out-alt"></i>
+                        </button>
+                    </div>
                 </div>
-            </main>
+            </div>
         </div>
-    </div>
-    
-   <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden transition-opacity duration-300 opacity-0">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 transform translate-y-0 transition-transform duration-300">
-        <div class="flex flex-col items-center">
-            <i data-feather="alert-triangle" class="w-12 h-12 text-red-500 mb-4"></i>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">تأكيد الحذف</h3>
-            <p class="text-gray-600 text-center mb-6">هل أنت متأكد من حذف الدورة <strong id="courseTitleToDelete" class="text-red-600">""</strong>؟ لا يمكن التراجع عن هذا الإجراء.</p>
-            
-            <input type="hidden" id="courseIdToDelete">
 
-            <div class="flex gap-3 w-full">
-                <button onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors font-medium">إلغاء</button>
-                <button onclick="confirmDeletion()" id="confirmDeleteBtn" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center">
-                    تأكيد الحذف
-                    <div id="deleteSpinner" class="spinner mr-2 hidden"></div>
-                </button>
+        <!-- Filters Section -->
+        <div class="filter-section animate__animated animate__fadeInUp">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <div class="search-input-group">
+                        <i class="fa fa-search text-muted ms-2 ps-2 border-start"></i>
+                        <input type="text" placeholder="بحث عن دورة أو معلم...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select border-0 bg-light rounded-pill px-4 outfit-font fw-600" style="font-size: 0.8rem;">
+                        <option>جميع التصنيفات</option>
+                        <option>برمجة</option>
+                        <option>تسويق</option>
+                        <option>تصميم</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select border-0 bg-light rounded-pill px-4 outfit-font fw-600" style="font-size: 0.8rem;">
+                        <option>الحالة: الكل</option>
+                        <option>منشور</option>
+                        <option>مسودة</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Courses Grid -->
+        <div class="row g-4 animate__animated animate__fadeInUp">
+            <% if (courses && courses.length > 0) { %>
+                <% courses.forEach(course => { %>
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="course-admin-card">
+                            <div class="course-img-wrapper">
+                                <% if (course.isPublished) { %>
+                                    <span class="badge rounded-pill bg-success status-badge fw-800 px-3 py-2" style="font-size: 0.65rem;">منشور</span>
+                                <% } else { %>
+                                    <span class="badge rounded-pill bg-secondary status-badge fw-800 px-3 py-2" style="font-size: 0.65rem;">مسودة</span>
+                                <% } %>
+                                
+                                <img src="<%= course.coverImage %>" alt="Course Cover">
+                                <div class="card-price outfit-font">$<%= course.price ? course.price.toFixed(2) : '0.00' %></div>
+                            </div>
+
+                            <div class="p-4 flex-grow-1 d-flex flex-column">
+                                <div class="mb-2">
+                                    <small class="text-primary fw-bold outfit-font text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">
+                                        <%= course.category ? course.category.name : 'Uncategorized' %>
+                                    </small>
+                                    <h5 class="fw-bold text-dark mt-1 line-clamp-1"><%= course.title %></h5>
+                                </div>
+                                
+                                <p class="text-muted line-clamp-2 mb-4" style="min-height: 2.5rem; font-size: 0.75rem;">
+                                    <%= course.description.slice(0, 250) %><%= course.description.length > 250 ? '...' : '' %>
+                                </p>
+                                
+                                <div class="mt-auto pt-3 border-top">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div class="d-flex gap-3">
+                                            <div class="d-flex align-items-center text-muted" style="font-size: 0.75rem;">
+                                                <i class="fa fa-users text-primary me-2"></i>
+                                                <span class="outfit-font fw-bold"><%= course.studentsCount || 0 %></span>
+                                            </div>
+                                            <div class="d-flex align-items-center text-muted" style="font-size: 0.75rem;">
+                                                <i class="fa fa-star text-warning me-2"></i>
+                                                <span class="outfit-font fw-bold"><%= course.averageRating || '-' %></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <a href="/course/<%= course._id %>" class="btn-action btn-edit flex-grow-1">
+                                            <i class="fa fa-pencil-alt"></i>
+                                            <span>تعديل</span>
+                                        </a>
+                                        <button onclick="showDeleteModal('<%= course._id %>', '<%= course.title %>')" class="btn-action btn-delete" style="width: 40px;">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="col-12 text-center py-5">
+                    <div class="bg-white rounded-5 p-5 shadow-sm border border-light">
+                        <i class="fa fa-inbox display-1 text-muted opacity-25 mb-4"></i>
+                        <h4 class="fw-bold">لا توجد دورات تدريبية حالياً</h4>
+                        <p class="text-muted">ابدأ بإثراء المحتوى التعليمي وإضافة دورتك الأولى اليوم.</p>
+                        <a href="/addCourse" class="btn btn-primary rounded-pill px-4 mt-3 fw-bold">إضافة أول دورة</a>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة كيدر التعليمية 2024 - جميع الحقوق محفوظة</small>
+        </footer>
+    </div>
+
+    <!-- Bootstrap Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 1.5rem;">
+                <div class="modal-body p-5 text-center">
+                    <div class="bg-danger bg-opacity-10 text-danger mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 40px; font-size: 2rem;">
+                        <i class="fa fa-exclamation-triangle"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">تأكيد الحذف</h4>
+                    <p class="text-muted mb-4">هل أنت متأكد من حذف الدورة <strong id="courseTitleToDelete" class="text-danger">""</strong>؟ لا يمكن التراجع عن هذا الإجراء.</p>
+                    <input type="hidden" id="courseIdToDelete">
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-light rounded-pill flex-grow-1 fw-bold" data-bs-dismiss="modal">إلغاء</button>
+                        <button onclick="confirmDeletion()" id="confirmDeleteBtn" class="btn btn-danger rounded-pill flex-grow-1 fw-bold d-flex align-items-center justify-content-center">
+                            تأكيد الحذف
+                            <span id="deleteSpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div id="toastContainer" class="fixed bottom-4 right-4 z-[70] space-y-3"></div>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-4" style="z-index: 1050"></div>
 
-<script>
-    feather.replace();
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        $('#sidebarCollapse').on('click', () => $('#sidebar').toggleClass('active'));
 
-    // ⭐️ دوال التحكم في حالة الزر والإشعارات (Spinner و Toast) ⭐️
-    // ... (تضمين دالة showToast و start/stop loading functions) ...
-  
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const courseIdInput = document.getElementById('courseIdToDelete');
+        const courseTitleDisplay = document.getElementById('courseTitleToDelete');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const deleteSpinner = document.getElementById('deleteSpinner');
+
+        function showDeleteModal(id, title) {
+            courseIdInput.value = id;
+            courseTitleDisplay.textContent = title;
+            deleteModal.show();
+        }
+
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            
-            let bgColor = 'bg-blue-600';
-            let icon = 'info';
+            let bgClass = 'bg-primary';
+            if (type === 'success') bgClass = 'bg-success';
+            if (type === 'error') bgClass = 'bg-danger';
 
-            switch (type) {
-                case 'success':
-                    bgColor = 'bg-green-600';
-                    icon = 'check-circle';
-                    break;
-                case 'error':
-                    bgColor = 'bg-red-600';
-                    icon = 'alert-triangle';
-                    break;
-                case 'info':
-                default:
-                    bgColor = 'bg-blue-600';
-                    icon = 'info';
-                    break;
-            }
-
-            toast.className = `p-4 max-w-xs text-white ${bgColor} rounded-lg shadow-xl flex items-center transform transition-transform duration-300 translate-x-full`;
-            toast.innerHTML = `
-                <i data-feather="${icon}" class="w-5 h-5 ml-3"></i>
-                <span class="text-sm font-medium">${message}</span>
-                <button onclick="this.closest('div').remove()" class="mr-2 text-white/80 hover:text-white transition-colors">
-                    <i data-feather="x" class="w-4 h-4"></i>
-                </button>
-            `;
-            container.appendChild(toast);
-            feather.replace(); 
-            
-            
-            setTimeout(() => {
-                toast.classList.remove('translate-x-full');
-            }, 10);
-
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-                toast.addEventListener('transitionend', () => toast.remove(), {once: true});
-            }, 5000); 
+            const toastElem = document.createElement('div');
+            toastElem.className = `toast align-items-center text-white ${bgClass} border-0 mb-3 animate__animated animate__slideInRight`;
+            toastElem.setAttribute('role', 'alert');
+            toastElem.setAttribute('aria-live', 'assertive');
+            toastElem.setAttribute('aria-atomic', 'true');
+            toastElem.innerHTML = `
+                <div class="d-flex p-2">
+                    <div class="toast-body fw-bold">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>`;
+            container.appendChild(toastElem);
+            const bsToast = new bootstrap.Toast(toastElem);
+            bsToast.show();
+            toastElem.addEventListener('hidden.bs.toast', () => toastElem.remove());
         }
 
+        async function confirmDeletion() {
+            const courseId = courseIdInput.value;
+            confirmDeleteBtn.disabled = true;
+            deleteSpinner.classList.remove('d-none');
 
-    const deleteModal = document.getElementById('deleteModal');
-    const courseIdInput = document.getElementById('courseIdToDelete');
-    const courseTitleDisplay = document.getElementById('courseTitleToDelete');
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    const deleteSpinner = document.getElementById('deleteSpinner');
-    const originalDeleteButtonText = 'تأكيد الحذف';
+            try {
+                const response = await fetch(`/course/${courseId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
 
-    // ------------------- منطق الـ Modal -------------------
+                const data = await response.json();
 
-    function showModal(id, title) {
-        courseIdInput.value = id;
-        courseTitleDisplay.textContent = title;
-        
-        deleteModal.classList.remove('hidden', 'opacity-0');
-        setTimeout(() => {
-            deleteModal.classList.add('opacity-100');
-        }, 10);
-    }
+                if (!response.ok) {
+                    throw new Error(data.message || 'فشل في حذف الدورة.');
+                }
 
-    function closeModal() {
-        deleteModal.classList.remove('opacity-100');
-        deleteModal.addEventListener('transitionend', function handler() {
-            deleteModal.classList.add('hidden');
-            deleteModal.removeEventListener('transitionend', handler);
-        });
-    }
+                deleteModal.hide();
+                showToast(data.message || 'تم حذف الدورة بنجاح.', 'success');
 
-    function startDeleteLoading() {
-        confirmDeleteBtn.disabled = true;
-        deleteSpinner.classList.remove('hidden');
-        confirmDeleteBtn.innerHTML = `جاري الحذف... ${deleteSpinner.outerHTML}`;
-        deleteSpinner.classList.remove('hidden');
-    }
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
 
-    function stopDeleteLoading() {
-        confirmDeleteBtn.disabled = false;
-        deleteSpinner.classList.add('hidden');
-        confirmDeleteBtn.innerHTML = originalDeleteButtonText;
-    }
-
-    // ------------------- دالة الحذف الرئيسية -------------------
-
-    async function confirmDeletion() {
-        const courseId = courseIdInput.value;
-        startDeleteLoading();
-
-        try {
-            const response = await fetch(`/course/${courseId}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'فشل في حذف الدورة.');
+            } catch (error) {
+                showToast("خطأ: " + error.message, 'error');
+                confirmDeleteBtn.disabled = false;
+                deleteSpinner.classList.add('d-none');
             }
-
-            // 1. إغلاق الـ Modal وإظهار إشعار النجاح
-            closeModal();
-            showToast(data.message || 'تم حذف الدورة بنجاح.', 'success');
-
-            // 2. إعادة تحميل الصفحة بعد 1.5 ثانية لرؤية التغيير
-               setTimeout(() => {
-                window.location.reload(); // تحويل المتصفح إلى صفحة تسجيل الدخول
-            }, 800);
-
-        } catch (error) {
-            console.error("خطأ الحذف:", error);
-            showToast(error.message || 'حدث خطأ غير متوقع أثناء الحذف.', 'error');
-            stopDeleteLoading();
         }
-    }
-
-</script>
-
+    </script>
 </body>
+
 </html>

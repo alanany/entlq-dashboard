@@ -27,6 +27,17 @@ app.use(methodOverride('_method'));
 app.use(express.json());
 app.use(cookieParser());
 const cors = require('cors');
+const i18nMiddleware = require('./middleware/i18nMiddleware');
+
+// i18n middleware
+app.use(i18nMiddleware);
+
+// Language switch route
+app.get('/lang/:locale', (req, res) => {
+    const locale = req.params.locale;
+    res.cookie('lang', locale, { maxAge: 900000, httpOnly: true });
+    res.redirect('back');
+});
 
 const multer = require('multer'); // ⭐️ استيراد Multer
 // ⭐️ تعيين مجلد public للملفات الثابتة (CSS/JS/صور) ⭐️

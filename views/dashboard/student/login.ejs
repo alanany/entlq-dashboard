@@ -1,191 +1,254 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
-</head>
-<body class="bg-indigo-50 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
- 
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - Professional Login</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
 
-    <div class="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-2xl border border-gray-100">
-        
-        <div class="text-center">
-            <h1 class="text-3xl font-extrabold text-indigo-700 flex items-center justify-center">
-                <i data-feather="key" class="ml-3 w-8 h-8"></i> تسجيل الدخول
-            </h1>
-            <p class="mt-2 text-sm text-gray-600">أهلاً بك مجدداً، سجل دخولك للمتابعة</p>
-        </div>
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
 
-        <form class="mt-8 space-y-6" onsubmit="handleSubmit(event)" method="GET">
-            
-            <div>
-                <label for="email-address" class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
-                <input id="email" name="email" type="email" autocomplete="email" required 
-                       class="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                       placeholder="أدخل بريدك الإلكتروني">
-            </div>
-            
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">كلمة المرور</label>
-                <input id="password" name="password" type="password" autocomplete="current-password" required 
-                       class="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                       placeholder="كلمة المرور">
-            </div>
-<div class="space-y-2">
-    <label class="text-sm font-bold text-gray-700">المنطقة الزمنية (تحديد تلقائي)</label>
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Inter:wght@600&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
     
-    <select disabled id="timezoneSelectDisplay" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none opacity-70">
-    </select>
-    
-    <input type="hidden" name="timezone" id="timezoneHiddenInput">
-</div>
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
 
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <input id="remember-me" name="remember-me" type="checkbox" 
-                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                    <label for="remember-me" class="mr-2 block text-sm text-gray-900">
-                        تذكرني
-                    </label>
-                </div>
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
 
-                <div class="text-sm">
-                    <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
-                        نسيت كلمة المرور؟
-                    </a>
-                </div>
-            </div>
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
 
-            <div>
-                <button id="saveBtn" type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
-                    <i data-feather="log-in" class="ml-3 w-5 h-5"></i>
-                    تسجيل الدخول
-                </button>
-            </div>
-        </form>
-        
-        <div class="mt-6 text-center">
-            <p class="text-sm text-gray-600">
-                لا تمتلك حساب؟ 
-                <a href="/student/register" class="font-medium text-indigo-600 hover:text-indigo-500">
-                    إنشاء حساب جديد
-                </a>
-            </p>
-        </div>
-        
-    </div>
-    <div id="toastContainer" class="fixed bottom-4 right-4 z-[70] space-y-3">
-    </div>
-
-    <script>
-        feather.replace();
-
-    const timeZones = Intl.supportedValuesOf('timeZone');
-    const selectDisplay = document.getElementById('timezoneSelectDisplay');
-    const hiddenInput = document.getElementById('timezoneHiddenInput');
-    const userDefault = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    // تعيين القيمة للحقل المخفي فوراً
-    hiddenInput.value = userDefault;
-console.error('userDefault',userDefault);
-    timeZones.forEach(tz => {
-        const option = document.createElement('option');
-        option.value = tz;
-        option.text = tz.replace('_', ' '); 
-        if (tz === userDefault) option.selected = true; 
-        selectDisplay.appendChild(option);
-    });
-
-        const saveBtn = document.getElementById("saveBtn");
-        const originalButtonText = saveBtn.textContent.trim(); 
-
-        // ----------------- دوال التحكم في حالة الزر -----------------
-
-        /**
-         * تفعيل وضع التحميل (Loading) على الزر.
-         * @param {boolean} isLogin - لتحديد النص (تسجيل الدخول vs إنشاء).
-         */
-        function startLoading(isLogin = false) {
-            saveBtn.disabled = true;
-            saveBtn.textContent = isLogin ? 'جاري الدخول...' : 'جاري الإنشاء...';
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
         }
 
-        /**
-         * إيقاف وضع التحميل وإعادة الزر للحالة الأصلية.
-         * @param {boolean} isLogin - لتحديد النص.
-         */
-        function stopLoading(isLogin = false) {
+        body {
+            background-color: var(--secondary);
+            overflow-x: hidden;
+        }
+
+        .login-card {
+            border: none;
+            border-radius: 2rem;
+            overflow: hidden;
+            box-shadow: 0 1rem 3rem rgba(0,0,0,.175);
+        }
+
+        .login-img {
+            background: linear-gradient(rgba(254, 93, 55, .8), rgba(254, 93, 55, .8)), url('/img/carousel-1.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            color: #fff;
+            text-align: center;
+        }
+
+        .login-form-container {
+            padding: 4rem;
+            background: #fff;
+        }
+
+        .form-floating > .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(254, 93, 55, .25);
+        }
+
+        .btn-login {
+            background-color: var(--primary);
+            border: none;
+            color: #fff;
+            padding: 1rem;
+            font-weight: 600;
+            border-radius: 1rem;
+            transition: all .3s ease;
+        }
+
+        .btn-login:hover {
+            background-color: #e44d2d;
+            transform: translateY(-2px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+        }
+
+        .social-login {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .social-btn {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #dee2e6;
+            color: var(--dark);
+            transition: all .3s ease;
+        }
+
+        .social-btn:hover {
+            background-color: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-xxl bg-white p-0">
+        <!-- Spinner Start -->
+        <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+     <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top px-4 px-lg-5 py-lg-0">
+            <a href="/" class="navbar-brand">
+                <h1 class="m-0 text-primary"><i class="fa fa-book-reader me-3"></i><%= t('brand_name') %></h1>
+            </a>
+            <div class="ms-auto d-flex align-items-center">
+                <a href="/student/login" class="btn btn-outline-primary rounded-pill px-3 me-2">Login</a>
+                <a href="/student/register" class="btn btn-primary rounded-pill px-3">Register</a>
+            </div>
+        </nav>
+      
+        <div class="container-fluid py-5" style="background-color: var(--secondary); min-height: 90vh; display: flex; align-items: center;">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="card login-card animate__animated animate__fadeIn">
+                            <div class="row g-0">
+                                <div class="col-md-5 login-img d-none d-md-flex">
+                                    <h2 class="lobster-font display-4 mb-4">Welcome Back!</h2>
+                                    <p class="fs-5 mb-5">"Education is the most powerful weapon which you can use to change the world."</p>
+                                    <div class="mt-auto">
+                                        <p class="small mb-0 opacity-75">&copy; 2024 <%= t('brand_name') %> Preschool</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-7 login-form-container">
+                                    <div class="mb-5 text-center text-md-start">
+                                        <h2 class="fw-bold mb-2">Student Login</h2>
+                                        <p class="text-muted">Enter your credentials to access your dashboard</p>
+                                    </div>
+                                    <form onsubmit="handleSubmit(event)">
+                                        <div class="form-floating mb-3">
+                                            <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                                            <label for="email">Email address</label>
+                                        </div>
+                                        <div class="form-floating mb-4">
+                                            <input type="password" class="form-control" id="password" placeholder="Password" required>
+                                            <label for="password">Password</label>
+                                        </div>
+                                        
+                                        <input type="hidden" name="timezone" id="timezoneHiddenInput">
+
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="remember-me">
+                                                <label class="form-check-label" for="remember-me">Remember Me</label>
+                                            </div>
+                                            <a href="#" class="text-primary small">Forgot Password?</a>
+                                        </div>
+
+                                        <button id="saveBtn" type="submit" class="btn btn-login w-100 mb-4">
+                                            SIGN IN
+                                        </button>
+
+                                        <div class="text-center">
+                                            <p class="text-muted">Or login with</p>
+                                            <div class="social-login">
+                                                <a href="#" class="social-btn"><i class="fab fa-google"></i></a>
+                                                <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+                                                <a href="#" class="social-btn"><i class="fab fa-apple"></i></a>
+                                            </div>
+                                            <p class="mt-5 mb-0">Don't have an account? <a href="/student/register" class="text-primary fw-bold">Register here</a></p>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+   
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050"></div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/wow/wow.min.js"></script>
+    <script src="/js/main.js"></script>
+
+    <script>
+        // Timezone Logic
+        const hiddenInput = document.getElementById('timezoneHiddenInput');
+        const userDefault = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        hiddenInput.value = userDefault;
+
+        const saveBtn = document.getElementById("saveBtn");
+        const originalButtonText = "SIGN IN"; 
+
+        function startLoading() {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> SIGNING IN...';
+        }
+
+        function stopLoading() {
             saveBtn.disabled = false;
             saveBtn.textContent = originalButtonText; 
         }
 
-        // ----------------- دوال عرض الإشعارات (Toast) -----------------
-
-        /**
-         * عرض إشعار منبثق (Toast Notification)
-         * @param {string} message - نص الرسالة.
-         * @param {string} type - نوع الإشعار: 'success', 'error', 'info'.
-         */
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            
-            let bgColor = 'bg-blue-600';
-            let icon = 'info';
+            let bgClass = 'bg-primary';
+            if (type === 'success') bgClass = 'bg-success';
+            if (type === 'error') bgClass = 'bg-danger';
 
-            switch (type) {
-                case 'success':
-                    bgColor = 'bg-green-600';
-                    icon = 'check-circle';
-                    break;
-                case 'error':
-                    bgColor = 'bg-red-600';
-                    icon = 'alert-triangle';
-                    break;
-                case 'info':
-                default:
-                    bgColor = 'bg-blue-600';
-                    icon = 'info';
-                    break;
-            }
-
-            toast.className = `p-4 max-w-xs text-white ${bgColor} rounded-lg shadow-xl flex items-center transform transition-transform duration-300 translate-x-full`;
-            toast.innerHTML = `
-                <i data-feather="${icon}" class="w-5 h-5 ml-3"></i>
-                <span class="text-sm font-medium">${message}</span>
-                <button onclick="this.closest('div').remove()" class="mr-2 text-white/80 hover:text-white transition-colors">
-                    <i data-feather="x" class="w-4 h-4"></i>
-                </button>
-            `;
-            container.appendChild(toast);
-            feather.replace(); 
-            
-            
-            setTimeout(() => {
-                toast.classList.remove('translate-x-full');
-            }, 10);
-
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-                toast.addEventListener('transitionend', () => toast.remove(), {once: true});
-            }, 5000); 
+            const toastElem = document.createElement('div');
+            toastElem.className = `toast align-items-center text-white ${bgClass} border-0 mb-2`;
+            toastElem.setAttribute('role', 'alert');
+            toastElem.setAttribute('aria-live', 'assertive');
+            toastElem.setAttribute('aria-atomic', 'true');
+            toastElem.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>`;
+            container.appendChild(toastElem);
+            const bsToast = new bootstrap.Toast(toastElem);
+            bsToast.show();
+            toastElem.addEventListener('hidden.bs.toast', () => toastElem.remove());
         }
 
-        // ----------------- دالة الإرسال الرئيسية (Handle Submit) -----------------
-
-        /**
-         * معالجة إرسال نموذج تسجيل الدخول واستدعاء Fetch API.
-         */
         async function handleSubmit(event) {
             event.preventDefault(); 
-            
-            const form = event.target;
             const userData = {
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value,
@@ -193,55 +256,25 @@ console.error('userDefault',userDefault);
                 timezone: userDefault
             };
 
-            startLoading(true); // تفعيل وضع التحميل (باستخدام نص تسجيل الدخول)
-
+            startLoading();
             try {
                 const response = await fetch('/student/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
                 });
-
                 if (!response.ok) {
                     const errorData = await response.json();
-                    // طرح كائن الخطأ كاملاً
                     throw errorData; 
                 }
-
-                // حالة النجاح:
-                const successData = await response.json();
-                stopLoading(true);
-                
-                // عرض رسالة النجاح في Toast
-                showToast("تم تسجيل الدخول بنجاح!", 'success'); 
-                
-                // التحويل إلى لوحة التحكم
-                 setTimeout(() => {
-                window.location.href = '/'; // تحويل المتصفح إلى صفحة تسجيل الدخول
-            }, 800);
-
-
+                showToast("Login Successful!", 'success'); 
+                setTimeout(() => window.location.href = '/', 1000);
             } catch (error) {
-                // معالجة الخطأ
-                stopLoading(true);
-
-                // 1. محاولة استخلاص رسالة الخطأ الخاصة بالحقول
-                const fieldError = 
-                    error?.errors?.email || 
-                    error?.errors?.password || 
-                    error?.errors?.general; 
-                
-                // 2. استخدام رسالة الخطأ العامة
-                const generalError = error?.message || "فشل تسجيل الدخول. تأكد من اتصال الشبكة.";
-                
-                // 3. الرسالة النهائية
-                const finalMessage = fieldError || generalError;
-
-                // عرض الـ Toast
-                showToast("خطأ: " + finalMessage, 'error');
+                stopLoading();
+                const msg = error?.errors?.email || error?.errors?.password || error?.message || "Login Failed";
+                showToast("Error: " + msg, 'error');
             }
         }
-        
     </script>
 </body>
 </html>

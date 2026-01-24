@@ -1,95 +1,386 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الرصيد</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
-    <style>body { font-family: 'Tajawal', sans-serif; }
 
-             @media (max-width: 1024px) {
-    body { padding-bottom: 80px; } /* نفس ارتفاع الشريط السفلي */
-}
+<head>
+    <meta charset="utf-8">
+    <title>منصة انطلق - إدارة الرصيد والدفع</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Lobster+Two:wght@700&family=Cairo:wght@400;600;700;900&family=Alexandria:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            background: #fff;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.05);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar { margin-right: -260px; }
+            .sidebar.active { margin-right: 0; }
+            .main-content { margin-right: 0; }
+        }
+
+        .nav-link {
+            color: #6c757d;
+            padding: 0.8rem 1.25rem;
+            border-radius: 0.75rem;
+            margin: 0.2rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .nav-link i { margin-left: 1rem; font-size: 1.2rem; }
+        .nav-link:hover, .nav-link.active { color: var(--primary); background-color: var(--secondary); }
+        .nav-link.active { font-weight: 700; }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-custom {
+            border: none;
+            border-radius: 1.5rem;
+            background: #fff;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-card {
+            border: none;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.03);
+            padding: 1.25rem;
+            height: 100%;
+            transition: all 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .stats-icon-kider {
+            position: relative;
+            width: 30px;
+            height: 30px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+
+        .stats-icon-kider::before {
+            position: absolute;
+            content: "";
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: rgba(255, 255, 255, .8);
+            border-radius: 30px;
+            z-index: -1;
+            transition: .5s;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+        }
+
+        .stats-card:hover .stats-icon-kider::before {
+            background: transparent;
+        }
+
+        .stats-card:hover .stats-icon-kider i {
+            color: #fff !important;
+        }
+
+        .stats-card * {
+            transition: .5s;
+        }
+
+        .table-custom thead th {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            color: #6c757d;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-custom tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.8rem;
+        }
+
+        .table-custom tbody tr:last-child td {
+            border-bottom: none;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="flex h-screen overflow-hidden">
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-                <h2 class="text-xl font-semibold text-gray-800">إدارة رصيد الحصص</h2>
-                <a href="/" class="text-sm text-indigo-600 hover:underline flex items-center font-medium">
-                    العودة للرئيسية
-                </a>
-            </header>
 
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
-                <div class="max-w-4xl mx-auto space-y-8">
-                    
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                        <h3 class="font-bold text-xl text-indigo-700 mb-4 flex items-center">
-                            <i data-feather="zap" class="ml-2 w-5 h-5"></i> ملخص الرصيد والدفع
-                        </h3>
-                        
-                        <% if (activePlan) { %>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                            <div class="p-4 bg-indigo-50 rounded-lg">
-                                <p class="text-sm font-medium text-indigo-700">الخطة النشطة</p>
-                                <p class="text-xl font-bold text-indigo-900 mt-1"><%= activePlan.courseName %> (<%= activePlan.totalSessions %> حصص)</p>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-4 text-center border-bottom">
+            <h1 class="m-0 text-primary lobster-font" style="font-size: 2rem;">
+                <i class="fa fa-book-reader me-2"></i><%= t('brand_name') %>
+            </h1>
+        </div>
+        <div class="py-4">
+            <a href="/" class="nav-link">
+                <i class="fa fa-home"></i> الرئيسية
+            </a>
+            <a href="/student/my-sessions" class="nav-link">
+                <i class="fa fa-calendar-alt"></i> جدول الحصص
+            </a>
+            <a href="/student/courses_list" class="nav-link">
+                <i class="fa fa-book"></i> استعراض الكورسات
+            </a>
+            <a href="/student/enrolled_subscription" class="nav-link text-dark">
+                <i class="fa fa-file-invoice"></i> طلبات الانضمام
+            </a>
+            <a href="/student/billing" class="nav-link active">
+                <i class="fa fa-wallet"></i> الرصيد والدفع
+            </a>
+            <div class="mt-4 pt-4 border-top mx-3">
+                <a href="/student/profile" class="nav-link text-dark">
+                    <i class="fa fa-user-cog"></i> الإعدادات
+                </a>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal" class="nav-link text-danger mt-2">
+                    <i class="fa fa-sign-out-alt"></i> تسجيل الخروج
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="top-nav">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fa fa-bars fs-5"></i>
+                    </button>
+                    <h2 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.5rem;">إدارة الرصيد والدفع</h2>
+                </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="position-relative">
+                    <i class="fa fa-bell text-muted fs-4"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-danger p-1"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto space-y-4 animate__animated animate__fadeIn">
+            
+            <!-- Balance Summary -->
+            <div class="row g-3 mb-4 animate__animated animate__fadeIn">
+                <% if (activePlan) { %>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon-kider bg-primary text-primary me-3">
+                                    <i class="fa fa-gem"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.9rem;"><%= activePlan.courseName %></h6>
+                                    <small class="text-primary fw-bold" style="font-size: 0.7rem;">الخطة النشطة</small>
+                                </div>
                             </div>
-                            <div class="p-4 bg-green-50 rounded-lg">
-                                <p class="text-sm font-medium text-green-700">الحصص المتبقية</p>
-                                <p class="text-xl font-bold text-green-900 mt-1"><%= activePlan.remainingSessionsCount %> حصص</p>
-                            </div>
-                            <div class="p-4 bg-gray-50 rounded-lg">
-                                <p class="text-sm font-medium text-gray-700">تاريخ التجديد القادم</p>
-                                <p class="text-xl font-bold text-gray-800 mt-1"><%= new Date(activePlan.renewalDate).toLocaleDateString('ar-EG') %></p>
+                            <div class="mt-2 text-start">
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill small" style="font-size: 0.65rem;"><%= activePlan.totalSessions %> حصص</span>
                             </div>
                         </div>
-                        <% } else { %>
-                            <div class="text-center py-6 text-gray-500">لا يوجد اشتراك نشط حالياً.</div>
-                        <% } %>
-                    
                     </div>
-                    
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                        <h3 class="font-bold text-xl text-gray-800 mb-4 flex items-center">
-                            <i data-feather="list" class="ml-2 w-5 h-5"></i> سجل الدفعات
-                        </h3>
-                        
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon-kider bg-success text-success me-3">
+                                    <i class="fa fa-ticket-alt"></i>
+                                </div>
+                                <div>
+                                    <h3 class="mb-0 fw-900 outfit-font lh-1 text-success" style="font-size: 1.5rem;"><%= activePlan.remainingSessionsCount %></h3>
+                                    <small class="text-muted fw-bold" style="font-size: 0.7rem;">حصص متبقية</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon-kider bg-info text-info me-3">
+                                    <i class="fa fa-sync"></i>
+                                </div>
+                                <div>
+                                    <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.1rem;"><%= new Date(activePlan.renewalDate).toLocaleDateString('ar-EG') %></h3>
+                                    <small class="text-muted fw-bold" style="font-size: 0.7rem;">تاريخ التجديد</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="col-12">
+                        <div class="stats-card text-center py-5">
+                            <div class="stats-icon-kider bg-secondary text-muted mx-auto mb-3">
+                                <i class="fa fa-info-circle"></i>
+                            </div>
+                            <p class="text-muted mb-0 fw-bold">لا يوجد اشتراك نشط حالياً.</p>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Payment History -->
+            <div class="card-custom">
+                <h5 class="fw-bold mb-4 text-dark d-flex align-items-center">
+                    <i class="fa fa-history me-2 text-primary"></i> سجل المدفوعات
+                </h5>
+                
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>الدورة / الخطة</th>
+                                <th>التاريخ</th>
+                                <th>المبلغ</th>
+                                <th class="text-center">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (billingData && billingData.length > 0) { %>
+                                <% billingData.forEach(payment => { %>
                                     <tr>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الخطة</th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المبلغ (SAR)</th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    <% billingData.forEach(payment => { %>
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= payment.courseName %> (<%= payment.totalSessions %> حصص)</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= new Date(payment.createdAt).toLocaleDateString('ar-EG') %></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-bold"><%= payment.totalAmount.toFixed(2) %></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= payment.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' %>">
-                                                <%= payment.status === 'confirmed' ? 'مكتملة' : 'قيد الانتظار' %>
+                                        <td>
+                                            <div class="fw-bold"><%= payment.courseName %></div>
+                                            <small class="text-muted"><%= payment.totalSessions %> حصص</small>
+                                        </td>
+                                        <td class="small text-muted">
+                                            <%= new Date(payment.createdAt).toLocaleDateString('ar-EG') %>
+                                        </td>
+                                        <td class="fw-bold text-dark">
+                                            <%= payment.totalAmount.toFixed(2) %> <small>SAR</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <% 
+                                                const statusMap = {
+                                                    'confirmed': { text: 'مكتملة', color: 'bg-success text-white' },
+                                                    'pending': { text: 'قيد الانتظار', color: 'bg-warning text-dark' },
+                                                    'failed': { text: 'فشلت', color: 'bg-danger text-white' }
+                                                };
+                                                const s = statusMap[payment.status] || { text: payment.status, color: 'bg-secondary text-white' };
+                                            %>
+                                            <span class="badge rounded-pill px-3 py-2 <%= s.color %>" style="font-size: 0.7rem; font-weight: 800; min-width: 80px; display: inline-block;">
+                                                <%= s.text %>
                                             </span>
                                         </td>
                                     </tr>
-                                    <% }) %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">لا توجد عمليات دفع مسجلة.</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
                 </div>
-            </main>
+            </div>
+
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة كيدر التعليمية 2024 - جميع الحقوق محفوظة</small>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal fade" id="logoutModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 1.5rem;">
+                <div class="modal-body p-5 text-center">
+                    <div class="stats-icon bg-danger bg-opacity-10 text-danger mx-auto mb-4 animate__animated animate__pulse animate__infinite" style="width: 100px; height: 100px; border-radius: 50%;">
+                        <i class="fa fa-sign-out-alt fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">تسجيل الخروج؟</h3>
+                    <p class="text-muted mb-4 fs-5">هل أنت متأكد أنك تريد مغادرة حسابك؟</p>
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-light rounded-pill flex-grow-1" data-bs-dismiss="modal">إلغاء</button>
+                        <a href="/student/logout" class="btn btn-danger rounded-pill flex-grow-1">خروج</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <script>feather.replace();</script>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        $('#sidebarCollapse').on('click', () => $('#sidebar').toggleClass('active'));
+    </script>
 </body>
+
 </html>
