@@ -599,4 +599,57 @@ h6,
         left: 20px;
         font-size: 25px;
     }
+
+    /* Mobile Contrast & Spacing Fixes */
+    .about-img img {
+        margin-bottom: 30px;
+    }
+
+    p {
+        color: #444 !important;
+        font-size: 0.95rem;
+    }
+
+    .display-2 {
+        font-size: 2.5rem !important;
+    }
+
+    /* Carousel Button Spacing */
+    .header-carousel .btn {
+        margin-bottom: 10px;
+        width: 100%;
+        display: block;
+    }
+
+    .header-carousel .me-3 {
+        margin-right: 0 !important;
+    }
+
+    /* Navbar Mobile Padding */
+    .navbar {
+        padding: 10px 15px !important;
+    }
+
+    [dir="rtl"] .navbar-brand {
+        margin-right: 10px;
+    }
+
+    /* Footer Mobile Alignment */
+    .footer .copyright {
+        text-align: center !important;
+    }
+
+    .footer .footer-menu {
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .footer .footer-menu a {
+        margin-right: 0 !important;
+        padding-right: 0 !important;
+        border-right: none !important;
+    }
 }

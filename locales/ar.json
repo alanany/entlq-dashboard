@@ -108,5 +108,17 @@
     "testimonial_3": "أفضل استثمار قمت به لنموي المهني. الشهادات فتحت لي أبواباً في كبرى شركات التقنية.",
     "sessions_short": "تعليمي",
     "courses_short": "المتجر",
-    "profile_short": "حسابي"
+    "profile_short": "حسابي",
+    "class_age": "العمر",
+    "class_time": "الوقت",
+    "class_capacity": "السعة",
+    "years": "سنوات",
+    "kids": "متعلم",
+    "teacher": "المدرب",
+    "cookies": "ملفات تعريف الارتباط",
+    "help": "المساعدة",
+    "fqas": "الأسئلة الشائعة",
+    "designed_by": "تم التصميم بواسطة",
+    "distributed_by": "تم التوزيع بواسطة",
+    "footer_home": "الرئيسية"
 }

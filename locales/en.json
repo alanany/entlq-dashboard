@@ -108,5 +108,17 @@
     "testimonial_3": "Best investment I've made for my professional growth. The certificates opened doors at top tech companies.",
     "sessions_short": "My Learning",
     "courses_short": "Marketplace",
-    "profile_short": "Profile"
+    "profile_short": "Profile",
+    "class_age": "Age",
+    "class_time": "Time",
+    "class_capacity": "Capacity",
+    "years": "Years",
+    "kids": "Kids",
+    "teacher": "Teacher",
+    "cookies": "Cookies",
+    "help": "Help",
+    "fqas": "FQAs",
+    "designed_by": "Designed By",
+    "distributed_by": "Distributed By",
+    "footer_home": "Home"
 }
