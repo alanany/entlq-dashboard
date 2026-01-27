@@ -1,282 +1,372 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الدفع وتأكيد الحجز للطلب #<%= booking._id.toString().slice(-6) %></title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
-</head>
-<body class="bg-gray-100 text-gray-800">
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - تأكيد الدفع وإدارة الحجز</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .payment-card {
+            background: #fff;
+            border-radius: 2rem;
+            border: 1px solid #f1f1f1;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.02);
+            overflow: hidden;
+        }
+
+        .info-panel {
+            background: #fafbfc;
+            border-left: 1px solid #f1f1f1;
+            padding: 2rem;
+        }
+
+        .form-panel { padding: 2.5rem; }
+
+        .form-label-custom {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-label-custom i { color: var(--primary); margin-left: 0.5rem; }
+
+        .form-control, .form-select {
+            border: 1px solid #eef0f2;
+            border-radius: 1rem;
+            padding: 0.75rem 1.25rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background-color: #f8fafc;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(254, 93, 55, 0.1);
+        }
+
+        .btn-confirm {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 1rem;
+            padding: 1rem;
+            font-weight: 800;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 0.5rem 1rem rgba(254, 93, 55, 0.2);
+        }
+
+        .btn-confirm:hover {
+            background: #e44d2d;
+            transform: translateY(-2px);
+            box-shadow: 0 0.75rem 1.5rem rgba(254, 93, 55, 0.3);
+            color: #fff;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1.25rem;
+            border-radius: 3rem;
+            font-weight: 800;
+            font-size: 0.75rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
     <% 
-        // 1. تحديد بيانات الطلب (افتراض: تم عمل Populate للطالب والكورس)
         const studentName = (booking.student && booking.student.name) || (booking.studentId && booking.studentId.name) || 'طالب غير معروف';
         const courseTitle = (booking.course && booking.course.title) || (booking.courseId && booking.courseId.title) || 'كورس محذوف';
         const totalAmount = booking.totalAmount ? booking.totalAmount.toFixed(2) : 'N/A';
         const isConfirmed = booking.status === 'confirmed';
         
-        // 2. دالة مساعدة لتحديد شارة الحالة
         function getStatusBadge(status) {
             switch(status) {
-                case 'pending': return { text: 'قيد المراجعة', color: 'bg-yellow-100 text-yellow-800' };
-                case 'awaiting_payment': return { text: 'بانتظار الدفع', color: 'bg-blue-100 text-blue-800' };
-                case 'confirmed': return { text: 'مؤكد ومدفوع', color: 'bg-green-100 text-green-800' };
-                case 'rejected': return { text: 'مرفوض', color: 'bg-red-100 text-red-800' };
-                default: return { text: 'غير محدد', color: 'bg-gray-100 text-gray-800' };
+                case 'pending': return { text: 'قيد المراجعة', class: 'bg-warning bg-opacity-10 text-warning' };
+                case 'awaiting_payment': return { text: 'بانتظار الدفع', class: 'bg-info bg-opacity-10 text-info' };
+                case 'confirmed': return { text: 'مؤكد ومدفوع', class: 'bg-success bg-opacity-10 text-success' };
+                case 'rejected': return { text: 'مرفوض', class: 'bg-danger bg-opacity-10 text-danger' };
+                default: return { text: 'غير محدد', class: 'bg-light text-muted' };
             }
         }
         const statusInfo = getStatusBadge(booking.status);
-        
-        // 3. تنسيق تاريخ البدء (للاستخدام في حقل التاريخ)
         const currentStartDate = booking.startDate ? new Date(booking.startDate).toISOString().split('T')[0] : '';
     %>
-    
-    <div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        
-        <div class="mb-6">
-            <a  href="#" onclick="history.back(); return false;"   
-               class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center font-medium transition duration-150">
-                <i data-feather="arrow-right" class="mr-1 w-4 h-4"></i> 
-                العودة لطلبات الانضمام
-            </a>
-        </div>
 
-        <div class="mb-8 border-b pb-4">
-            <h1 class="text-3xl font-extrabold text-gray-900 flex items-center">
-                <i data-feather="dollar-sign" class="ml-3 w-7 h-7 <%= isConfirmed ? 'text-green-600' : 'text-indigo-600' %>"></i> 
-                إدارة دفع الطلب رقم #<%= booking._id.toString().slice(-6) %>
-            </h1>
-            <p class="mt-2 text-lg text-gray-600">تأكيد حالة الدفع وتحديد تاريخ بدء الكورس.</p>
-        </div>
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'subscriptions', user: user }) %>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit">
-                <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2 flex items-center">
-                    <i data-feather="info" class="ml-2 w-5 h-5 text-indigo-500"></i>
-                    بيانات الطلب
-                </h3>
-                <dl class="space-y-3 text-sm">
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="top-nav px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fas fa-bars fs-5"></i>
+                    </button>
                     <div>
-                        <dt class="font-medium text-gray-500">الطالب:</dt>
-                        <dd class="text-gray-900 font-semibold"><%= studentName %></dd>
+                        <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2rem;">تأكيد الدفع وإدارة الحجز</h4>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Order Transaction #<%= booking._id.toString().slice(-6) %></small>
                     </div>
-                    <div>
-                        <dt class="font-medium text-gray-500">الكورس:</dt>
-                        <dd class="text-indigo-600 font-semibold"><%= courseTitle %></dd>
-                    </div>
-                    <div>
-                        <dt class="font-medium text-gray-500">المبلغ المطلوب:</dt>
-                        <dd class="text-2xl font-extrabold text-green-700 mt-1"><%= totalAmount %> ريال</dd>
-                    </div>
-                    <div>
-                        <dt class="font-medium text-gray-500">الحالة الحالية:</dt>
-                        <dd>
-                            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full <%= statusInfo.color %>">
-                                <%= statusInfo.text %>
-                            </span>
-                        </dd>
-                    </div>
-                 
-                  <div>
-    <label for="startDate" class="block text-base font-medium text-gray-700"> إختيار المعلم  <span class="text-red-500">*</span></label>
-    <div class="space-y-1">
-    <label for="teacher" class="text-[10px] font-black text-slate-400 mr-2 uppercase">إختيار المعلم <span class="text-red-500">*</span></label>
-    <div class="relative">
-       <select id="teacherId" name="teacherId" required
-  class="w-full bg-slate-50 border-none p-4 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none appearance-none cursor-pointer">
+                </div>
 
-  <option value="" disabled <%= !booking.teacherId ? 'selected' : '' %>>
-    اختر المعلم
-  </option>
-
-  <% teachers.forEach(teacher => { %>
-    <option 
-      value="<%= teacher._id %>"
-      <%= booking.teacherId && booking.teacherId.toString() === teacher._id.toString() ? 'selected' : '' %>
-    >
-      <%= teacher.name %>
-    </option>
-  <% }); %>
-</select>
-
-        <div class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-            <i data-feather="chevron-down" class="w-4 h-4"></i>
-        </div>
-    </div>
-</div>
-</div>
-                   
-                </dl>
-            </div>
-
-            <div class="lg:col-span-2 bg-white p-8 rounded-xl shadow-xl">
-                
-                <% if (isConfirmed) { %>
-                    <div class="text-center p-6 bg-green-50 border border-green-300 rounded-lg mb-6">
-                        <i data-feather="check-circle" class="w-12 h-12 mx-auto text-green-600 mb-3"></i>
-                        <h2 class="text-2xl font-bold text-green-700 mb-2">تم تأكيد الدفع مسبقاً!</h2>
-                        <p class="text-gray-600">يمكنك تحديث تاريخ البدء أو الملاحظات عبر النموذج أدناه.</p>
-                    </div>
-                <% } %>
-         
-                <form  class="space-y-6"  onsubmit="submitForm(event)">
-                    
-                    <h2 class="text-xl font-bold text-indigo-700 pt-4">إجراء التأكيد</h2>
-
-                    <div>
-                        <label for="startDate" class="block text-base font-medium text-gray-700">تاريخ بدء الكورس <span class="text-red-500">*</span></label>
-                        <div class="mt-1">
-                            <input type="date" id="startDate" name="startDate" required
-                                   value="<%= currentStartDate %>"
-                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-base p-2 border">
-                            <p class="mt-1 text-sm text-gray-500">تاريخ اليوم الذي ستبدأ فيه الدراسة فعلياً.</p>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="paymentStatus" class="block text-base font-medium text-gray-700">حالة الدفع <span class="text-red-500">*</span></label>
-                        <select id="paymentStatus" name="paymentStatus" required
-                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base rounded-md border">
-                            
-                            <option value="pending" <%= booking.status === 'pending' ? 'selected' : '' %>>قيد المراجعة</option>
-                            <option value="awaiting_payment" <%= booking.status === 'awaiting_payment' ? 'selected' : '' %>>بانتظار الدفع</option>
-                            <option value="confirmed" <%= booking.status === 'confirmed' ? 'selected' : '' %>>مدفوع ومؤكد</option>
-                            <option value="rejected" <%= booking.status === 'rejected' ? 'selected' : '' %>>مرفوض (إلغاء الطلب)</option>
-                        </select>
-                        <p class="mt-1 text-sm text-gray-500">اختر "مدفوع ومؤكد" لتأكيد الدفع وبدء الكورس.</p>
-                    </div>
-                    
-                    <div> <div class="mt-1">
-                            <textarea id="adminNotes" name="adminNotes" rows="3" value="<%= booking.adminNotes || '' %>
-                                      class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-base border border-gray-300 rounded-md p-2"><%= booking.adminNotes || '' %></textarea>
-                        </div>
-                    </div>
-
-                    <div class="pt-4 border-t mt-6">
-                        <button type="submit"
-                                class="w-full justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
-                            حفظ الإجراء وتحديث حالة الطلب
+                <div class="d-flex align-items-center gap-3">
+                    <button onclick="history.back()" class="btn btn-light rounded-circle p-2 text-muted" title="رجوع">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="d-flex align-items-center gap-2 ps-3 border-start border-light">
+                        <button onclick="openLogoutModal(event)" class="btn btn-light rounded-circle p-2 text-danger" title="تسجيل الخروج">
+                            <i class="fas fa-sign-out-alt"></i>
                         </button>
                     </div>
-
-                </form>
-
+                </div>
             </div>
         </div>
 
+        <div class="payment-card animate__animated animate__fadeInUp">
+            <div class="row g-0">
+                <!-- Info Panel -->
+                <div class="col-lg-4 info-panel">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="fas fa-receipt bg-white" ></i>
+                        </div>
+                        <h5 class="fw-900 text-dark mb-0">بيانات الطلب</h5>
+                        <p class="small text-muted">تفاصيل الاشتراك المراد تأكيده</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="mb-3">
+                            <label class="small text-muted d-block fw-bold mb-1 uppercase">اسم الطالب</label>
+                            <p class="fw-bold text-dark mb-0"><%= studentName %></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-muted d-block fw-bold mb-1 uppercase">الدورة التدريبية</label>
+                            <p class="fw-bold text-primary mb-0"><%= courseTitle %></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-muted d-block fw-bold mb-1 uppercase">المبلغ الإجمالي</label>
+                            <h3 class="fw-900 text-success mb-0 outfit-font">$<%= totalAmount %></h3>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-muted d-block fw-bold mb-1 uppercase">الحالة الحالية</label>
+                            <span class="status-badge <%= statusInfo.class %> text-white"><%= statusInfo.text %></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 p-3 bg-white rounded-4 border border-light text-center">
+                        <p class="small text-muted mb-2">تاريخ إنشاء الطلب</p>
+                        <p class="fw-bold text-dark small outfit-font mb-0"><%= new Date(booking.createdAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+                    </div>
+                </div>
+
+                <!-- Form Panel -->
+                <div class="col-lg-8 form-panel">
+                    <% if (isConfirmed) { %>
+                        <div class="alert alert-success border-0 rounded-4 p-4 mb-4 d-flex align-items-center">
+                            <i class="fas fa-check-circle fs-2 me-3"></i>
+                            <div>
+                                <h6 class="fw-900 mb-1">تم تأكيد الدفع لهذا الطلب</h6>
+                                <p class="small mb-0 opacity-75">يمكنك تعديل تاريخ البدء أو المعلم المسؤول أو تحديث الملاحظات الإدارية.</p>
+                            </div>
+                        </div>
+                    <% } %>
+
+                    <form onsubmit="submitForm(event)" class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label-custom"><i class="fas fa-user-tie"></i> إسناد الطلب لمعلم</label>
+                            <select id="teacherId" name="teacherId" required class="form-select">
+                                <option value="" disabled <%= !booking.teacherId ? 'selected' : '' %>>اختر المعلم المسؤول...</option>
+                                <% teachers.forEach(teacher => { %>
+                                    <option value="<%= teacher._id %>" <%= booking.teacherId && booking.teacherId.toString() === teacher._id.toString() ? 'selected' : '' %>><%= teacher.name %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom"><i class="fas fa-calendar-alt"></i> تاريخ بدء الكورس</label>
+                            <input type="date" id="startDate" name="startDate" required value="<%= currentStartDate %>" class="form-control">
+                            <small class="text-muted mt-2 d-block" style="font-size: 0.75rem;">حدد اليوم الفعلي لبداية الدراسة للجدول.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom"><i class="fas fa-shield-alt"></i> حالة الدفع النهائية</label>
+                            <select id="paymentStatus" name="paymentStatus" required class="form-select">
+                                <option value="pending" <%= booking.status === 'pending' ? 'selected' : '' %>>قيد المراجعة</option>
+                                <option value="awaiting_payment" <%= booking.status === 'awaiting_payment' ? 'selected' : '' %>>بانتظار الدفع</option>
+                                <option value="confirmed" <%= booking.status === 'confirmed' ? 'selected' : '' %>>مدفوع ومؤكد</option>
+                                <option value="rejected" <%= booking.status === 'rejected' ? 'selected' : '' %>>مرفوض (إلغاء الطلب)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label-custom"><i class="fas fa-sticky-note"></i> ملاحظات إدارية (اختياري)</label>
+                            <textarea id="adminNotes" name="adminNotes" rows="4" class="form-control" placeholder="أضف أي تفاصيل حول عملية الدفع أو الحجز..."><%= booking.adminNotes || '' %></textarea>
+                        </div>
+
+                        <div class="col-12 pt-4">
+                            <button type="submit" id="submitBtn" class="btn-confirm">
+                                <i class="fas fa-save me-2"></i> حفظ التحديثات وتأكيد الإجراء
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top border-light">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية 2024 - جميع الحقوق محفوظة</small>
+        </footer>
     </div>
-<div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
- <script>
-    feather.replace();
+    <!-- Toast Container -->
+    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-4" style="z-index: 1060;"></div>
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // 1. حساب التاريخ الأدنى (اليوم)
-        const today = new Date();
-        
-        // ضبط الساعة والدقائق والثواني إلى الصفر لتفادي مشكلة فروقات التوقيت 
-        // وتحديد اليوم الحالي كحد أدنى.
-        today.setHours(0, 0, 0, 0); 
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        // 2. حساب التاريخ الأقصى (30 يوماً من اليوم)
-        const maxDate = new Date();
-        maxDate.setDate(today.getDate() + 30); // إضافة 30 يوماً
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); 
+            const maxDate = new Date();
+            maxDate.setDate(today.getDate() + 45); 
 
-        // 3. تنسيق التواريخ إلى صيغة YYYY-MM-DD التي يقبلها حقل input type="date"
-        const formatDate = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        };
+            const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
 
-        const minDateString = formatDate(today);
-        const maxDateString = formatDate(maxDate);
+            const minDateString = formatDate(today);
+            const maxDateString = formatDate(maxDate);
+            const startDateInput = document.getElementById('startDate');
+            
+            startDateInput.setAttribute('min', minDateString); 
+            startDateInput.setAttribute('max', maxDateString); 
+        });
 
-        // 4. تطبيق القيود على حقل تاريخ البداية
-        const startDateInput = document.getElementById('startDate');
-        
-        // 🛑 التعيين للحد الأدنى (min): لا يمكن الاختيار قبل اليوم
-        startDateInput.setAttribute('min', minDateString); 
-        
-        // 🛑 التعيين للحد الأقصى (max): لا يمكن الاختيار بعد شهر
-        startDateInput.setAttribute('max', maxDateString); 
+        async function submitForm(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const originalContent = btn.innerHTML;
+            
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const paymentStatus = document.getElementById('paymentStatus').value;
+                const adminNotes = document.getElementById('adminNotes').value || '';
+                const teacherId = document.getElementById('teacherId').value;
 
-        console.log(`تم تعيين الحد الأدنى: ${minDateString}، والحد الأقصى: ${maxDateString}`);
-    });
+                if (!teacherId) {
+                    showToast('يرجى اختيار المعلم المسؤول لإكمال المهمة', 'danger');
+                    return;
+                }
 
-async function submitForm(event) {
-  event.preventDefault();
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري الحفظ...';
 
-  try {
-    const startDate = document.getElementById('startDate').value;
-    const paymentStatus = document.getElementById('paymentStatus').value;
-    const adminNotes = document.getElementById('adminNotes').value || '';
-    const teacherId = document.getElementById('teacherId').value;
+                const response = await fetch(`/booking/<%= booking._id %>/confirm-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ startDate, paymentStatus, adminNotes, teacherId })
+                });
 
-    // ✅ تحقق مبدئي
-    if (!teacherId) {
-      showToast('يرجى إسناد الطلب للمعلم', 'error');
-      return;
-    }
+                const data = await response.json();
 
-    const url = `/booking/<%= booking._id %>/confirm-payment`;
+                if (!response.ok) throw new Error(data.message || 'حدث خطأ غير متوقع');
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        startDate,
-        paymentStatus,
-        adminNotes,
-        teacherId
-      })
-    });
+                showToast(data.message || 'تم تحديث بيانات الدفع بنجاح', 'success');
 
-    // ✅ اقرأ الـ body مرة واحدة فقط
-    const data = await response.json();
+                setTimeout(() => {
+                    window.location.href = '/subscriptions';
+                }, 1000);
 
-    if (!response.ok) {
-      throw new Error(data.message || 'حدث خطأ غير متوقع');
-    }
+            } catch (error) {
+                showToast(error.message || 'حدث خطأ في الاتصال بالخادم', 'danger');
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
 
-    // ✅ نجاح
-    showToast(data.message || 'تم الحفظ بنجاح', 'success');
-
-    // ✅ تحويل بعد النجاح
-    setTimeout(() => {
-      window.location.href = '/subscriptions';
-    }, 800);
-
-  } catch (error) {
-    showToast(error.message || 'حدث خطأ في الاتصال بالخادم', 'error');
-  }
-}
-
-    function showToast(message, type = 'info') {
-  const container = document.getElementById('toastContainer');
-
-  const toast = document.createElement('div');
-  toast.className = `
-    px-4 py-3 rounded-xl text-white shadow-lg text-sm font-bold
-    ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}
-  `;
-
-  toast.textContent = message;
-
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.remove();
-  }, 3000);
-}
-
-</script>
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} shadow-lg border-0 rounded-4 animate__animated animate__fadeInUp mb-2 d-flex align-items-center`;
+            toast.style.minWidth = "250px";
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-3"></i>
+                <span class="fw-bold">${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.replace('animate__fadeInUp', 'animate__fadeOutDown');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+    </script>
 </body>
 </html>

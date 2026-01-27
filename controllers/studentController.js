@@ -352,7 +352,16 @@ const getAllCourses = async (req, res) => {
     courses: courses,
   });
 };
-
+const getAllCoursesForAdminAutoSubscription = async (req, res) => {
+  const courses = await Course.find();
+  console.log(courses);
+  // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
+  res.render("../views/dashboard/student/course-list", {
+    title: "كورسات الموقع",
+    courses: courses,
+    studentId: req.params.studentId,
+  });
+};
 const getBookPlan = async (req, res) => {
   const courseId = req.params.id;
 
@@ -373,7 +382,29 @@ const getBookPlan = async (req, res) => {
     res.status(500).render("error", { message: "فشل في تحميل بيانات الدورة." });
   }
 };
+const getAutoAdminBookPlan = async (req, res) => {
+  const courseId = req.params.id;
+  const studentId = req.params.studentId;
+  console.log(studentId,'studentId');
 
+  try {
+    const course = await Course.findById(courseId).populate("category");
+    console.log(course);
+    if (!course) {
+      return res.status(404).render("404", { message: "الدورة غير موجودة." });
+    }
+
+    // ⭐️ إرسال كائن الدورة (course) إلى ملف القالب (edit_course.ejs)
+    res.render("../views/dashboard/student/book-plan", {
+      title: `حجز الدورة:`,
+      course: course,
+      studentId: studentId,
+    });
+  } catch (err) {
+    console.error("خطأ في جلب بيانات الدورة للتعديل:", err);
+    res.status(500).render("error", { message: "فشل في تحميل بيانات الدورة." });
+  }
+};
 const getEnrolledSubscription = async (req, res) => {
   const subscription = await Subscription.find({ studentId: req.user._id })
     .populate({
@@ -830,20 +861,23 @@ const getStudentProfilePage = async (req, res) => {
         // 2. جلب جميع اشتراكات الطالب مع بيانات الكورسات والمعلمين
         const subscriptions = await Subscription.find({ studentId: studentId })
             .populate('courseId') // لجلب اسم الكورس
-            .populate('teacherId', 'name email'); // لجلب اسم وإيميل المعلم
+            .populate('teacherId'); // لجلب اسم وإيميل المعلم
 
         // 3. تجهيز البيانات للعرض في التصميم
         // سنقوم بتجميع كل الحصص من جميع الاشتراكات في مصفوفة واحدة لسجل الحصص
         let allSessions = [];
         subscriptions.forEach(sub => {
+          console.log(sub,'sub');
             sub.sessions.forEach(session => {
+              console.log(session,'session');
                 allSessions.push({
                     courseName: sub.courseId ? sub.courseId.title : 'كورس غير مسمى',
                     teacherName: sub.teacherId ? sub.teacherId.name : 'غير محدد',
                     date: session.date,
                     time: session.time,
                     status: session.status,
-                    report: session.report
+                    report: session.report,
+                    link: sub.teacherId.zoom_link
                 });
             });
         });
@@ -967,5 +1001,7 @@ module.exports = {
   getNearestSession, addStudent,
   toggleStatus,
   deleteStudent,
-  main_dashboard_get
+  main_dashboard_get,
+  getAllCoursesForAdminAutoSubscription,
+  getAutoAdminBookPlan
 };

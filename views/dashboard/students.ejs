@@ -1,253 +1,426 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الطلاب - لوحة التحكم</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - إدارة الطلاب</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
-        .swal2-popup { border-radius: 1.5rem !important; width: 35em !important; }
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-custom thead th {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            color: #6c757d;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-custom tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.8rem;
+        }
+
+        .swal2-popup { border-radius: 1.5rem !important; }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="bg-light">
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'students', user: user }) %>
 
-    <div class="flex h-screen overflow-hidden">
-        <%- include('./_admin_sidebar.ejs', { currentPage: 'students', user: user }) %>
-        
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center px-8 justify-between shadow-sm">
-                <h2 class="text-xl font-black text-gray-800">إدارة الطلاب</h2>
-                <button onclick="showAddStudentPopup()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-all flex items-center shadow-lg">
-                    <i data-feather="user-plus" class="ml-2 w-4 h-4"></i> إضافة طالب جديد
-                </button>
-            </header>
-
-            <main class="flex-1 overflow-y-auto p-8">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="w-full text-right border-collapse">
-                        <thead class="bg-gray-50 text-gray-500 text-[11px] font-black uppercase tracking-widest border-b border-gray-100">
-                            <tr>
-                                <th class="px-6 py-4">الطالب</th>
-                                <th class="px-6 py-4">البريد</th>
-                                <th class="px-6 py-4">الهاتف</th>
-                                <th class="px-6 py-4">الحالة</th>
-                                <th class="px-6 py-4 text-left">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50 text-sm">
-                            <% students.forEach(student => { %>
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <a href="/admin/student/profile/<%= student.id %>" class="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
-                                            <%= student.name %>
-                                        </a>
-                                    </td>
-                                    <td class="px-6 py-4 text-gray-500"><%= student.email %></td>
-                                    <td class="px-6 py-4 text-gray-500"><%= student.country_code %> <%= student.phone_number %></td>
-                                    <td class="px-6 py-4">
-                                    <% if (student.isActive == false) { %>
-    <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600">
-        غير نشط
-    </span>
-<% } else { %> 
-    <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-600">
-        نشط
-    </span>
-<% } %>
-                                    </td>
-                                    <td class="px-6 py-4 flex justify-end gap-2">
-                                        <% if (student.isActive == true) { %>
-                                        <button onclick="handleAccountStatus('<%= student._id %>', 'archive')" class="p-3 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all" title="أرشفة">
-                                            <i data-feather="user-x" class="w-4 h-4"></i>
-                                        </button>
-                                    <% } else { %>
-                                        <button onclick="handleAccountStatus('<%= student._id %>', 'activate')" class="p-3 text-slate-400 hover:text-green-500 hover:bg-green-50 rounded-xl transition-all" title="تفعيل">
-                                            <i data-feather="user-check" class="w-4 h-4"></i>
-                                        </button>
-                                    <% } %>
-                                        
-                                        <button onclick="confirmDelete('<%= student._id %>', '<%= student.name %>')" class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
-                                            <i data-feather="trash-2" class="w-4 h-4"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            <% }) %>
-                        </tbody>
-                    </table>
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="top-nav px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fas fa-bars fs-5"></i>
+                    </button>
+                    <div>
+                        <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2rem;">إدارة الطلاب</h4>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Manage academy students</small>
+                    </div>
                 </div>
-            </main>
+
+                <div class="d-flex align-items-center gap-3">
+                    <button onclick="showAddStudentPopup()" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fas fa-user-plus me-4"></i> إضافة طالب
+                    </button>
+                    
+                    <div class="d-flex align-items-center gap-2 ps-3 border-start border-light">
+                        <button onclick="openLogoutModal(event)" class="btn btn-light rounded-circle p-2 text-danger" title="تسجيل الخروج">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
+        
+        <div class="bg-white rounded-4 shadow-sm border border-light overflow-hidden animate__animated animate__fadeInUp">
+            <div class="table-responsive">
+                <table class="table table-custom mb-0 text-end">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3">الطالب</th>
+                            <th class="px-4 py-3">البريد</th>
+                            <th class="px-4 py-3">الهاتف</th>
+                            <th class="px-4 py-3 text-center">الحالة</th>
+                            <th class="px-4 py-3 text-start">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                        <% students.forEach(student => { %>
+                            <tr class="hover-bg-light transition-colors">
+                                <td class="px-4 py-3">
+                                    <a href="/admin/student/profile/<%= student.id %>" class="fw-bold text-primary text-decoration-none">
+                                        <%= student.name %>
+                                    </a>
+                                </td>
+                                <td class="px-4 py-3 text-muted" style="font-size: 0.8rem;"><%= student.email %></td>
+                                <td class="px-4 py-3 text-muted outfit-font" style="font-size: 0.8rem;"><%= student.country_code %> <%= student.phone_number %></td>
+                                <td class="px-4 py-3 text-center">
+                                    <% if (student.isActive == false) { %>
+                                        <span class="badge bg-danger bg-opacity-10 text-white rounded-pill px-3 py-2" style="font-size: 0.65rem;">غير نشط</span>
+                                    <% } else { %> 
+                                        <span class="badge bg-success bg-opacity-10 text-white rounded-pill px-3 py-2" style="font-size: 0.65rem;">نشط</span>
+                                    <% } %>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="d-flex gap-2">
+                                        <% if (student.isActive == true) { %>
+                                            <button onclick="handleAccountStatus('<%= student._id %>', 'archive')" class="btn btn-light btn-sm rounded-3 text-warning" title="أرشفة">
+                                                <i class="fas fa-user-slash"></i>
+                                            </button>
+                                        <% } else { %>
+                                            <button onclick="handleAccountStatus('<%= student._id %>', 'activate')" class="btn btn-light btn-sm rounded-3 text-success" title="تفعيل">
+                                                <i class="fas fa-user-check"></i>
+                                            </button>
+                                        <% } %>
+                                        <button onclick="confirmDelete('<%= student._id %>', '<%= student.name %>')" class="btn btn-light btn-sm rounded-3 text-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية 2024 - جميع الحقوق محفوظة</small>
+        </footer>
+    </div>
+</div>
+    </div>
     </div>
 
-    <script>
-        feather.replace();
-
-        // دالة إضافة طالب (نفس الحقول الـ 8)
-    async function showAddStudentPopup() {
-    const { value: formValues } = await Swal.fire({
-        title: '<span class="font-black text-2xl text-gray-800">تسجيل طالب جديد</span>',
-        html: `
-            <div class="text-right mt-6 space-y-4 px-2">
-                <div class="space-y-1">
-                    <label class="text-[11px] font-black text-gray-400 uppercase mr-1">الاسم الكامل</label>
-                    <input id="sw-name" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-bold text-sm" placeholder="أدخل اسم الطالب الثلاثي">
-                </div>
-
-                <div class="space-y-1">
-                    <label class="text-[11px] font-black text-gray-400 uppercase mr-1">البريد الإلكتروني</label>
-                    <input id="sw-email" type="email" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-bold text-sm" placeholder="example@mail.com">
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <div class="col-span-1 space-y-1">
-                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">الكود</label>
-                        <input id="sw-code" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-bold text-sm text-center" value="+966">
-                    </div>
-                    <div class="col-span-2 space-y-1">
-                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">رقم الهاتف</label>
-                        <input id="sw-phone" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-bold text-sm" placeholder="50xxxxxxx">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">الجنس</label>
-                        <select id="sw-gender" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white outline-none transition-all font-bold text-sm appearance-none">
-                            <option value="male">ذكر</option>
-                            <option value="female">أنثى</option>
-                        </select>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">المنطقة الزمنية</label>
-                        <input id="sw-timezone" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white outline-none transition-all font-bold text-sm text-center" value="Asia/Riyadh">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">كلمة المرور</label>
-                        <input id="sw-pass" type="password" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white outline-none transition-all font-bold text-sm" placeholder="******">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[11px] font-black text-gray-400 uppercase mr-1">تأكيد الكلمة</label>
-                        <input id="sw-conf-pass" type="password" class="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 focus:bg-white outline-none transition-all font-bold text-sm" placeholder="******">
-                    </div>
-                </div>
-            </div>`,
-        padding: '2rem',
-        background: '#fff',
-        borderRadius: '2rem',
-        confirmButtonText: 'إتمام التسجيل',
-        confirmButtonColor: '#4f46e5',
-        cancelButtonText: 'إلغاء',
-        showCancelButton: true,
-        customClass: {
-            confirmButton: 'rounded-xl px-8 py-3 text-sm font-black shadow-lg shadow-indigo-200',
-            cancelButton: 'rounded-xl px-8 py-3 text-sm font-bold text-gray-400'
-        },
-        preConfirm: async () => {
-            // ... (نفس منطق الجلب الخاص بك)
-            const data = {
-                name: document.getElementById('sw-name').value,
-                email: document.getElementById('sw-email').value,
-                country_code: document.getElementById('sw-code').value,
-                phone_number: document.getElementById('sw-phone').value,
-                gender: document.getElementById('sw-gender').value,
-                password: document.getElementById('sw-pass').value,
-                confirm_Password: document.getElementById('sw-conf-pass').value,
-                timezone: document.getElementById('sw-timezone').value
-            };
-
-            if (!data.name || !data.email || !data.password) return Swal.showValidationMessage('يرجى ملء الحقول الأساسية');
-            if (data.password !== data.confirm_Password) return Swal.showValidationMessage('كلمات المرور غير متطابقة');
-            
-            try {
-                const res = await fetch('/student/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (!res.ok) throw new Error(result.message || 'حدث خطأ أثناء التسجيل');
-                return result;
-            } catch (e) { Swal.showValidationMessage(e.message); }
+    <style>
+        .swal-custom-modal {
+            border-radius: 1.5rem !important;
+            padding: 2rem !important;
+            font-family: 'Cairo', sans-serif !important;
         }
-    });
-    if (formValues) {
-        Swal.fire({ icon: 'success', title: 'تمت الإضافة', showConfirmButton: false, timer: 1500 });
-        setTimeout(() => location.reload(), 1500);
-    }
-}
-   async function handleAccountStatus(studentId, action) {
-            const isArchiving = action === 'archive';
-            const { value: confirm } = await Swal.fire({
-                title: isArchiving ? 'أرشفة حساب الطالب؟' : 'إعادة تفعيل الحساب؟',
-                text: isArchiving ? 'لن يظهر الطالب في القوائم النشطة، ولكن بياناته محفوظة.' : 'سيعود الطالب للعمل والظهور في القوائم مرة أخرى.',
-                icon: isArchiving ? 'warning' : 'info',
-                showCancelButton: true,
-                confirmButtonColor: isArchiving ? '#f97316' : '#22c55e',
-                confirmButtonText: isArchiving ? 'نعم، أرشِف' : 'نعم، تفعيل',
-                cancelButtonText: 'إلغاء',
-                customClass: { popup: 'rounded-[2rem]' }
-            });
+        .swal-custom-modal .swal2-title {
+            font-weight: 900 !important;
+            color: var(--dark) !important;
+            margin-bottom: 1.5rem !important;
+        }
+        .swal-form-group {
+            margin-bottom: 1.25rem;
+            text-align: right;
+        }
+        .swal-label {
+            font-weight: 700;
+            color: #6c757d;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .swal-input-group {
+            position: relative;
+            background: #f8fafc;
+            border: 1px solid #eef0f2;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .swal-input-group:focus-within {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 0.25rem rgba(254, 93, 55, 0.1);
+        }
+        .swal-icon-box {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            background: rgba(254, 93, 55, 0.05);
+            border-left: 1px solid #eef0f2;
+        }
+        .swal-field {
+            border: none;
+            background: transparent;
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--dark);
+            outline: none;
+        }
+        .swal-field::placeholder { color: #adb5bd; font-weight: 400; }
+        .swal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    </style>
 
-            if (confirm) {
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    async function showAddStudentPopup() {
+        const { value: formValues } = await Swal.fire({
+            title: 'تسجيل طالب جديد',
+          
+            html: `
+                <div class="swal-form-container">
+                    <div class="swal-form-group">
+                        <label class="swal-label">الاسم الكامل للطالب</label>
+                        <div class="swal-input-group">
+                            <span class="swal-icon-box"><i class="fas fa-user-graduate"></i></span>
+                            <input id="sw-name" class="swal-field" placeholder="أدخل اسم الطالب الثلاثي">
+                        </div>
+                    </div>
+
+                    <div class="swal-form-group">
+                        <label class="swal-label">البريد الإلكتروني</label>
+                        <div class="swal-input-group">
+                            <span class="swal-icon-box"><i class="fas fa-envelope"></i></span>
+                            <input id="sw-email" type="email" class="swal-field" placeholder="example@mail.com">
+                        </div>
+                    </div>
+
+                    <div class="swal-grid">
+                        <div class="swal-form-group">
+                            <label class="swal-label">الكود</label>
+                            <div class="swal-input-group text-center">
+                                <input id="sw-code" class="swal-field text-center outfit-font" value="+966">
+                            </div>
+                        </div>
+                        <div class="swal-form-group">
+                            <label class="swal-label">رقم الهاتف</label>
+                            <div class="swal-input-group">
+                                <span class="swal-icon-box"><i class="fas fa-phone"></i></span>
+                                <input id="sw-phone" class="swal-field outfit-font" placeholder="50xxxxxxx">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="swal-grid">
+                        <div class="swal-form-group">
+                            <label class="swal-label">الجنس</label>
+                            <div class="swal-input-group">
+                                <span class="swal-icon-box"><i class="fas fa-venus-mars"></i></span>
+                                <select id="sw-gender" class="swal-field">
+                                    <option value="male">ذكر</option>
+                                    <option value="female">أنثى</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="swal-form-group">
+                            <label class="swal-label">المنطقة الزمنية</label>
+                            <div class="swal-input-group">
+                                <span class="swal-icon-box"><i class="fas fa-globe"></i></span>
+                                <input id="sw-timezone" class="swal-field outfit-font text-center" value="Asia/Riyadh">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="swal-grid">
+                        <div class="swal-form-group">
+                            <label class="swal-label">كلمة المرور</label>
+                            <div class="swal-input-group">
+                                <span class="swal-icon-box"><i class="fas fa-lock"></i></span>
+                                <input id="sw-pass" type="password" class="swal-field" placeholder="******">
+                            </div>
+                        </div>
+                        <div class="swal-form-group">
+                            <label class="swal-label">تأكيد كلمة المرور</label>
+                            <div class="swal-input-group">
+                                <span class="swal-icon-box"><i class="fas fa-check-shield"></i></span>
+                                <input id="sw-conf-pass" type="password" class="swal-field" placeholder="******">
+                            </div>
+                        </div>
+                    </div>
+                </div>`,
+            showCancelButton: true,
+            confirmButtonText: 'إتمام التسجيل',
+            cancelButtonText: 'إلغاء',
+            confirmButtonColor: '#FE5D37',
+            cancelButtonColor: '#f8f9fa',
+            customClass: {
+                popup: 'swal-custom-modal animate__animated animate__fadeInUp',
+                confirmButton: 'btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm',
+                cancelButton: 'btn btn-light rounded-pill px-4 py-2 fw-bold text-muted ms-2'
+            },
+            preConfirm: async () => {
+                const data = {
+                    name: document.getElementById('sw-name').value,
+                    email: document.getElementById('sw-email').value,
+                    country_code: document.getElementById('sw-code').value,
+                    phone_number: document.getElementById('sw-phone').value,
+                    gender: document.getElementById('sw-gender').value,
+                    password: document.getElementById('sw-pass').value,
+                    confirm_Password: document.getElementById('sw-conf-pass').value,
+                    timezone: document.getElementById('sw-timezone').value
+                };
+
+                if (!data.name || !data.email || !data.password) return Swal.showValidationMessage('يرجى ملء الحقول الأساسية');
+                if (data.password !== data.confirm_Password) return Swal.showValidationMessage('كلمات المرور غير متطابقة');
+                
                 try {
-                    const response = await fetch(`/student/update-status`, {
+                    const res = await fetch('/student/register', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ studentId, isActive: !isArchiving })
+                        body: JSON.stringify(data)
                     });
-                    const data = await response.json();
-                    if (response.ok) location.reload();
-                    else Swal.fire({ title: 'تنبيه', text: data.error, icon: 'error', customClass: { popup: 'rounded-[2rem]' } });
-                } catch (err) { Swal.fire('خطأ', 'تعذر الاتصال بالسيرفر', 'error'); }
+                    const result = await res.json();
+                    if (!res.ok) throw new Error(result.message || 'حدث خطأ أثناء التسجيل');
+                    return result;
+                } catch (e) { Swal.showValidationMessage(e.message); }
             }
-        }
-
-        // --- 2. نظام الحذف ال
-        // دالة الأرشفة (Toggle Archive)
-       
-        // --- 2. نظام الحذف النهائي (SweetAlert2 - نفس التصميم) ---
-        async function handleDeleteTeacher(teacherId, teacherName) {
-            const { value: confirm } = await Swal.fire({
-                title: 'حذف المعلم نهائياً؟',
-                text: `هل أنت متأكد من حذف المدرب (${teacherName})؟ لا يمكن التراجع عن هذا الإجراء وسيتم مسح كافة البيانات.`,
-                icon: 'error',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                confirmButtonText: 'نعم، احذف نهائياً',
-                cancelButtonText: 'تراجع',
-                customClass: { popup: 'rounded-[2rem]' }
+        });
+        if (formValues) {
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'تمت الإضافة بنجاح', 
+                showConfirmButton: false, 
+                timer: 2000,
+                customClass: { popup: 'swal-custom-modal' }
             });
-
-            if (confirm) {
-                try {
-                    const response = await fetch(`/admin/teachers/delete/${teacherId}`, { method: 'POST' });
-                    const data = await response.json();
-                    if (data.success) location.reload();
-                    else Swal.fire({ title: 'فشل الحذف', text: data.message, icon: 'error', customClass: { popup: 'rounded-[2rem]' } });
-                } catch (err) { Swal.fire('خطأ', 'فشل الاتصال بالسيرفر', 'error'); }
-            }
+            setTimeout(() => location.reload(), 2000);
         }
+    }
 
-        async function confirmDelete(id, name) {
-            const result = await Swal.fire({
-                title: 'حذف نهائي؟',
-                text: `سيتم حذف ${name} تماماً من قاعدة البيانات`,
-                icon: 'error',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444'
-            });
-            if (result.isConfirmed) {
+    async function handleAccountStatus(studentId, action) {
+        const isArchiving = action === 'archive';
+        const { value: confirm } = await Swal.fire({
+            title: isArchiving ? 'أرشفة حساب الطالب؟' : 'إعادة تفعيل الحساب؟',
+            text: isArchiving ? 'لن يظهر الطالب في القوائم النشطة، ولكن بياناته محفوظة.' : 'سيعود الطالب للعمل والظهور في القوائم مرة أخرى.',
+            icon: isArchiving ? 'warning' : 'info',
+            showCancelButton: true,
+            confirmButtonColor: isArchiving ? '#FE5D37' : '#22c55e',
+            confirmButtonText: isArchiving ? 'نعم، أرشِف' : 'نعم، تفعيل',
+            cancelButtonText: 'إلغاء',
+            customClass: { popup: 'swal-custom-modal' }
+        });
+
+        if (confirm) {
+            try {
+                const response = await fetch(`/student/update-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ studentId, isActive: !isArchiving })
+                });
+                const data = await response.json();
+                if (response.ok) location.reload();
+                else Swal.fire({ title: 'تنبيه', text: data.error, icon: 'error', customClass: { popup: 'swal-custom-modal' } });
+            } catch (err) { Swal.fire('خطأ', 'تعذر الاتصال بالسيرفر', 'error'); }
+        }
+    }
+
+    async function confirmDelete(id, name) {
+        const result = await Swal.fire({
+            title: 'حذف نهائي؟',
+            text: `سيتم حذف الطالب (${name}) تماماً من قاعدة البيانات. لا يمكن التراجع عن هذا الإجراء.`,
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'نعم، احذف نهائياً',
+            cancelButtonText: 'إلغاء',
+            customClass: { popup: 'swal-custom-modal' }
+        });
+        if (result.isConfirmed) {
+            try {
                 const res = await fetch(`/student/delete/${id}`, { method: 'POST' });
                 if (res.ok) location.reload();
+                else {
+                    const data = await res.json();
+                    Swal.fire({ title: 'خطأ', text: data.message || 'فشل الحذف', icon: 'error', customClass: { popup: 'swal-custom-modal' } });
+                }
+            } catch (e) {
+                Swal.fire({ title: 'خطأ', text: 'تعذر الاتصال بالسيرفر', icon: 'error', customClass: { popup: 'swal-custom-modal' } });
             }
         }
+    }
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>

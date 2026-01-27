@@ -62,61 +62,103 @@
         background: #fafbfc;
     }
 
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        display: none;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    .sidebar-close-btn {
+        display: none;
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: var(--light);
+        border: none;
+        width: 35px;
+        height: 35px;
+        border-radius: 10px;
+        align-items: center;
+        justify-content: center;
+        color: var(--dark);
+        z-index: 1001;
+    }
+
     @media (max-width: 991.98px) {
-        .sidebar { margin-right: -260px; }
-        .sidebar.active { margin-right: 0; }
+        .sidebar { 
+            right: -260px; 
+            box-shadow: none;
+        }
+        .sidebar.active { 
+            right: 0; 
+            box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+        }
+        .sidebar-close-btn { display: flex; }
     }
 </style>
 
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close-btn" id="sidebarCloseBtn">
+        <i class="fas fa-times"></i>
+    </button>
     <div class="sidebar-header">
         <h3 class="m-0 text-primary lobster-font" style="font-size: 1.8rem;">
-            <i class="fa fa-laptop-code me-2"></i><%= t('brand_name') %>
+            <i class="fas fa-laptop-code me-2"></i><%= t('brand_name') %>
         </h3>
     </div>
     
     <div class="flex-grow-1 overflow-y-auto py-3">
         <a href="/" class="nav-link-admin <%= currentPage === 'home' ? 'active' : '' %>">
-            <i class="fa fa-home"></i>
+            <i class="fas fa-home"></i>
             <span><%= t('home') %></span>
         </a>
         
         <div class="group-label-admin">الإدارة</div>
         
         <a href="/courses" class="nav-link-admin <%= currentPage === 'courses' ? 'active' : '' %>">
-            <i class="fa fa-book"></i>
+            <i class="fas fa-book"></i>
             <span><%= t('courses') %></span>
         </a>
         
         <a href="/subscriptions" class="nav-link-admin <%= currentPage === 'subscriptions' ? 'active' : '' %>">
-            <i class="fa fa-file-invoice"></i> 
+            <i class="fas fa-file-invoice"></i> 
             <span><%= t('subscriptions') %></span>
         </a>
         
         <a href="/admin/students" class="nav-link-admin <%= currentPage === 'students' ? 'active' : '' %>">
-            <i class="fa fa-users"></i>
+            <i class="fas fa-users"></i>
             <span>الطلاب</span>
         </a>
         
         <a href="/admin/teachers" class="nav-link-admin <%= currentPage === 'teachers' ? 'active' : '' %>">
-            <i class="fa fa-user-tie"></i>
+            <i class="fas fa-user-tie"></i>
             <span>المعلمون</span>
         </a>
         
         <div class="group-label-admin">النظام</div>
         
         <a href="/admin/reports" class="nav-link-admin <%= currentPage === 'reports' ? 'active' : '' %>">
-            <i class="fa fa-chart-line"></i>
+            <i class="fas fa-chart-line"></i>
             <span>التقارير المالية</span>
         </a>
         <a href="/settings" class="nav-link-admin <%= currentPage === 'settings' ? 'active' : '' %>">
-            <i class="fa fa-cog"></i>
+            <i class="fas fa-cog"></i>
             <span><%= t('settings') %></span>
         </a>
         
         <div class="group-label-admin">الحساب</div>
         <a href="#" onclick="openLogoutModal(event)" class="nav-link-admin text-danger">
-            <i class="fa fa-sign-out-alt"></i>
+            <i class="fas fa-sign-out-alt"></i>
             <span><%= t('logout') %></span>
         </a>
     </div>
@@ -133,7 +175,7 @@
         </div>
 
         <a href="#" onclick="openLogoutModal(event)" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-bold border-0 bg-danger bg-opacity-10 py-2">
-            <i class="fa fa-sign-out-alt ms-2"></i>
+            <i class="fas fa-sign-out-alt ms-2"></i>
             تسجيل الخروج
         </a>
     </div>
@@ -145,7 +187,7 @@
         <div class="modal-content border-0 shadow" style="border-radius: 1.5rem;">
             <div class="modal-body p-4 text-center">
                 <div class="bg-danger bg-opacity-10 text-danger mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 30px; font-size: 1.5rem;">
-                    <i class="fa fa-sign-out-alt"></i>
+                    <i class="fas fa-sign-out-alt"></i>
                 </div>
                 <h5 class="fw-bold mb-2">تأكيد الخروج</h5>
                 <p class="text-muted small mb-4">هل أنت متأكد أنك تريد تسجيل الخروج؟</p>
@@ -164,4 +206,29 @@
         const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
         modal.show();
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const closeBtn = document.getElementById('sidebarCloseBtn');
+        const sidebarCollapse = document.getElementById('sidebarCollapse');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+        }
+
+        if (sidebarCollapse) {
+            sidebarCollapse.addEventListener('click', toggleSidebar);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', toggleSidebar);
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', toggleSidebar);
+        }
+    });
 </script>

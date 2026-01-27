@@ -1,354 +1,657 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حجز خطة الحصص الشهرية</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <meta charset="utf-8">
+    <title>حجز خطة الحصص - <%= t('brand_name') %></title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
     <style>
-        body { font-family: 'Tajawal', sans-serif; }
-        .step-indicator { transition: all 0.3s; }
-        .plan-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05); }
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        /* Header */
+        .top-header {
+            background: #fff;
+            padding: 1.5rem 0;
+            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .btn-back {
+            background: var(--light);
+            border: 1px solid #dee2e6;
+            padding: 0.5rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-back:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        /* Step Indicator */
+        .steps-container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+
+        .step-item.active .step-number {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 0.5rem 1rem rgba(254, 93, 55, 0.3);
+        }
+
+        .step-item.completed .step-number {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #6c757d;
+        }
+
+        .step-item.active .step-label {
+            color: var(--primary);
+        }
+
+        .step-line {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            right: -50%;
+            height: 3px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+
+        .step-item:last-child .step-line {
+            display: none;
+        }
+
+        .step-item.completed .step-line {
+            background: #22c55e;
+        }
+
+        /* Content Cards */
+        .content-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.05);
+            border: 1px solid #f1f1f1;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Course Card */
+        .course-card {
+            border: 2px solid #f1f1f1;
+            border-radius: 1.25rem;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 2rem rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+        .course-card.selected {
+            border-color: var(--primary);
+            background: var(--secondary);
+        }
+
+        .course-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .course-body {
+            padding: 1.5rem;
+        }
+
+        .course-category {
+            background: var(--secondary);
+            color: var(--primary);
+            padding: 0.35rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            display: inline-block;
+            margin-bottom: 0.75rem;
+        }
+
+        .course-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .course-description {
+            font-size: 0.9rem;
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        /* Form Controls */
+        .form-select-custom,
+        .form-control-custom {
+            border: 2px solid #eef0f2;
+            border-radius: 1rem;
+            padding: 0.85rem 1.25rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            background: #f8fafc;
+            transition: all 0.3s;
+        }
+
+        .form-select-custom:focus,
+        .form-control-custom:focus {
+            background: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(254, 93, 55, 0.1);
+        }
+
+        .form-label-custom {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        /* Summary Box */
+        .summary-box {
+            background: linear-gradient(135deg, #f8fafc 0%, #fff 100%);
+            border: 2px solid var(--primary);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+        }
+
+        .summary-title {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            padding-top: 1rem;
+        }
+
+        .summary-label {
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .summary-value {
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .price-value {
+            color: #22c55e;
+            font-size: 1.5rem;
+        }
+
+        /* Payment Methods */
+        .payment-option {
+            border: 2px solid #f1f1f1;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .payment-option:hover {
+            border-color: var(--primary);
+            background: var(--secondary);
+        }
+
+        .payment-option input[type="radio"]:checked ~ .payment-content {
+            color: var(--primary);
+        }
+
+        .payment-option input[type="radio"]:checked ~ * {
+            border-color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: var(--primary);
+            border: none;
+            padding: 0.85rem 2.5rem;
+            border-radius: 2rem;
+            font-weight: 800;
+            font-size: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 0.5rem 1rem rgba(254, 93, 55, 0.2);
+        }
+
+        .btn-primary-custom:hover {
+            background: #ff4520;
+            transform: translateY(-2px);
+            box-shadow: 0 0.75rem 1.5rem rgba(254, 93, 55, 0.3);
+        }
+
+        .btn-secondary-custom {
+            background: #e9ecef;
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            color: #6c757d;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary-custom:hover {
+            background: #dee2e6;
+            color: var(--dark);
+        }
+
+        /* Alert Box */
+        .alert-custom {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-custom-title {
+            font-weight: 800;
+            color: #856404;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-custom-text {
+            color: #856404;
+            font-size: 0.9rem;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="flex h-screen overflow-hidden">
-        
-        <div class="flex-1 flex flex-col overflow-hidden">
-             <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-                <h2 class="text-xl font-semibold text-gray-800">معالج حجز خطة الحصص</h2>
-                 <a href="/" class="text-sm text-indigo-600 hover:underline flex items-center font-medium">
-                    <i data-feather="arrow-right" class="mr-1 w-4 h-4"></i> إلغاء والعودة
+<body>
+    <!-- Header -->
+    <div class="top-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary fw-900 lobster-font">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    معالج حجز خطة الحصص
+                </h5>
+                <a href="/" class="btn btn-back">
+                    <i class="fas fa-arrow-right me-2"></i>
+                    إلغاء والعودة
                 </a>
-            </header>
-
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8 space-y-8">
-                <div class="max-w-4xl mx-auto space-y-8">
-
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="flex flex-col items-center step-indicator opacity-50" id="step1Indicator">
-                            <span class="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-600 text-white font-bold">1</span>
-                            <span class="text-sm mt-1">اختيار الكورس</span>
-                        </div>
-                        <div class="flex-1 h-1 bg-gray-300 mx-4"></div>
-                        <div class="flex flex-col items-center step-indicator opacity-50" id="step2Indicator">
-                            <span class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 font-bold">2</span>
-                            <span class="text-sm mt-1">تفاصيل الحزمة</span>
-                        </div>
-                        <div class="flex-1 h-1 bg-gray-300 mx-4"></div>
-                        <div class="flex flex-col items-center step-indicator opacity-50" id="step3Indicator">
-                            <span class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 font-bold">3</span>
-                            <span class="text-sm mt-1">الدفع والتأكيد</span>
-                        </div>
-                    </div>
-                    
-                    <div id="step1" class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                        <h3 class="font-bold text-xl text-indigo-700 mb-6 flex items-center"><i data-feather="book-open" class="ml-2 w-6 h-6"></i> الخطوة 1: اختيار الكورس</h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-1 gap-6" id="courseSelection">
-                            
-                            <div class="plan-card p-5 border border-gray-200 rounded-xl cursor-pointer transition" data-course-id="MATH" data-course-name="<%= course.title %>" data-course-description="<%= course.description %> " data-course-category="رياضية">
-                                    <div class="bg-white rounded-xl overflow-hidden cursor-pointer course-card-style">
-                                
-                                <img src="<%= course.coverImage || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsiPQRKPG_rImaK4NrROuSy64GGUKSOfnc7A&s' %>" alt="<%= course.image_url || 'https://via.placeholder.com/400x200/4f46e5/ffffff?text=Course+Image' %>" 
-                                     alt="<%= course.name %>" 
-                                     class="w-full h-40 object-cover">
-
-                                <div class="p-5 space-y-3">
-                                    
-                                    <% if (course.category.name) { %>
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                            <%= course.category.name %>
-                                        </span>
-                                    <% } %>
-
-                                    <h3 class="text-xl font-bold text-gray-900 line-clamp-2"><%= course.name %></h3>
-                                    
-                                    <p class="text-gray-600 text-sm line-clamp-3 h-16"><%= course.description %></p>
-                                    
-                                    <div class="flex items-center mt-2">
-                                        <i data-feather="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
-                                        <span class="text-sm font-medium text-gray-700 mr-1"><%= course.rating || 'N/A' %></span>
-                                        <span class="text-xs text-gray-500 mr-2">(<%= course.reviews_count || 0 %> تقييم)</span>
-                                    </div>
-                                    
-                                    
-                                </div>
-                            </div>
-                                <p class="text-xs text-indigo-500 mt-3">انقر للمتابعة</p>
-                            </div>
-
-                         
-
-                        </div>
-                    </div>
-
-                    <div id="step2" class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hidden">
-                        <h3 class="font-bold text-xl text-indigo-700 mb-6 flex items-center"><i data-feather="package" class="ml-2 w-6 h-6"></i> الخطوة 2: تحديد تفاصيل الحزمة</h3>
-                        
-                        <p class="text-gray-700 mb-4">الكورس المختار: <span class="font-bold text-indigo-600" id="summaryCourse">--</span></p>
-
-                        <div class="space-y-6">
-                            
-                            <div>
-                                <label for="sessionsPerMonth" class="block text-sm font-medium text-gray-700 mb-2">عدد الحصص في الشهر:</label>
-                                <select id="sessionsPerMonth" required class="w-full md:w-1/2 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <% for( let index = 1; index < 6; index++ ) { %>
-                                     <option value="<%= index %>">"<%= index %>" حصة / أسبوعياً ("<%= 4*index %>" حصص شهر)</option>
-                                    <% } %>
-                                    
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="sessionDuration" class="block text-sm font-medium text-gray-700 mb-2">مدة كل حصة:</label>
-                                <select id="sessionDuration" required class="w-full md:w-1/2 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                   <% for( let index = 0; index < course.pricingOptions.length; index++ ) { %>
-                                   <option session-price="<%= course.pricingOptions[index].price %>" data-id="<%= course.pricingOptions[index].duration %>" data-duration="<%= course.pricingOptions[index].duration %>" value=<%= course.pricingOptions[index].price %>><%= course.pricingOptions[index].duration  %> دقيقة</option>
-                                   <% } %>
-                                   
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <h4 class="font-bold text-lg mb-2">ملخص الدفع الشهري</h4>
-                            <div class="flex justify-between text-gray-700">
-                                <span>إجمالي الدقائق شهرياً:</span>
-                                <span class="font-bold" id="totalMinutes">--</span>
-                            </div>
-                            <div class="flex justify-between text-gray-700 mt-1">
-                                <span>السعر التقريبي:</span>
-                                <span class="font-bold text-green-600" id="calculatedPrice">--</span>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">السعر قد يختلف قليلاً حسب التخصص والمدة.</p>
-                        </div>
-                        
-                        <div class="flex justify-between mt-6">
-                            <button id="backToStep1" class="px-6 py-3 bg-gray-300 text-gray-800 rounded-lg font-medium hover:bg-gray-400">
-                                <i data-feather="arrow-right" class="mr-2 w-5 h-5 inline-block"></i> عودة
-                            </button>
-                            <button id="goToStep3" disabled class="px-4 py-2 bg-indigo-400 text-white rounded-lg font-medium hover:bg-indigo-500 disabled:opacity-50">
-                                المتابعة للدفع <i data-feather="arrow-left" class="ml-2 w-5 h-5 inline-block"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div id="step3" class="bg-white p-6 rounded-xl shadow-md border border-gray-100 hidden">
-                        <h3 class="font-bold text-xl text-indigo-700 mb-6 flex items-center"><i data-feather="credit-card" class="ml-2 w-6 h-6"></i> الخطوة 3: الدفع والتأكيد</h3>
-                        
-                        <div class="p-4 bg-yellow-50 border-yellow-200 border rounded-lg mb-6">
-                            <p class="font-semibold text-yellow-800">تفاصيل الخطة:</p>
-                            <p id="finalSummary" class="text-sm text-yellow-700 mt-1">--</p>
-                            <p class="text-lg font-bold text-green-600 mt-2">المبلغ المطلوب: <span id="finalPriceDisplay">--</span></p>
-                        </div>
-
-                        <div class="space-y-4">
-                            <h4 class="font-semibold text-gray-800">اختر طريقة الدفع:</h4>
-                            
-                            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                                <input type="radio" name="paymentMethod" value="visa" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500" checked>
-                                <span class="mr-3 font-medium text-gray-700">بطاقة ائتمانية (Visa/Mastercard)</span>
-                                <i data-feather="credit-card" class="w-5 h-5 mr-auto"></i>
-                            </label>
-
-                            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                                <input type="radio" name="paymentMethod" value="mada" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
-                                <span class="mr-3 font-medium text-gray-700">مدى (Mada)</span>
-                                <i data-feather="shield" class="w-5 h-5 mr-auto"></i>
-                            </label>
-                            
-                        </div>
-
-                        <div class="flex justify-between mt-6">
-                            <button id="backToStep2" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg font-medium hover:bg-gray-400">
-                                <i data-feather="arrow-right" class="mr-2 w-5 h-5 inline-block"></i> عودة
-                            </button>
-                          <form id="paymentForm" action="#" method="POST">
-    <button id="checkoutButton" type="button" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">
-        إتمام عملية الدفع <i data-feather="check" class="ml-2 w-5 h-5 inline-block"></i>
-    </button>
-</form>
-                        </div>
-                    </div>
-
-                </div>
-            </main>
+            </div>
         </div>
     </div>
-      <div
-      id="toastContainer"
-      class="fixed bottom-4 right-4 z-[70] space-y-3"
-    ></div>
-<script>
-    function showToast(message, type = "info") {
-        const container = document.getElementById("toastContainer");
-        const toast = document.createElement("div");
-        let bgColor =
-          type === "success"
-            ? "bg-green-600"
-            : type === "error"
-            ? "bg-red-600"
-            : "bg-blue-600";
-        let icon =
-          type === "success"
-            ? "check-circle"
-            : type === "error"
-            ? "alert-triangle"
-            : "info";
 
-        toast.className = `p-4 min-w-[250px] text-white ${bgColor} rounded-xl shadow-xl flex items-center justify-between transform transition-all duration-300 translate-x-full opacity-0`;
-        toast.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <i data-feather="${icon}" class="w-5 h-5"></i>
-                    <span class="text-sm font-bold">${message}</span>
+    <!-- Main Content -->
+    <div class="container pb-5">
+        <!-- Steps Indicator -->
+        <div class="steps-container">
+            <div class="d-flex justify-content-between position-relative">
+                <div class="step-item active" id="step1Indicator">
+                    <div class="step-number">1</div>
+                    <div class="step-label">اختيار الكورس</div>
+                    <div class="step-line"></div>
                 </div>
-                <button onclick="this.parentElement.remove()" class="mr-4"><i data-feather="x" class="w-4 h-4"></i></button>
-            `;
+                <div class="step-item" id="step2Indicator">
+                    <div class="step-number">2</div>
+                    <div class="step-label">تفاصيل الحزمة</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step-item" id="step3Indicator">
+                    <div class="step-number">3</div>
+                    <div class="step-label">الدفع والتأكيد</div>
+                </div>
+            </div>
+        </div>
 
-        container.appendChild(toast);
-        feather.replace();
+        <!-- Step 1: Course Selection -->
+        <div id="step1" class="content-card animate__animated animate__fadeIn">
+            <h3 class="card-title">
+                <i class="fas fa-book-open text-primary me-2"></i>
+                الخطوة 1: اختيار الكورس
+            </h3>
 
-        setTimeout(() => {
-          toast.classList.remove("translate-x-full", "opacity-0");
-        }, 10);
+            <div class="course-card" data-course-id="MATH" data-course-name="<%= course.title %>" data-course-description="<%= course.description %>">
+                <img src="<%= course.coverImage || 'https://via.placeholder.com/400x200/FE5D37/ffffff?text=Course' %>" alt="<%= course.title %>" class="course-image">
+                <div class="course-body">
+                    <% if (course.category && course.category.name) { %>
+                        <span class="course-category">
+                            <i class="fas fa-tag me-1"></i>
+                            <%= course.category.name %>
+                        </span>
+                    <% } %>
+                    <h4 class="course-title"><%= course.title %></h4>
+                    <p class="course-description"><%= course.description %></p>
+                    <div class="mt-3">
+                        <small class="text-primary fw-bold">
+                            <i class="fas fa-mouse-pointer me-1"></i>
+                            انقر للمتابعة
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        setTimeout(() => {
-          toast.classList.add("translate-x-full", "opacity-0");
-          setTimeout(() => toast.remove(), 300);
-        }, 4000);
-      }
-    // 💡 افتراض: يجب أن يكون لديك متغيرات EJS تحمل ID الكورس والطالب من الباك-إند
-    // يمكنك استخراجها من عناصر مخفية أو تخزينها في متغيرات JavaScript هنا:
+        <!-- Step 2: Package Details -->
+        <div id="step2" class="content-card hidden animate__animated animate__fadeIn">
+            <h3 class="card-title">
+                <i class="fas fa-box-open text-primary me-2"></i>
+                الخطوة 2: تحديد تفاصيل الحزمة
+            </h3>
 
+            <div class="alert alert-info rounded-4 mb-4">
+                <strong>الكورس المختار:</strong>
+                <span class="text-primary fw-bold" id="summaryCourse">--</span>
+            </div>
 
-    // ----------------------------------------------------
-    // دالة المعالجة الرئيسية
-    // ----------------------------------------------------
-    function checkout() {
-            const STUDENT_ID = '<%= user._id %>'; 
-    const COURSE_ID = '<%= course._id %>'; 
-    const API_ENDPOINT = '/student/checkout'; // ⬅️ المسار الصحيح لنقطة نهاية Express
-    console.log(COURSE_ID,'COURSE_ID');
-    console.log(STUDENT_ID,'STUDENT_ID');
-                                const sessionCount = document.getElementById('sessionsPerMonth').value;
-    console.log(sessionCount,'sessionCount');
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label for="sessionsPerMonth" class="form-label-custom">
+                        <i class="fas fa-calendar-week text-primary me-2"></i>
+                        عدد الحصص في الأسبوع:
+                    </label>
+                    <select id="sessionsPerMonth" required class="form-select form-select-custom">
+                        <% for(let index = 1; index < 6; index++) { %>
+                            <option value="<%= index %>"><%= index %> حصة أسبوعياً (<%= 4*index %> حصص شهرياً)</option>
+                        <% } %>
+                    </select>
+                </div>
 
-                            const select = document.getElementById('sessionDuration');
-            const pricingOptionsSelectedId = select.options[select.selectedIndex].getAttribute('data-id');
-                       const sessionsPrice = select.options[select.selectedIndex].getAttribute('session-price');
+                <div class="col-md-6">
+                    <label for="sessionDuration" class="form-label-custom">
+                        <i class="fas fa-clock text-primary me-2"></i>
+                        مدة كل حصة:
+                    </label>
+                    <select id="sessionDuration" required class="form-select form-select-custom">
+                        <% for(let index = 0; index < course.pricingOptions.length; index++) { %>
+                            <option 
+                                session-price="<%= course.pricingOptions[index].price %>" 
+                                data-id="<%= course.pricingOptions[index].duration %>" 
+                                data-duration="<%= course.pricingOptions[index].duration %>" 
+                                value="<%= course.pricingOptions[index].price %>">
+                                <%= course.pricingOptions[index].duration %> دقيقة
+                            </option>
+                        <% } %>
+                    </select>
+                </div>
+            </div>
 
-            
-          
-    console.log(pricingOptionsSelectedId,'selectedId');
-        // 1. جلب الزر للتحكم في حالته
-        const button = document.getElementById('checkoutButton');
-        
-        // منع النقر المتعدد وتحديث حالة الزر
-        button.disabled = true;
-        button.innerHTML = 'جاري إعداد الطلب...';
+            <div class="summary-box mt-4">
+                <h5 class="summary-title">
+                    <i class="fas fa-file-invoice-dollar text-primary me-2"></i>
+                    ملخص الدفع الشهري
+                </h5>
+                <div class="summary-row">
+                    <span class="summary-label">إجمالي الدقائق شهرياً:</span>
+                    <span class="summary-value outfit-font" id="totalMinutes">--</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">السعر الإجمالي:</span>
+                    <span class="summary-value price-value outfit-font" id="calculatedPrice">--</span>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    <i class="fas fa-info-circle me-1"></i>
+                    السعر قد يختلف قليلاً حسب التخصص والمدة
+                </small>
+            </div>
 
-        // 2. جلب قيم النموذج
-  
+            <div class="d-flex justify-content-between mt-4">
+                <button id="backToStep1" class="btn btn-secondary-custom">
+                    <i class="fas fa-arrow-right me-2"></i>
+                    عودة
+                </button>
+                <button id="goToStep3" disabled class="btn btn-primary-custom">
+                    المتابعة للدفع
+                    <i class="fas fa-arrow-left ms-2"></i>
+                </button>
+            </div>
+        </div>
 
-        if (!pricingOptionsSelectedId || !sessionCount || !COURSE_ID || !STUDENT_ID) {
-            alert('خطأ: بيانات النموذج أو المعرفات الأساسية مفقودة.');
-            resetButtonState(button);
-            return;
-        }
+        <!-- Step 3: Payment & Confirmation -->
+        <div id="step3" class="content-card hidden animate__animated animate__fadeIn">
+            <h3 class="card-title">
+                <i class="fas fa-credit-card text-primary me-2"></i>
+                الخطوة 3: الدفع والتأكيد
+            </h3>
 
-        
-        // حساب الإجمالي (مثال)
+            <div class="alert-custom">
+                <div class="alert-custom-title">
+                    <i class="fas fa-clipboard-check me-2"></i>
+                    تفاصيل الخطة:
+                </div>
+                <p id="finalSummary" class="alert-custom-text mb-2">--</p>
+                <h4 class="text-success fw-900 mb-0 outfit-font">
+                    المبلغ المطلوب: <span id="finalPriceDisplay">--</span>
+                </h4>
+            </div>
 
-        // 3. تجميع البيانات للإرسال
-        const bookingData = {
-            studentId: STUDENT_ID, 
-            courseId: COURSE_ID, 
-            selectedPriceOption: pricingOptionsSelectedId,
+            <h5 class="fw-bold mb-3">
+                <i class="fas fa-wallet text-primary me-2"></i>
+                اختر طريقة الدفع:
+            </h5>
 
-            numberOfSessionsPerMonth: sessionCount*4,
-            totalAmount: sessionsPrice*(sessionCount*4)
-        };
-console.log(bookingData,'bookingData');
-        // 4. إطلاق طلب Fetch (POST) إلى الباك-إند
-        fetch(API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // 'Authorization': 'Bearer ' + getUserToken(), // إذا لزم الأمر
-            },
-            body: JSON.stringify(bookingData)
-        })
-        .then(response => {
-            // التحقق من حالة الاستجابة (مثل 200 OK أو 201 Created)
-            if (!response.ok) {
-                // محاولة قراءة رسالة الخطأ من الباك-إند (إذا كانت JSON)
-                return response.json().then(err => { throw new Error(err.message || 'فشل الاتصال بالخادم.'); });
-            }
-            return response.json();
-        })
-        .then(data => {
-            
-              showToast("تم إنشاء طلب الحجز بنجاح بنجاح!", "success");
+            <label class="payment-option">
+                <div class="d-flex align-items-center">
+                    <input type="radio" name="paymentMethod" value="visa" class="form-check-input me-3" checked>
+                    <div class="payment-content flex-grow-1">
+                        <div class="fw-bold">بطاقة ائتمانية</div>
+                        <small class="text-muted">Visa / Mastercard</small>
+                    </div>
+                    <i class="fas fa-credit-card text-primary fs-4"></i>
+                </div>
+            </label>
 
-            // 5. التعامل مع النجاح
-          
-            // التوجيه إلى صفحة الدفع (مثال: استخدام معرف الطلب المُعاد من الخادم)
-            window.location.href = `/`;
-        })
-        .catch(error => {
-            // 6. التعامل مع الأخطاء
-            console.error('خطأ في عملية الدفع:', error);
-            alert(`❌ فشلت عملية الدفع: ${error.message}`);
-            
-            // إعادة تفعيل الزر بعد الفشل
-            resetButtonState(button);
-        });
-    }
+            <label class="payment-option">
+                <div class="d-flex align-items-center">
+                    <input type="radio" name="paymentMethod" value="mada" class="form-check-input me-3">
+                    <div class="payment-content flex-grow-1">
+                        <div class="fw-bold">مدى</div>
+                        <small class="text-muted">Mada Card</small>
+                    </div>
+                    <i class="fas fa-shield-alt text-primary fs-4"></i>
+                </div>
+            </label>
 
-    // ----------------------------------------------------
-    // دالة مساعدة لإعادة الزر لوضعه الأصلي
-    // ----------------------------------------------------
-    function resetButtonState(button) {
-        button.disabled = false;
-        button.innerHTML = 'إتمام عملية الدفع <i data-feather="check" class="ml-2 w-5 h-5 inline-block"></i>';
-        
-        // إعادة تهيئة أيقونات Feather
-        if (typeof feather !== 'undefined') {
-            feather.replace();
-        }
-    }
+            <div class="d-flex justify-content-between mt-4">
+                <button id="backToStep2" class="btn btn-secondary-custom">
+                    <i class="fas fa-arrow-right me-2"></i>
+                    عودة
+                </button>
+                <button id="checkoutButton" type="button" class="btn btn-primary-custom">
+                    إتمام عملية الدفع
+                    <i class="fas fa-check ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Toast Container -->
+    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-4" style="z-index: 1050"></div>
 
-    // ----------------------------------------------------
-    // تهيئة الصفحة
-    // ----------------------------------------------------
-    document.addEventListener('DOMContentLoaded', () => {
-        const checkoutButton = document.getElementById('checkoutButton');
-        
-        if (checkoutButton) {
-            // ربط دالة checkout بحدث النقر
-            checkoutButton.addEventListener('click', checkout);
-        }
-
-        // تهيئة أيقونات Feather عند التحميل
-        if (typeof feather !== 'undefined') {
-            feather.replace();
-        }
-    });
-</script>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        feather.replace();
+          const CURRENT = {
+    id: "<%= user._id %>",
+    role: "<%= user.role %>",
+    studentId: "<%=studentId %>"
+  };
+          console.log(CURRENT.studentId,'studentId');
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            let bgClass = 'bg-primary';
+            if (type === 'success') bgClass = 'bg-success';
+            if (type === 'error') bgClass = 'bg-danger';
 
+            const toastElem = document.createElement('div');
+            toastElem.className = `toast align-items-center text-white ${bgClass} border-0 mb-3`;
+            toastElem.setAttribute('role', 'alert');
+            toastElem.innerHTML = `
+                <div class="d-flex p-3">
+                    <div class="toast-body fw-bold">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>`;
+            container.appendChild(toastElem);
+            const bsToast = new bootstrap.Toast(toastElem);
+            bsToast.show();
+            toastElem.addEventListener('hidden.bs.toast', () => toastElem.remove());
+        }
+
+        // Checkout function
+        function checkout() {
+          
+            const STUDENT_ID = CURRENT.role=='admin'?CURRENT.studentId:CURRENT.id;
+            const COURSE_ID = '<%= course._id %>';
+            const API_ENDPOINT = '/student/checkout';
+
+            const sessionCount = document.getElementById('sessionsPerMonth').value;
+            const select = document.getElementById('sessionDuration');
+            const pricingOptionsSelectedId = select.options[select.selectedIndex].getAttribute('data-id');
+            const sessionsPrice = select.options[select.selectedIndex].getAttribute('session-price');
+
+            const button = document.getElementById('checkoutButton');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري إعداد الطلب...';
+
+            if (!pricingOptionsSelectedId || !sessionCount || !COURSE_ID || !STUDENT_ID) {
+                showToast('خطأ: بيانات النموذج مفقودة', 'error');
+                resetButtonState(button);
+                return;
+            }
+
+            const bookingData = {
+                studentId: STUDENT_ID,
+                courseId: COURSE_ID,
+                selectedPriceOption: pricingOptionsSelectedId,
+                numberOfSessionsPerMonth: sessionCount * 4,
+                totalAmount: sessionsPrice * (sessionCount * 4)
+            };
+
+            fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bookingData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message || 'فشل الاتصال بالخادم'); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                showToast('تم إنشاء طلب الحجز بنجاح!', 'success');
+                setTimeout(() => window.location.href = '/', 1500);
+            })
+            .catch(error => {
+                console.error('خطأ في عملية الدفع:', error);
+                showToast(`فشلت عملية الدفع: ${error.message}`, 'error');
+                resetButtonState(button);
+            });
+        }
+
+        function resetButtonState(button) {
+            button.disabled = false;
+            button.innerHTML = 'إتمام عملية الدفع <i class="fas fa-check ms-2"></i>';
+        }
+
+        // Page initialization
         let currentStep = 1;
         let selectedPlan = { courseId: null, courseName: null, sessions: null, duration: null, price: 0 };
-        
-        const priceMap = {
-            'MATH': { '30': 15, '45': 20, '60': 25 },
-            'ENG': { '30': 18, '45': 23, '60': 28 }
-        };
 
         const elements = {
             step1: document.getElementById('step1'),
@@ -357,7 +660,7 @@ console.log(bookingData,'bookingData');
             step1Indicator: document.getElementById('step1Indicator'),
             step2Indicator: document.getElementById('step2Indicator'),
             step3Indicator: document.getElementById('step3Indicator'),
-            courseCards: document.querySelectorAll('.plan-card'),
+            courseCard: document.querySelector('.course-card'),
             summaryCourse: document.getElementById('summaryCourse'),
             sessionsPerMonth: document.getElementById('sessionsPerMonth'),
             sessionDuration: document.getElementById('sessionDuration'),
@@ -372,105 +675,79 @@ console.log(bookingData,'bookingData');
             const indicators = [elements.step1Indicator, elements.step2Indicator, elements.step3Indicator];
             indicators.forEach((ind, index) => {
                 const stepNumber = index + 1;
-                ind.classList.remove('opacity-50');
-                const span = ind.querySelector('span:first-child');
+                ind.classList.remove('active', 'completed');
                 
-                if (stepNumber <= currentStep) {
-                    span.classList.remove('bg-gray-300', 'text-gray-600');
-                    span.classList.add('bg-indigo-600', 'text-white');
-                } else {
-                    span.classList.remove('bg-indigo-600', 'text-white');
-                    span.classList.add('bg-gray-300', 'text-gray-600');
-                    ind.classList.add('opacity-50');
+                if (stepNumber < currentStep) {
+                    ind.classList.add('completed');
+                } else if (stepNumber === currentStep) {
+                    ind.classList.add('active');
                 }
             });
         }
-        
+
         function navigateToStep(step) {
             currentStep = step;
             elements.step1.classList.add('hidden');
             elements.step2.classList.add('hidden');
             elements.step3.classList.add('hidden');
-            
+
             if (step === 1) elements.step1.classList.remove('hidden');
             if (step === 2) elements.step2.classList.remove('hidden');
             if (step === 3) elements.step3.classList.remove('hidden');
-            
+
             updateStepIndicators();
         }
 
         function calculatePrice() {
             const sessions = parseInt(elements.sessionsPerMonth.value);
             const sessionsPrice = parseInt(elements.sessionDuration.value);
- const select = document.getElementById('sessionDuration');
+            const select = document.getElementById('sessionDuration');
             const selectedDuration = select.options[select.selectedIndex].getAttribute('data-duration');
-           
-            const duration = parseInt(elements.sessionDuration.value);
-            const totalMin = sessions * selectedDuration*4;
-            const pricePerMin = priceMap[selectedPlan.courseId] ? priceMap[selectedPlan.courseId][duration.toString()] / duration : 0;
-            const totalPrice = sessions * sessionsPrice*4;
- console.log(sessionsPrice,'sessionsPrice');
-            console.log(sessions,'sessions');
-            console.log(selectedDuration,'duration');
-            console.log(totalMin,'totalMin');
 
+            const totalMin = sessions * selectedDuration * 4;
+            const totalPrice = sessions * sessionsPrice * 4;
 
-            selectedPlan.sessions = selectedDuration;
-            selectedPlan.duration = duration;
+            selectedPlan.sessions = sessions;
+            selectedPlan.duration = selectedDuration;
             selectedPlan.price = totalPrice;
-            
-            elements.totalMinutes.textContent = `${totalMin} دقيقة`;
-            elements.calculatedPrice.textContent = `${totalPrice.toFixed(2)} SAR`;
 
+            elements.totalMinutes.textContent = `${totalMin} دقيقة`;
+            elements.calculatedPrice.textContent = `${totalPrice.toFixed(2)} ريال`;
             elements.goToStep3.disabled = (totalPrice === 0);
         }
 
-        elements.courseCards.forEach(card => {
-            card.addEventListener('click', function() {
-                elements.courseCards.forEach(c => c.classList.remove('border-indigo-600', 'bg-indigo-50'));
-                this.classList.add('border-indigo-600', 'bg-indigo-50');
-                 const select = document.getElementById('sessionDuration');
-            const selectedDuration = select.options[select.selectedIndex].getAttribute('data-duration');
-           
-            const duration = parseInt(elements.sessionDuration.value);
-
-                selectedPlan.courseId = this.dataset.courseId;
-                selectedPlan.courseName = this.dataset.courseName;
-                  selectedPlan.duration = parseInt(elements.sessionDuration.value);
-                elements.summaryCourse.textContent = selectedPlan.courseName;
-                
-                navigateToStep(2);
-                calculatePrice();
-            });
+        // Event listeners
+        elements.courseCard.addEventListener('click', function() {
+            this.classList.add('selected');
+            selectedPlan.courseId = this.dataset.courseId;
+            selectedPlan.courseName = this.dataset.courseName;
+            elements.summaryCourse.textContent = selectedPlan.courseName;
+            navigateToStep(2);
+            calculatePrice();
         });
 
         elements.sessionsPerMonth.addEventListener('change', calculatePrice);
         elements.sessionDuration.addEventListener('change', calculatePrice);
-        
+
         document.getElementById('backToStep1').addEventListener('click', () => navigateToStep(1));
-        
+
         elements.goToStep3.addEventListener('click', function() {
-                    const select = document.getElementById('sessionDuration');
+            const select = document.getElementById('sessionDuration');
             const selectedDuration = select.options[select.selectedIndex].getAttribute('data-duration');
             const sessions = parseInt(elements.sessionsPerMonth.value);
 
             if (selectedPlan.price > 0) {
-                elements.finalSummary.textContent = `${sessions*4} حصص شهرياً | مدة الحصة ${selectedDuration} دقيقة | لكورس ${selectedPlan.courseName}`;
-                elements.finalPriceDisplay.textContent = `${selectedPlan.price.toFixed(2)} SAR`;
+                elements.finalSummary.textContent = `${sessions * 4} حصص شهرياً | مدة الحصة ${selectedDuration} دقيقة | كورس ${selectedPlan.courseName}`;
+                elements.finalPriceDisplay.textContent = `${selectedPlan.price.toFixed(2)} ريال`;
                 navigateToStep(3);
             }
         });
 
         document.getElementById('backToStep2').addEventListener('click', () => navigateToStep(2));
+        document.getElementById('checkoutButton').addEventListener('click', checkout);
 
-        document.getElementById('confirmPurchase').addEventListener('click', function() {
-            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            alert(`تم تأكيد الدفع بنجاح!\nالخطة: ${selectedPlan.courseName} (${selectedPlan.sessions} حصص X ${selectedPlan.duration} دقيقة).\nالمبلغ: ${selectedPlan.price.toFixed(2)} SAR.\nطريقة الدفع: ${paymentMethod}`);
-            
-            window.location.href = 'student-dashboard.html'; 
-        });
-
-        document.addEventListener('DOMContentLoaded', updateStepIndicators);
+        // Initialize
+        updateStepIndicators();
     </script>
 </body>
 </html>

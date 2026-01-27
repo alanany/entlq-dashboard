@@ -1,112 +1,204 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة أقسام الدورات</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - إدارة الأقسام</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
     <style>
-        body { font-family: 'Tajawal', sans-serif; }
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-custom thead th {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            color: #6c757d;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-custom tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.8rem;
+        }
+
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #fff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #fff;
             border-radius: 50%;
-            width: 1.25rem;
-            height: 1.25rem;
+            width: 1rem;
+            height: 1rem;
             animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .modal-active { opacity: 1; pointer-events: auto; }
-        .modal-inactive { opacity: 0; pointer-events: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    
-    <div class="flex flex-col min-h-screen"> 
+<body class="bg-light">
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'settings', user: user }) %>
 
-        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shadow-sm">
-            <h2 class="text-xl font-bold text-gray-800">إدارة أقسام الدورات</h2>
-            <nav class="flex items-center gap-4">
-                 <a href="/" class="text-sm text-gray-600 hover:text-indigo-600 flex items-center">
-                    <i data-feather="grid" class="w-4 h-4 ml-2"></i> لوحة التحكم
-                 </a>
-            </nav>
-        </header>
-
-        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
-            <div class="max-w-4xl mx-auto"> 
-
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 mb-8">
-                    <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">إضافة قسم جديد</h3>
-                    <form id="addCategoryForm" onsubmit="handleAddCategory(event)" class="flex flex-col sm:flex-row gap-4 items-end">
-                        <div class="flex-1 w-full">
-                            <label for="categoryName" class="block text-sm font-medium text-gray-700 mb-1">اسم القسم</label>
-                            <input type="text" id="categoryName" name="name" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="مثال: تطوير الويب">
-                        </div>
-                        <div class="w-full sm:w-auto">
-                            <button id="addBtn" type="submit" class="w-full px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center font-medium">
-                                إضافة
-                                <div id="addSpinner" class="spinner mr-2 hidden"></div>
-                            </button>
-                        </div>
-                    </form>
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="top-nav px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fas fa-bars fs-5"></i>
+                    </button>
+                    <div>
+                        <h2 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2rem;">إدارة الأقسام</h2>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Course categories management</small>
+                    </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-                    <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">الأقسام الحالية</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2 ps-3 border-start border-light">
+                        <button onclick="openLogoutModal(event)" class="btn btn-light rounded-circle p-2 text-danger" title="تسجيل الخروج">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="row g-4 animate__animated animate__fadeInUp">
+            <div class="col-lg-4">
+                <div class="bg-white p-4 rounded-4 shadow-sm border border-light">
+                    <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">إضافة قسم جديد</h5>
+                    <form id="addCategoryForm" onsubmit="handleAddCategory(event)">
+                        <div class="mb-3">
+                            <label for="categoryName" class="small text-muted mb-1 d-block">اسم القسم</label>
+                            <input type="text" id="categoryName" name="name" required class="form-control border-0 bg-light rounded-3 py-2 px-3 fw-bold" style="font-size: 0.85rem;" placeholder="مثال: تطوير الويب">
+                        </div>
+                        <button id="addBtn" type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm d-flex align-items-center justify-content-center">
+                            إضافة
+                            <div id="addSpinner" class="spinner ms-2 d-none"></div>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="bg-white rounded-4 shadow-sm border border-light overflow-hidden">
+                    <div class="p-4 border-bottom">
+                        <h5 class="fw-bold text-dark mb-0">الأقسام الحالية</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-custom mb-0 text-end">
+                            <thead>
                                 <tr>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الاسم</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد الدورات</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">إجراءات</th>
+                                    <th class="px-4 py-3">الاسم</th>
+                                    <th class="px-4 py-3 text-center">عدد الدورات</th>
+                                    <th class="px-4 py-3 text-start">إجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody id="categoriesTableBody" class="bg-white divide-y divide-gray-200">
+                            <tbody id="categoriesTableBody" class="bg-white">
                                 <% if (categories && categories.length > 0) { %>
                                     <% categories.forEach(category => { %>
                                     <tr id="category-<%= category._id %>">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= category.name %></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= category.courseCount || 0 %></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button onclick="showDeleteModal('<%= category._id %>', '<%= category.name %>')" class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition-colors"><i data-feather="trash-2" class="w-4 h-4"></i></button>
+                                        <td class="px-4 py-3 fw-bold text-dark"><%= category.name %></td>
+                                        <td class="px-4 py-3 text-center text-muted"><%= category.courseCount || 0 %></td>
+                                        <td class="px-4 py-3">
+                                            <button onclick="showDeleteModal('<%= category._id %>', '<%= category.name %>')" class="btn btn-light btn-sm rounded-3 text-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                     <% }); %>
                                 <% } else { %>
                                     <tr>
-                                        <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">لا توجد أقسام مضافة بعد.</td>
+                                        <td colspan="3" class="px-4 py-5 text-center text-muted">لا توجد أقسام مضافة بعد.</td>
                                     </tr>
                                 <% } %>
                             </tbody>
                         </table>
                     </div>
                 </div>
-
             </div>
-        </main>
+        </div>
+        
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية 2024 - جميع الحقوق محفوظة</small>
+        </footer>
     </div>
     
-    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center modal-inactive transition-opacity duration-300">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6 transform translate-y-0 transition-transform duration-300">
-            <div class="flex flex-col items-center">
-                <i data-feather="alert-triangle" class="w-12 h-12 text-red-500 mb-4"></i>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">تأكيد الحذف</h3>
-                <p class="text-gray-600 text-center mb-6 text-sm">هل أنت متأكد من حذف القسم <strong id="categoryTitleToDelete" class="text-red-600">""</strong>؟ هذا الإجراء لا يمكن التراجع عنه.</p>
-                
-                <input type="hidden" id="categoryIdToDelete">
+    <!-- Delete Modal (Bootstrap Style) -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow" style="border-radius: 1.5rem;">
+                <div class="modal-body p-4 text-center">
+                    <div class="bg-danger bg-opacity-10 text-danger mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 30px; font-size: 1.5rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3 text-dark">تأكيد الحذف</h5>
+                    <p class="text-muted small mb-4">هل أنت متأكد من حذف القسم <strong id="categoryTitleToDelete" class="text-danger">""</strong>؟</p>
+                    
+                    <input type="hidden" id="categoryIdToDelete">
 
-                <div class="flex gap-3 w-full">
-                    <button onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors font-medium">إلغاء</button>
-                    <button onclick="confirmDeletion()" id="confirmDeleteBtn" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center">
-                        تأكيد الحذف
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light rounded-pill flex-grow-1" data-bs-dismiss="modal">إلغاء</button>
+                        <button onclick="confirmDeletion()" id="confirmDeleteBtn" class="btn btn-danger rounded-pill flex-grow-1 fw-bold">حذف</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -114,88 +206,52 @@
     
     <div id="toastContainer" class="fixed bottom-4 right-4 z-[70] space-y-3"></div>
 
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        feather.replace();
-
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
         const addBtn = document.getElementById('addBtn');
         const addSpinner = document.getElementById('addSpinner');
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        const deleteModal = document.getElementById('deleteModal');
         const categoryIdInput = document.getElementById('categoryIdToDelete');
         const categoryTitleDisplay = document.getElementById('categoryTitleToDelete');
 
         const originalAddButtonText = 'إضافة';
-        const originalDeleteButtonText = 'تأكيد الحذف';
-
-        // ------------------- الدوال المساعدة (Toast/Loading) -------------------
+        const originalDeleteButtonText = 'حذف';
 
         function showToast(message, type = 'info', duration = 4000) {
-            const toastContainer = document.getElementById('toastContainer');
-            let bgColor, icon;
-            switch (type) {
-                case 'success':
-                    bgColor = 'bg-green-600';
-                    icon = 'check-circle';
-                    break;
-                case 'error':
-                    bgColor = 'bg-red-600';
-                    icon = 'x-octagon';
-                    break;
-                default:
-                    bgColor = 'bg-blue-500';
-                    icon = 'info';
-                    break;
-            }
-
-            const toast = document.createElement('div');
-            toast.className = `p-4 rounded-lg shadow-xl text-white ${bgColor} flex items-center transition-all duration-300 transform translate-x-0 opacity-100 max-w-sm w-full`;
-            
-            toast.innerHTML = `<i data-feather="${icon}" class="w-5 h-5 ml-3 flex-shrink-0"></i><span class="text-sm font-medium">${message}</span>`;
-            toastContainer.appendChild(toast);
-            feather.replace();
-
-            setTimeout(() => {
-                toast.style.opacity = '1';
-                toast.style.transform = 'translateX(0)';
-            }, 50);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                toast.addEventListener('transitionend', () => { toast.remove(); });
-            }, duration);
+            Swal.fire({
+                text: message,
+                icon: type,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: duration
+            });
         }
 
         function startLoading(btn, spinner, text) {
             btn.disabled = true;
-            spinner.classList.remove('hidden');
+            spinner.classList.remove('d-none');
             btn.innerHTML = `جاري... ${spinner.outerHTML}`;
         }
 
         function stopLoading(btn, spinner, text) {
             btn.disabled = false;
-            spinner.classList.add('hidden');
+            spinner.classList.add('d-none');
             btn.innerHTML = text;
         }
-
-        // ------------------- منطق الـ Modal (الحذف) -------------------
 
         function showDeleteModal(id, title) {
             categoryIdInput.value = id;
             categoryTitleDisplay.textContent = title;
-            
-            deleteModal.classList.remove('modal-inactive');
-            deleteModal.classList.add('modal-active');
+            deleteModal.show();
         }
 
         function closeModal() {
-            deleteModal.classList.remove('modal-active');
-            deleteModal.classList.add('modal-inactive');
-            stopLoading(confirmDeleteBtn, confirmDeleteBtn.querySelector('.spinner') || document.createElement('div'), originalDeleteButtonText);
-            feather.replace();
+            deleteModal.hide();
         }
 
-        // ------------------- منطق إضافة قسم -------------------
         async function handleAddCategory(event) {
             event.preventDefault();
             const form = event.target;
@@ -213,58 +269,43 @@
 
                 const data = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(data.message || 'فشل في إضافة القسم.');
-                }
+                if (!response.ok) throw new Error(data.message || 'فشل في إضافة القسم.');
 
                 appendNewCategoryRow(data.category);
                 showToast(`تم إضافة القسم "${data.category.name}" بنجاح.`, 'success');
                 form.reset();
 
             } catch (error) {
-                console.error("خطأ الإضافة:", error);
                 showToast(error.message || 'حدث خطأ أثناء إضافة القسم.', 'error');
             } finally {
                 stopLoading(addBtn, addSpinner, originalAddButtonText);
-                feather.replace();
             }
         }
         
         function appendNewCategoryRow(category) {
             const tbody = document.getElementById('categoriesTableBody');
-            
-            // إزالة رسالة "لا توجد أقسام" إذا كانت موجودة
             const emptyRow = tbody.querySelector('td[colspan="3"]');
-            if (emptyRow) {
-                emptyRow.closest('tr').remove();
-            }
+            if (emptyRow) emptyRow.closest('tr').remove();
             
             const newRowHtml = `
                 <tr id="category-${category._id}">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${category.name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">0</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onclick="showDeleteModal('${category._id}', '${category.name}')" class="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition-colors"><i data-feather="trash-2" class="w-4 h-4"></i></button>
+                    <td class="px-4 py-3 fw-bold text-dark">${category.name}</td>
+                    <td class="px-4 py-3 text-center text-muted">0</td>
+                    <td class="px-4 py-3">
+                        <button onclick="showDeleteModal('${category._id}', '${category.name}')" class="btn btn-light btn-sm rounded-3 text-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
                 </tr>
             `;
             tbody.insertAdjacentHTML('beforeend', newRowHtml);
-            feather.replace();
         }
 
-        // ------------------- منطق حذف قسم -------------------
         async function confirmDeletion() {
             const categoryId = categoryIdInput.value;
-            
-            // إضافة سبينر لزر الحذف داخل الـ Modal
-            let deleteSpinnerElement = confirmDeleteBtn.querySelector('.spinner');
-            if (!deleteSpinnerElement) {
-                deleteSpinnerElement = document.createElement('div');
-                deleteSpinnerElement.className = 'spinner mr-2';
-                confirmDeleteBtn.prepend(deleteSpinnerElement);
-            }
-            startLoading(confirmDeleteBtn, deleteSpinnerElement, originalDeleteButtonText);
-
+            const originalText = confirmDeleteBtn.innerHTML;
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري...';
 
             try {
                 const response = await fetch(`/category/${categoryId}`, {
@@ -274,30 +315,23 @@
 
                 const data = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(data.message || 'فشل في حذف القسم.');
-                }
+                if (!response.ok) throw new Error(data.message || 'فشل في حذف القسم.');
 
                 closeModal();
                 showToast(data.message || 'تم حذف القسم بنجاح.', 'success');
                 
-                // حذف الصف من الجدول ديناميكياً
                 const rowToRemove = document.getElementById(`category-${categoryId}`);
                 if (rowToRemove) {
                     rowToRemove.remove();
-                    // إذا أصبح الجدول فارغاً، أضف رسالة "لا توجد أقسام"
                     if (document.getElementById('categoriesTableBody').children.length === 0) {
-                        document.getElementById('categoriesTableBody').innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">لا توجد أقسام مضافة بعد.</td></tr>';
+                        document.getElementById('categoriesTableBody').innerHTML = '<tr><td colspan="3" class="px-4 py-5 text-center text-muted">لا توجد أقسام مضافة بعد.</td></tr>';
                     }
                 }
-
             } catch (error) {
-                console.error("خطأ الحذف:", error);
                 showToast(error.message || 'حدث خطأ غير متوقع أثناء الحذف.', 'error');
             } finally {
-                stopLoading(confirmDeleteBtn, deleteSpinnerElement, originalDeleteButtonText);
-                deleteSpinnerElement.remove(); // إزالة السبينر بعد الانتهاء
-                feather.replace();
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.innerHTML = originalText;
             }
         }
     </script>

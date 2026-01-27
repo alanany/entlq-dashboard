@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
     
     <!-- Icon Font Stylesheet -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Libraries Stylesheet -->
@@ -179,22 +179,22 @@
             <div class="container-fluid d-flex align-items-center justify-content-between p-0">
                 <div class="d-flex align-items-center">
                     <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
-                        <i class="fa fa-bars fs-5"></i>
+                        <i class="fas fa-bars fs-5"></i>
                     </button>
                     <div>
-                        <h2 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.5rem;"><%= title %></h2>
+                        <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2rem;"><%= title %></h4>
                         <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Manage academy curriculum</small>
                     </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
-                    <a href="/addCourse" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="fa fa-plus-circle me-1"></i> دورة جديدة
+                    <a href="/addCourse" class="btn btn-primary rounded-pill px-2 fw-bold shadow-sm">
+                        <i class="fas fa-plus-circle me-1"></i> إضافة دورة جديدة
                     </a>
                     
                     <div class="d-flex align-items-center gap-2 ps-3 border-start border-light">
                         <button onclick="openLogoutModal(event)" class="btn btn-light rounded-circle p-2 text-danger" title="تسجيل الخروج">
-                            <i class="fa fa-sign-out-alt"></i>
+                            <i class="fas fa-sign-out-alt"></i>
                         </button>
                     </div>
                 </div>
@@ -206,7 +206,7 @@
             <div class="row g-3">
                 <div class="col-md-5">
                     <div class="search-input-group">
-                        <i class="fa fa-search text-muted ms-2 ps-2 border-start"></i>
+                        <i class="fas fa-search text-muted ms-2 ps-2 border-start"></i>
                         <input type="text" placeholder="بحث عن دورة أو معلم...">
                     </div>
                 </div>
@@ -261,11 +261,11 @@
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex gap-3">
                                             <div class="d-flex align-items-center text-muted" style="font-size: 0.75rem;">
-                                                <i class="fa fa-users text-primary me-2"></i>
+                                                <i class="fas fa-users text-primary me-2"></i>
                                                 <span class="outfit-font fw-bold"><%= course.studentsCount || 0 %></span>
                                             </div>
                                             <div class="d-flex align-items-center text-muted" style="font-size: 0.75rem;">
-                                                <i class="fa fa-star text-warning me-2"></i>
+                                                <i class="fas fa-star text-warning me-2"></i>
                                                 <span class="outfit-font fw-bold"><%= course.averageRating || '-' %></span>
                                             </div>
                                         </div>
@@ -273,11 +273,11 @@
 
                                     <div class="d-flex gap-2">
                                         <a href="/course/<%= course._id %>" class="btn-action btn-edit flex-grow-1">
-                                            <i class="fa fa-pencil-alt"></i>
+                                            <i class="fas fa-pencil-alt"></i>
                                             <span>تعديل</span>
                                         </a>
                                         <button onclick="showDeleteModal('<%= course._id %>', '<%= course.title %>')" class="btn-action btn-delete" style="width: 40px;">
-                                            <i class="fa fa-trash"></i>
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -333,7 +333,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        $('#sidebarCollapse').on('click', () => $('#sidebar').toggleClass('active'));
 
         const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
         const courseIdInput = document.getElementById('courseIdToDelete');

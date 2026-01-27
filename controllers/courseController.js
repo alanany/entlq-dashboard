@@ -187,7 +187,7 @@ const allCourses_website_get = async(req, res) => {
         // 1. البحث عن الكورس في قاعدة البيانات
         // استخدام .lean() لتحسين الأداء عند جلب البيانات للعرض فقط
         const course = await Course.findById(courseId).lean().populate('category');
-
+const courses=await Course.find().lean().populate('category');
         if (!course) {
             // إذا لم يتم العثور على الكورس
             return res.status(404).render('404', { message: 'عذراً، لم يتم العثور على هذا الكورس.' });
@@ -200,7 +200,8 @@ const allCourses_website_get = async(req, res) => {
         res.render('../views/website/course-details', { 
             course: course,
             title: course.title ,
-            user: req.user
+            user: req.user,
+            relatedCourses:courses,
             // لتمرير العنوان إلى <title>
         });
 

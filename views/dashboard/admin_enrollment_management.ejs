@@ -1,137 +1,279 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الاشتراكات | أكاديمية انطلق</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - إدارة الاشتراكات</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
     <style>
-        body { font-family: 'Tajawal', sans-serif; }
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-card-sub {
+            background: #fff;
+            border-radius: 1.25rem;
+            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.03);
+            padding: 1.25rem;
+            height: 100%;
+            transition: all 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+        }
+
+        .stats-card-sub:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+        }
+
+        .stats-icon-sub {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .table-custom thead th {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            color: #6c757d;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-custom tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.8rem;
+        }
+
         .critical-pulse { animation: pulse-bg 2s infinite; }
         @keyframes pulse-bg {
             0% { background-color: rgba(254, 226, 226, 0.4); }
             50% { background-color: rgba(254, 202, 202, 0.7); }
             100% { background-color: rgba(254, 226, 226, 0.4); }
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-light">
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'subscriptions', user: user }) %>
 
-<div class="flex h-screen overflow-hidden">
-          <%- include('./_admin_sidebar.ejs', { currentPage: 'courses', user: user }) %>
-
-
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-            <h2 class="text-xl font-bold text-gray-800">إدارة طلبات الاشتراك</h2>
-            <div id="currentDate" class="text-sm text-gray-500 font-medium"></div>
-        </header>
-
-        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8 custom-scrollbar">
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div onclick="filterByCard('all')" class="cursor-pointer hover:shadow-md transition-all bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4">
-                    <div class="p-3 bg-indigo-50 text-indigo-600 rounded-full"><i data-feather="file-text"></i></div>
-                    <div><p class="text-gray-500 text-xs">إجمالي الطلبات</p><p class="text-2xl font-bold"><%= stats.totalRequests %></p></div>
-                </div>
-
-                <div onclick="filterByCard('pending')" class="cursor-pointer hover:shadow-md transition-all bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4">
-                    <div class="p-3 bg-yellow-50 text-yellow-600 rounded-full"><i data-feather="clock"></i></div>
-                    <div><p class="text-gray-500 text-xs">قيد المراجعة</p><p class="text-2xl font-bold"><%= stats.pendingRequests %></p></div>
-                </div>
-
-                <div onclick="filterByCard('critical')" class="cursor-pointer hover:shadow-md transition-all bg-white p-5 rounded-xl border-r-4 border-r-red-500 flex items-center gap-4 shadow-sm">
-                    <div class="p-3 bg-red-50 text-red-600 rounded-full"><i data-feather="alert-circle"></i></div>
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="top-nav px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fas fa-bars fs-5"></i>
+                    </button>
                     <div>
-                        <p class="text-gray-500 text-xs text-red-600 font-bold">تطلب تجديد</p>
-                        <p class="text-2xl font-bold text-red-700"><%= stats.criticalSubscriptions %></p>
+                        <h4 class="mb-0 text-primary fw-500 lobster-font" style="font-size: 1.0rem;">إدارة طلبات الاشتراك</h4>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;" id="currentDateDisplay"></small>
                     </div>
                 </div>
 
-                <div onclick="filterByCard('confirmed')" class="cursor-pointer hover:shadow-md transition-all bg-white p-5 rounded-xl border border-gray-100 flex items-center gap-4">
-                    <div class="p-3 bg-green-50 text-green-600 rounded-full"><i data-feather="check-circle"></i></div>
-                    <div><p class="text-gray-500 text-xs">الفعالة</p><p class="text-2xl font-bold"><%= stats.acceptedRequests %></p></div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div class="relative w-full md:w-96">
-                        <i data-feather="search" class="absolute top-3 right-3 w-4 h-4 text-gray-400"></i>
-                        <input type="text" id="searchInput" placeholder="بحث باسم الطالب أو الدورة..." class="w-full pr-10 pl-4 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2 ps-3 border-start border-light">
+                        <button onclick="openLogoutModal(event)" class="btn btn-light rounded-circle p-2 text-danger" title="تسجيل الخروج">
+                            <i class="fas fa-search text-muted ms-2 ps-2 border-start"></i>
+                        </button>
                     </div>
-                    <select id="statusFilter" class="w-full md:w-48 border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none bg-white cursor-pointer focus:ring-2 focus:ring-indigo-500">
-                        <option value="all">كل الحالات</option>
-                        <option value="critical">⚠️ تطلب تجديد</option>
-                        <option value="pending">قيد المراجعة</option>
-                        <option value="confirmed">تم الموافقة</option>
-                        <option value="rejected">مرفوض</option>
-                    </select>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-right border-collapse">
-                        <thead class="bg-gray-50 text-gray-500 text-[11px] font-bold uppercase tracking-wider">
-                            <tr>
-                                <th class="px-6 py-4">الطالب والمعلم</th>
-                                <th class="px-6 py-4">الدورة</th>
-                                <th class="px-6 py-4">البدء / المتبقي</th>
-                                <th class="px-6 py-4 text-center">الحالة</th>
-                                <th class="px-6 py-4 text-center">تواصل سريع</th>
-                                <th class="px-6 py-4">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bookingsTableBody" class="divide-y divide-gray-100 bg-white">
-                            </tbody>
-                    </table>
                 </div>
             </div>
-        </main>
+        </div>
+
+
+        <!-- Stats Section -->
+        <div class="row g-4 mb-4 animate__animated animate__fadeInUp">
+            <div class="col-md-3">
+  <div onclick="filterByCard('all')" class="stats-card-sub">
+  <div class="stats-icon-sub bg-primary">
+    <i class="fas fa-file-alt text-white"></i>
+  </div>
+  <div>
+
+                        <small class="text-muted d-block" style="font-size: 0.7rem;">إجمالي الطلبات</small>
+                        <h4 class="mb-0 fw-bold"><%= stats.totalRequests %></h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div onclick="filterByCard('pending')" class="stats-card-sub border-start border-warning border-4">
+                    <div class="stats-icon-sub bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-clock text-white"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block" style="font-size: 0.7rem;">قيد المراجعة</small>
+                        <h4 class="mb-0 fw-bold text-warning"><%= stats.pendingRequests %></h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div onclick="filterByCard('critical')" class="stats-card-sub border-start border-danger border-4 shadow-sm">
+                    <div class="stats-icon-sub bg-danger bg-opacity-10 text-danger">
+                        <i class="fas fa-exclamation-circle text-white"></i>
+                    </div>
+                    <div>
+                        <small class="text-danger fw-bold d-block" style="font-size: 0.7rem;">تطلب تجديد</small>
+                        <h4 class="mb-0 fw-bold text-danger"><%= stats.criticalSubscriptions %></h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div onclick="filterByCard('confirmed')" class="stats-card-sub border-start border-success border-4">
+                    <div class="stats-icon-sub bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-check-circle text-white"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block" style="font-size: 0.7rem;">الفعالة</small>
+                        <h4 class="mb-0 fw-bold text-success"><%= stats.acceptedRequests %></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Table Section -->
+        <div class="bg-white rounded-4 shadow-sm border border-light overflow-hidden animate__animated animate__fadeInUp">
+            <div class="p-4 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <div class="input-group search-input-group w-100" style="max-width: 400px;">
+                    <span class="input-group-text bg-transparent border-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" id="searchInput" placeholder="بحث باسم الطالب أو الدورة..." class="form-control border-0 bg-transparent" style="font-size: 0.85rem;">
+                </div>
+                <select id="statusFilter" class="form-select border-0 bg-light rounded-pill px-4" style="max-width: 200px; font-size: 0.8rem;">
+                    <option value="all">كل الحالات</option>
+                    <option value="critical">⚠️ تطلب تجديد</option>
+                    <option value="pending">قيد المراجعة</option>
+                    <option value="confirmed">تم الموافقة</option>
+                    <option value="rejected">مرفوض</option>
+                </select>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-custom mb-0 text-end">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3">الطالب والمعلم</th>
+                            <th class="px-4 py-3">الدورة</th>
+                            <th class="px-4 py-3">البدء / المتبقي</th>
+                            <th class="px-4 py-3 text-center">الحالة</th>
+                            <th class="px-4 py-3 text-center">تواصل سريع</th>
+                            <th class="px-4 py-3">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTableBody" class="bg-white">
+                        <!-- Rows will be injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية 2024 - جميع الحقوق محفوظة</small>
+        </footer>
     </div>
 </div>
 
-<div id="renewModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity" onclick="closeRenewModal()"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-right overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-100">
-            <div class="bg-white px-6 pt-6 pb-4">
-                <div class="sm:flex sm:items-start flex-row-reverse">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-50 sm:mx-0 sm:h-10 sm:w-10">
-                        <i data-feather="refresh-cw" class="text-indigo-600 w-5 h-5"></i>
-                    </div>
-                    <div class="mt-3 text-center sm:mt-0 sm:mr-4 sm:text-right w-full">
-                        <h3 class="text-xl font-bold text-gray-900">تأكيد تجديد الاشتراك</h3>
-                        <div class="mt-4 p-4 bg-gray-50 rounded-xl space-y-2 border border-gray-100">
-                            <p class="text-xs text-gray-500">سيتم إنشاء طلب جديد للبيانات التالية:</p>
-                            <div class="text-sm font-bold text-indigo-700">
-                                <p>الطالب: <span id="mdlName" class="text-gray-900"></span></p>
-                                <p>الدورة: <span id="mdlCourse" class="text-gray-900"></span></p>
-                            </div>
-                            <p class="text-[10px] text-red-500">⚠️ سيتم نسخ أيام ومواعيد الحصص القديمة تلقائياً.</p>
-                        </div>
+<!-- Renew Modal (Bootstrap Style) -->
+<div class="modal fade" id="renewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 1.5rem;">
+            <div class="modal-body p-4 text-center">
+                <div class="bg-primary bg-opacity-10 text-primary mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 30px; font-size: 1.5rem;">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <h5 class="fw-bold mb-3">تأكيد تجديد الاشتراك</h5>
+                <div class="p-3 bg-light rounded-3 mb-4 text-end">
+                    <p class="small text-muted mb-2">سيتم إنشاء طلب جديد للبيانات التالية:</p>
+                    <div class="fw-bold text-primary small">
+                        <p class="mb-1">الطالب: <span id="mdlName" class="text-dark"></span></p>
+                        <p class="mb-0">الدورة: <span id="mdlCourse" class="text-dark"></span></p>
                     </div>
                 </div>
-            </div>
-            <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3">
-                <button type="button" onclick="confirmRenewal()" id="mdlConfirmBtn" class="flex-1 rounded-xl px-4 py-2.5 bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">تأكيد التجديد</button>
-                <button type="button" onclick="closeRenewModal()" class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-all">إلغاء</button>
+                <p class="text-danger small mb-4 fw-bold">⚠️ سيتم نسخ أيام ومواعيد الحصص القديمة تلقائياً.</p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light rounded-pill flex-grow-1" data-bs-dismiss="modal">إلغاء</button>
+                    <button onclick="confirmRenewal()" id="mdlConfirmBtn" class="btn btn-primary rounded-pill flex-grow-1 fw-bold">تأكيد التجديد</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    const rawData = `<%- JSON.stringify(bookings) %>`;
-    const allBookings = JSON.parse(rawData);
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    const allBookings = <%- JSON.stringify(bookings) %>;
+    console.log('Bookings loaded:', allBookings);
     let currentRenewId = null;
 
-    feather.replace();
-    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const renewModal = new bootstrap.Modal(document.getElementById('renewModal'));
+    document.getElementById('currentDateDisplay').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     function buildRow(b) {
         const isCritical = b.isCritical;
@@ -153,42 +295,42 @@
         const st = statusMap[b.status] || { t: b.status, c: 'bg-gray-100' };
 
         return `
-            <tr class="${isCritical ? 'critical-pulse' : 'hover:bg-gray-50'} transition-all">
-                <td class="px-6 py-4">
-                    <div class="text-sm font-bold text-gray-900">${b.studentId?.name || '---'}</div>
-                    <div class="text-[10px] text-indigo-500 font-medium">المعلم: ${b.teacherId?.name || 'غير محدد'}</div>
+            <tr class="${isCritical ? 'critical-pulse' : ''} transition-all">
+                <td class="px-3 py-3">
+                    <div class="fw-bold text-dark">${b.studentId?.name || '---'}</div>
+                    <div class="text-primary small" style="font-size: 0.7rem;">المعلم: ${b.teacherId?.name || 'غير محدد'}</div>
                 </td>
-                <td class="px-6 py-4">
-                    <div class="text-xs font-semibold text-gray-700">${b.courseId?.title || '---'}</div>
-                    <div class="text-[9px] text-gray-400 uppercase">${b.courseId?.category?.name || 'عام'}</div>
+                <td class="px-3 py-3 text-center">
+                    <div class="fw-bold text-dark small">${b.courseId?.title || '---'}</div>
+                    <div class="badge bg-secondary opacity-50 text-uppercase" style="font-size: 0.6rem;">${b.courseId?.category?.name || 'عام'}</div>
                 </td>
-                <td class="px-6 py-4">
-                    <div class="text-xs text-gray-600 font-medium">${b.startDate ? new Date(b.startDate).toLocaleDateString('ar-EG') : 'لم يبدأ'}</div>
+                <td class="px-3 py-3 text-center">
+                    <div class="small text-muted">${b.startDate ? new Date(b.startDate).toLocaleDateString('ar-EG') : 'لم يبدأ'}</div>
                     ${getBadge(daysLeft)}
                 </td>
-                <td class="px-6 py-4 text-center">
-                    <span class="${st.c} px-2.5 py-1 rounded-full text-[10px] font-bold inline-block">${st.t}</span>
+                <td class="px-3 py-3 text-center">
+                    <span class="badge ${st.c.includes('yellow') ? 'bg-warning' : st.c.includes('green') ? 'bg-success' : 'bg-secondary'} rounded-pill px-3 py-2" style="font-size: 0.7rem;">${st.t}</span>
                     ${(isCritical || (daysLeft !== null && daysLeft <= 0)) ? `
-                        <button onclick="openRenewModal('${b._id}')" class="mt-2 w-full bg-red-600 hover:bg-red-700 text-white text-[9px] py-1 rounded-lg font-bold shadow-sm flex items-center justify-center gap-1 transition-all active:scale-95">
-                            <i data-feather="refresh-cw" class="w-2.5 h-2.5"></i> تجديد
+                        <button onclick="openRenewModal('${b._id}')" class="btn btn-danger btn-sm w-100 mt-2 fw-bold" style="font-size: 0.65rem;">
+                            <i class="fas fa-sync-alt me-1"></i> تجديد
                         </button>` : ''}
                 </td>
-                <td class="px-6 py-4">
-                    <div class="flex gap-2 justify-center">
-                        <a href="${waLink}" target="_blank" class="p-2 bg-green-50 text-green-600 rounded-lg border border-green-100 hover:bg-green-100 transition-all" title="واتساب">
-                            <i data-feather="message-circle" class="w-4 h-4"></i>
+                <td class="px-3 py-3 text-center">
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="${waLink}" target="_blank" class="btn btn-outline-success btn-sm rounded-3" title="واتساب">
+                            <i class="fab fa-whatsapp"></i>
                         </a>
-                        <a href="${mailLink}" class="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-100 transition-all" title="إيميل">
-                            <i data-feather="mail" class="w-4 h-4"></i>
+                        <a href="${mailLink}" class="btn btn-outline-primary btn-sm rounded-3" title="إيميل">
+                            <i class="fas fa-envelope"></i>
                         </a>
                     </div>
                 </td>
-                <td class="px-6 py-4">
-                    <div class="flex flex-col gap-2">
-                        <a href="/booking/${b._id}/manage-payment" class="text-[11px] font-bold text-indigo-600 hover:underline">إدارة الدفع</a>
-                        <div class="flex gap-1">
-                            <a href="/booking/${b._id}/schedule" title="الجدول" class="p-1.5 bg-white border rounded hover:bg-gray-50 transition-colors"><i data-feather="calendar" class="w-3.5 h-3.5 text-gray-500"></i></a>
-                            <a href="/booking/${b._id}/manage-sessions" title="الحصص" class="p-1.5 bg-white border rounded hover:bg-gray-50 transition-colors"><i data-feather="layers" class="w-3.5 h-3.5 text-gray-500"></i></a>
+                <td class="px-3 py-3">
+                    <div class="d-flex flex-column gap-2">
+                        <a href="/booking/${b._id}/manage-payment" class="btn btn-link btn-sm p-0 fw-bold text-primary text-decoration-none" style="font-size: 0.75rem;">إدارة الدفع</a>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="/booking/${b._id}/schedule" title="الجدول" class="btn btn-light btn-sm p-1"><i class="fa fa-calendar text-muted"></i></a>
+                            <a href="/booking/${b._id}/manage-sessions" title="الحصص" class="btn btn-light btn-sm p-1"><i class="fa fa-layer-group text-muted"></i></a>
                         </div>
                     </div>
                 </td>
@@ -213,7 +355,6 @@
             return match;
         });
         document.getElementById('bookingsTableBody').innerHTML = filtered.length ? filtered.map(buildRow).join('') : '<tr><td colspan="6" class="p-10 text-center text-gray-400">لا توجد نتائج مطابقة</td></tr>';
-        feather.replace();
     }
 
     function filterByCard(s) { document.getElementById('statusFilter').value = s; renderTable(); }
@@ -224,12 +365,11 @@
         if(b) {
             document.getElementById('mdlName').textContent = b.studentId?.name;
             document.getElementById('mdlCourse').textContent = b.courseId?.title;
-            document.getElementById('renewModal').classList.remove('hidden');
-            feather.replace();
+            renewModal.show();
         }
     }
 
-    function closeRenewModal() { document.getElementById('renewModal').classList.add('hidden'); }
+    function closeRenewModal() { renewModal.hide(); }
 
     async function confirmRenewal() {
         const btn = document.getElementById('mdlConfirmBtn');
@@ -244,7 +384,14 @@
 
     document.getElementById('searchInput').addEventListener('input', renderTable);
     document.getElementById('statusFilter').addEventListener('change', renderTable);
-    window.onload = renderTable;
+    
+    // Initial render
+    renderTable();
+
+    // Ensure it renders when coming back from cache (bfcache)
+    window.addEventListener('pageshow', function(event) {
+        renderTable();
+    });
 </script>
 </body>
 </html>

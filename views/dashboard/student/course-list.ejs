@@ -151,7 +151,9 @@
 </head>
 
 <body>
-    <!-- Sidebar -->
+  
+<%if(user.role!=="admin"){  %> 
+      <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="p-4 text-center border-bottom">
             <h1 class="m-0 text-primary lobster-font" style="font-size: 2rem;">
@@ -184,7 +186,14 @@
             </div>
         </div>
     </div>
-
+    <% }else{ %> 
+   <!-- Back Button -->
+<div class="position-fixed top-0 end-0 p-4" style="z-index: 1000;">
+            <a href="#" onclick="history.back(); return false;" class="btn btn-light rounded-circle shadow" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    <% } %> 
     <div class="main-content">
         <!-- Top Nav -->
         <div class="top-nav px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
@@ -194,7 +203,7 @@
                         <i class="fa fa-bars fs-5"></i>
                     </button>
                     <div class="d-none d-sm-block">
-                        <h2 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.5rem;">استكشاف الكورسات</h2>
+                        <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2rem;">استكشاف الكورسات</h4>
                         <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Browse available learning paths</small>
                     </div>
                 </div>
@@ -208,24 +217,7 @@
 
                     <div class="vr d-none d-md-block mx-2 text-muted opacity-25" style="height: 30px;"></div>
 
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="position-relative cursor-pointer hover-scale transition">
-                            <div class="bg-light p-2 rounded-circle">
-                                <i class="fa-regular fa-bell text-dark fs-5"></i>
-                            </div>
-                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle animate-pulse"></span>
-                        </div>
-                        
-                        <div class="d-flex align-items-center gap-2 ps-3 border-start border-light cursor-pointer">
-                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold outfit-font" style="width: 40px; height: 40px; font-size: 0.9rem;">
-                                <%= user.name.charAt(0).toUpperCase() %>
-                            </div>
-                            <div class="d-none d-xl-block">
-                                <div class="small fw-800 text-dark lh-1"><%= user.name %></div>
-                                <small class="text-muted outfit-font" style="font-size: 0.7rem;">Student Account</small>
-                            </div>
-                        </div>
-                    </div>
+                 
                 </div>
             </div>
         </div>
@@ -293,9 +285,21 @@
                                         </div>
                                         <small class="text-muted">(<%= course.reviews_count || 0 %> تقييم)</small>
                                     </div>
-                                    <a href="/website-course/<%= course.id %>" class="btn btn-kider w-100">
+<%if(user.role=="admin"){%>
+
+      <a href="/student/book_plan/<%= course.id %>/<%= studentId%>" class="btn btn-kider w-100">
+                                        الاشتراك فى الكورس
+                                    </a>
+
+<%}else{%>
+
+      <a href="/website-course/<%= course.id %>" class="btn btn-kider w-100">
                                         عرض التفاصيل
                                     </a>
+
+<%}%>
+
+                                  
                                 </div>
                             </div>
                         </div>

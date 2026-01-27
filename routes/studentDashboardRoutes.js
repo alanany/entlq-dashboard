@@ -10,7 +10,10 @@ studentdashboardRoutes.post('/student/login', studentController.login_student);
 studentdashboardRoutes.post('/student/register', studentController.registerStudent);
 
 studentdashboardRoutes.get('/student/courses_list', studentController.getAllCourses);
+studentdashboardRoutes.get('/student/courses_list/:studentId', studentController.getAllCoursesForAdminAutoSubscription);
+
 studentdashboardRoutes.get('/student/book_plan/:id', studentController.getBookPlan);
+studentdashboardRoutes.get('/student/book_plan/:id/:studentId', studentController.getAutoAdminBookPlan);
 studentdashboardRoutes.get('/home', courseController.home_website_get);
 studentdashboardRoutes.get('/website-courses', courseController.allCourses_website_get);
 studentdashboardRoutes.get('/website-course/:id', courseController.getCourseDetails);
