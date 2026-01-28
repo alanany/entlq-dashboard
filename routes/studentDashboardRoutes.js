@@ -40,6 +40,5 @@ studentdashboardRoutes.post('/student/update-status', studentController.toggleSt
 studentdashboardRoutes.get('/admin/student/profile/:id',checkUser,requireAuth, studentController.getStudentProfilePage);
 
 studentdashboardRoutes.post('/student/delete/:id', studentController.deleteStudent);
-studentdashboardRoutes.get('/newdashboard/index',checkUser,requireAuth, studentController.main_dashboard_get);
 
 module.exports = studentdashboardRoutes;

@@ -230,8 +230,10 @@
                         
                         const item = { 
                             session, courseTitle, studentTZ,
-                            displayDate: session.displayDate, 
+                            displayDate: session.displayDate,
+                            zoomLink: session.zoomLink, 
                             displayTime: session.displayTime, 
+                            isToday: session.isToday,
                             displayDay: session.displayDay,
                             isCompleted: session.status === 'completed' || sessionEnd < now 
                         };
@@ -262,7 +264,7 @@
                         <div class="col-md-6 col-xl-4 animate__animated animate__fadeIn">
                             <div class="session-card">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">قريباً</span>
+                                    <span class=" bg-opacity-10 text-primary rounded-pill px-3">قريباً</span>
                                     <small class="text-muted fw-bold"><%= item.displayDay %></small>
                                 </div>
                                 <h5 class="fw-bold mb-3"><%= item.courseTitle %></h5>
@@ -270,8 +272,8 @@
                                     <div class="small text-muted"><i class="fa fa-calendar-alt text-primary me-1"></i> <%= item.displayDate %></div>
                                     <div class="small fw-bold text-primary px-2 py-1 bg-secondary rounded"><i class="fa fa-clock me-1"></i> <%= item.displayTime %></div>
                                 </div>
-                                <% if (item.session.link) { %>
-                                    <a href="<%= item.session.link %>" target="_blank" class="btn btn-join w-100">دخول الحصة</a>
+                                <% if (item.isToday) { %>
+                                    <a href="<%=item.zoomLink %>" target="_blank" class="btn btn-join w-100">دخول الحصة</a>
                                 <% } else { %>
                                     <button class="btn btn-wait w-100 fs-7" disabled>رابط الحصة سيظهر قريباً</button>
                                 <% } %>

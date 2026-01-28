@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const Course = require("../models/course_model.js");
 const Subscription = require("../models/subscription_model.js");
 const teacherController = require("../controllers/teacher_controller");
+const courseController=require("../controllers/courseController");
 const getstudentDashboard = async (req, res, next) => {
   try {
     const role = req.user.role;
@@ -29,8 +30,15 @@ const getstudentDashboard = async (req, res, next) => {
     await  teacherController.teacherHome(req, res, next);
     } else {
      
-      
-      res.render("dashboard/index");
+     console.log("admin dashboard");
+      const stats = await courseController.getDashboardStats();
+      console.log(stats,'stats'); 
+      // For non-students, render without student data
+      res.render("../views/dashboard/index", {
+        title: "Dashboard",
+        user: req.user,
+        stats:stats
+      });
     }
   } catch (error) {
       res.render("website/home");
@@ -56,39 +64,7 @@ const login_get = (req, res) => {
    res.render("../views/dashboard/student/login");
 };
 
-const main_dashboard_get = async (req, res) => {
-  try {
-    const role = req.user?.role;
-    
-    // If user is a student, fetch student data
-    if (role === "student") {
-      const studentId = req.user._id;
-      const nearestSession = await getNearestSession(studentId, req.user.timezone);
-      const studentStats = await getStudentStats(studentId);
-      const courseBookingDetails = await getStudentCourseDetails(studentId);
-      
-      res.render("../views/dashboard/index", {
-        title: "لوحة تحكم الطالب",
-        nearestSession,
-        studentStats,
-        courseBookingDetails,
-        user: req.user
-      });
-    } else {
-      // For non-students, render without student data
-      res.render("../views/dashboard/index", {
-        title: "Dashboard",
-        user: req.user
-      });
-    }
-  } catch (error) {
-    console.error("Error loading dashboard:", error);
-    res.render("../views/dashboard/index", {
-      title: "Dashboard",
-      user: req.user
-    });
-  }
-};
+
 
 
 // إضافة طالب جديد (الحقول الـ 8)
@@ -488,6 +464,7 @@ const getRequestDetails = async (req, res, next) => {
   }
 };
 const getSessionWaitingRoom = async (req, res, next) => {
+  console.log('getSessionWaitingRoom')
   const { bookingId, sessionId } = req.params;
 
   try {
@@ -516,7 +493,7 @@ const getSessionWaitingRoom = async (req, res, next) => {
        path: "teacherId"
       })
       .lean();
-
+console.log(booking, "booking details");
     if (!booking || !booking.sessions || booking.sessions.length === 0) {
       return res
         .status(404)
@@ -527,7 +504,7 @@ const getSessionWaitingRoom = async (req, res, next) => {
     const sessionDetails = {
       ...booking.sessions[0], // الجلسة المطلوبة هي العنصر الأول (والوحيد) في المصفوفة
       courseTitle: booking.courseId.title,
-      sessionLink: booking.sessions[0].link,
+      sessionLink: booking.teacherId.zoom_link,
       teacherName: booking.teacherId.name
       
   
@@ -738,7 +715,7 @@ const getMySessionsPage = async (req, res) => {
         model: "Category",
       },
     })
-    .populate("studentId");
+    .populate("studentId").populate("teacherId");
 
   // 2. تحديد المنطقة الزمنية للمستخدم (أو افتراضية إذا لم توجد)
   const userTimeZone =  req.user.timezone || "Asia/Riyadh";
@@ -754,19 +731,23 @@ const getMySessionsPage = async (req, res) => {
         const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
                    .setZone(userTimeZone)
                    .setLocale('ar'); // لجعل الوقت والتاريخ بالعربية
-
-        return {
+console.log(booking.teacherId.zoom_link,'zoomLink');
+const today = DateTime.now().setZone(userTimeZone).toFormat("yyyy-MM-dd");
+     const sessionDate = dt.toFormat("yyyy-MM-dd");
+return {
           ...session,
           // إضافة حقول منسقة للعرض في الـ EJS
           displayDate: dt.toFormat("yyyy-MM-dd"), // التاريخ: 2026-01-11
           displayTime: dt.toFormat("hh:mm a"),   // الوقت: 01:15 م
-          displayDay: dt.toFormat("cccc"),       // اليوم: الأحد
+          displayDay: dt.toFormat("cccc"),   
+          zoomLink:booking.teacherId.zoom_link,
+          isToday: sessionDate === today    // اليوم: الأحد
         };
       });
     }
     return booking;
   });
-
+console.log(formattedBookings.zoomLink, "formattedBookings");
   // 4. إرسال البيانات المنسقة (formattedBookings) بدلاً من الأصلية
   res.render("dashboard/student/my-sessions", {
     title: "حصصي المجدولة",
@@ -933,7 +914,7 @@ const getStudentSessionsPage = async (req, res) => {
   const userId = req.params.id;
   // 1. جلب البيانات من قاعدة البيانات مع الـ Populates
   const acceptedRequests = await Subscription.find({
-    studentId: userId,
+    studentId:userId,
     status: "confirmed",
   })
     .populate({
@@ -943,7 +924,7 @@ const getStudentSessionsPage = async (req, res) => {
         model: "Category",
       },
     })
-    .populate("studentId");
+    .populate("studentId").populate("teacherId");
 
   // 2. تحديد المنطقة الزمنية للمستخدم (أو افتراضية إذا لم توجد)
   const userTimeZone =  req.user.timezone || "Asia/Riyadh";
@@ -954,24 +935,28 @@ const getStudentSessionsPage = async (req, res) => {
     const booking = sub.toObject();
 
     if (booking.sessions && Array.isArray(booking.sessions)) {
-      console.log(booking.sessions.length,'booking.sessions.length');
       booking.sessions = booking.sessions.map((session) => {
         // تحويل التاريخ من UTC إلى المنطقة الزمنية للمستخدم باستخدام Luxon
         const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
                    .setZone(userTimeZone)
                    .setLocale('ar'); // لجعل الوقت والتاريخ بالعربية
-
-        return {
+console.log(booking.teacherId.zoom_link,'zoomLink');
+const today = DateTime.now().setZone(userTimeZone).toFormat("yyyy-MM-dd");
+     const sessionDate = dt.toFormat("yyyy-MM-dd");
+return {
           ...session,
           // إضافة حقول منسقة للعرض في الـ EJS
           displayDate: dt.toFormat("yyyy-MM-dd"), // التاريخ: 2026-01-11
           displayTime: dt.toFormat("hh:mm a"),   // الوقت: 01:15 م
-          displayDay: dt.toFormat("cccc"),       // اليوم: الأحد
+          displayDay: dt.toFormat("cccc"),   
+          zoomLink:booking.teacherId.zoom_link,
+          isToday: sessionDate === today    // اليوم: الأحد
         };
       });
     }
     return booking;
   });
+console.log(formattedBookings.zoomLink, "formattedBookings");
   // 4. إرسال البيانات المنسقة (formattedBookings) بدلاً من الأصلية
   res.render("dashboard/student/my-sessions", {
     title: "حصصي المجدولة",
@@ -1001,7 +986,6 @@ module.exports = {
   getNearestSession, addStudent,
   toggleStatus,
   deleteStudent,
-  main_dashboard_get,
   getAllCoursesForAdminAutoSubscription,
   getAutoAdminBookPlan
 };

@@ -60,5 +60,4 @@ dashboardRoutes.post('/admin/teacher/update-status',requireAuth,checkUser,requir
 // الحذف النهائي (اختياري)
 dashboardRoutes.post('/admin/teachers/delete/:id',requireAuth,checkUser,requireAdmin, teacherController.deleteTeacher);
 dashboardRoutes.post('/admin/teacher/pay-salary',requireAuth,checkUser,requireAdmin, teacherController.processTeacherSalary);
-
 module.exports = dashboardRoutes;

@@ -18,9 +18,14 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const getAdminDashboard = async (req, res) => {
-    
+    console.log("admin dashboard at courseController");
+    const stats = await getDashboardStats(req, res);
+    console.log(stats,'stats'); 
     // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
-    res.render('dashboard/index', { title: 'لوحة تحكم الأدمن' }); };
+    res.render('dashboard/index', { title: 'لوحة تحكم الأدمن',stats:stats }); };
+
+
+
 const getAllCourses = async (req, res) => {
 
  const courses = await Course.find();  console.log(courses);
@@ -760,8 +765,51 @@ const checkConflict = async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-};
-module.exports = {checkConflict,
+}
+
+const getDashboardStats=  async () => {
+    console.log("getDashboardStats");
+    try {
+        // تنفيذ جميع الاستعلامات في وقت واحد لتحسين الأداء
+        const [
+            totalStudents,
+            totalTeachers,
+            activeCourses,
+            revenueData,
+            popularCourses,
+            recentRegistrations
+        ] = await Promise.all([
+            User.countDocuments({ role: 'student' }),
+            User.countDocuments({ role: 'teacher' }),
+            Course.countDocuments(),
+            Subscription.aggregate([{ $group: { _id: null, total: { $sum: "$amount" } } }]), // إجمالي الإيرادات
+            Course.find().sort({ studentsCount: -1 }).limit(5), // الأكثر طلباً
+            User.find({ role: 'student' }).sort({ createdAt: -1 }).limit(10) // أحدث التسجيلات
+        ]);
+console.log(totalStudents,'totalStudents');
+return {
+            summary: {
+                students: totalStudents,
+                teachers: totalTeachers,
+                courses: activeCourses,
+                revenue: revenueData[0]?.total || 0
+            },
+            popularCourses,
+            recentRegistrations
+        };
+    } catch (error) {
+        console.log(error);
+    return {
+        summary: { students: 0, teachers: 0, courses: 0, revenue: 0 },
+        popularCourses: [],
+        recentRegistrations: []
+    };
+    }
+}
+
+module.exports = {
+    getDashboardStats,
+    checkConflict,
     adminReportPage,getAdminDashboard,getAdminSubscription,addTeacher,
     getAddCourse,adminTeachersPage,updateTeacher,
     addCourse,
@@ -775,6 +823,5 @@ module.exports = {checkConflict,
     getScheduleSessions,
     postUpdateSessions,
     getManageSessionsLinks,
-    postUpdateSessionsLinks,getManageStudents,markSessionAsComplete,
-  
+    postUpdateSessionsLinks,getManageStudents,markSessionAsComplete
 };
