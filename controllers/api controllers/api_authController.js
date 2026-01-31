@@ -42,7 +42,21 @@ console.log('requestData',requestData);
         statusCode: "FAILL",
         status: 401,});
     }
+const fcmToken = req.body.deviceToken;
 
+    // تحديث مصفوفة الأجهزة
+    await User.updateOne(
+        { _id: user._id },
+        { 
+            $addToSet: { 
+                devices: { 
+                    fcmToken: fcmToken, 
+                    platform: 'android',
+                    lastUsed: new Date() 
+                } 
+            }
+        }
+    );
     // 6. حالة النجاح: كلمة المرور صحيحة
   
     //update token in database

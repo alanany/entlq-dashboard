@@ -139,7 +139,6 @@ const getStudentSessionsPage = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("getStudentSessionsPage error:", error);
 
     return res.status(500).json({
       statusCode: 500,

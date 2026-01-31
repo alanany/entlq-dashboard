@@ -10,6 +10,12 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [isEmail, 'Please enter a valid email']
   },
+  devices: [{
+    fcmToken: { type: String, required: true },
+    platform: { type: String, enum: ['android', 'ios', 'web'] },
+    deviceModel: String, // مفيد لتتبع المشاكل التقنية
+    lastUsed: { type: Date, default: Date.now }
+  }],
   country_code: {
     type: String,
   },
