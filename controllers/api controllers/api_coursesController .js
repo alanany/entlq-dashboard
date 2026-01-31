@@ -1,6 +1,6 @@
 
 const Subscription = require("../../models/subscription_model");
-
+const { DateTime } = require("luxon");
 const Course = require("../../models/course_model");
 
 const getapicourses = async (req, res) => {
@@ -85,62 +85,70 @@ console.log(request);
         });
     }
 };
+
+
 const getStudentSessionsPage = async (req, res) => {
-  const userId = req.params.id;
-  // 1. جلب البيانات من قاعدة البيانات مع الـ Populates
-  const acceptedRequests = await Subscription.find({
-    studentId:userId,
-    status: "confirmed",
-  })
-    .populate({
-      path: "courseId",
-      populate: {
-        path: "category",
-        model: "Category",
-      },
+  try {
+    const userId = req.params.id;
+
+    const acceptedRequests = await Subscription.find({
+      studentId: userId,
+      status: "confirmed",
     })
-    .populate("studentId").populate("teacherId");
+      .populate({
+        path: "courseId",
+        populate: { path: "category", model: "Category" },
+      })
+      .populate("studentId")
+      .populate("teacherId");
 
-  // 2. تحديد المنطقة الزمنية للمستخدم (أو افتراضية إذا لم توجد)
-  const userTimeZone =  req.user.timezone || "Asia/Riyadh";
+    const userTimeZone = req.user?.timezone || "Asia/Riyadh";
 
-  // 3. معالجة البيانات لتحويل توقيت كل جلسة (Session)
-  const formattedBookings = acceptedRequests.map((sub) => {
-    // تحويل وثيقة Mongoose إلى كائن عادي لنتمكن من التعديل عليه
-    const booking = sub.toObject();
+    const today = DateTime.now()
+      .setZone(userTimeZone)
+      .toFormat("yyyy-MM-dd");
 
-    if (booking.sessions && Array.isArray(booking.sessions)) {
-      booking.sessions = booking.sessions.map((session) => {
-        // تحويل التاريخ من UTC إلى المنطقة الزمنية للمستخدم باستخدام Luxon
-        const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
-                   .setZone(userTimeZone)
-                   .setLocale('ar'); // لجعل الوقت والتاريخ بالعربية
-console.log(booking.teacherId.zoom_link,'zoomLink');
-const today = DateTime.now().setZone(userTimeZone).toFormat("yyyy-MM-dd");
-     const sessionDate = dt.toFormat("yyyy-MM-dd");
-return {
+    const formattedBookings = acceptedRequests.map((sub) => {
+      const booking = sub.toObject();
+
+      booking.sessions = booking.sessions?.map((session) => {
+        const dt = DateTime
+          .fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
+          .setZone(userTimeZone)
+          .setLocale("ar");
+
+        const sessionDate = dt.toFormat("yyyy-MM-dd");
+
+        return {
           ...session,
-          // إضافة حقول منسقة للعرض في الـ EJS
-          displayDate: dt.toFormat("yyyy-MM-dd"), // التاريخ: 2026-01-11
-          displayTime: dt.toFormat("hh:mm a"),   // الوقت: 01:15 م
-          displayDay: dt.toFormat("cccc"),   
-          zoomLink:booking.teacherId.zoom_link,
-          isToday: sessionDate === today    // اليوم: الأحد
+          displayDate: dt.toFormat("yyyy-MM-dd"),
+          displayTime: dt.toFormat("hh:mm a"),
+          displayDay: dt.toFormat("cccc"),
+          zoomLink: booking.teacherId?.zoom_link || null,
+          isToday: sessionDate === today,
         };
       });
-    }
-    return booking;
-  });
-console.log(formattedBookings.zoomLink, "formattedBookings");
-  // 4. إرسال البيانات المنسقة (formattedBookings) بدلاً من الأصلية
- 
- res.status(200).json({
-  statusCode:200,
-  status:"success",
-  data:formattedBookings
- })
 
+      return booking;
+    });
+
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: formattedBookings,
+    });
+
+  } catch (error) {
+    console.error("getStudentSessionsPage error:", error);
+
+    return res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "Internal Server Error",
+    });
+  }
 };
+
 
 module.exports = {
   apiCourseCheckout,
