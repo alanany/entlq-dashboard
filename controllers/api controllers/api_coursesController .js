@@ -85,9 +85,66 @@ console.log(request);
         });
     }
 };
+const getStudentSessionsPage = async (req, res) => {
+  const userId = req.params.id;
+  // 1. جلب البيانات من قاعدة البيانات مع الـ Populates
+  const acceptedRequests = await Subscription.find({
+    studentId:userId,
+    status: "confirmed",
+  })
+    .populate({
+      path: "courseId",
+      populate: {
+        path: "category",
+        model: "Category",
+      },
+    })
+    .populate("studentId").populate("teacherId");
+
+  // 2. تحديد المنطقة الزمنية للمستخدم (أو افتراضية إذا لم توجد)
+  const userTimeZone =  req.user.timezone || "Asia/Riyadh";
+
+  // 3. معالجة البيانات لتحويل توقيت كل جلسة (Session)
+  const formattedBookings = acceptedRequests.map((sub) => {
+    // تحويل وثيقة Mongoose إلى كائن عادي لنتمكن من التعديل عليه
+    const booking = sub.toObject();
+
+    if (booking.sessions && Array.isArray(booking.sessions)) {
+      booking.sessions = booking.sessions.map((session) => {
+        // تحويل التاريخ من UTC إلى المنطقة الزمنية للمستخدم باستخدام Luxon
+        const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
+                   .setZone(userTimeZone)
+                   .setLocale('ar'); // لجعل الوقت والتاريخ بالعربية
+console.log(booking.teacherId.zoom_link,'zoomLink');
+const today = DateTime.now().setZone(userTimeZone).toFormat("yyyy-MM-dd");
+     const sessionDate = dt.toFormat("yyyy-MM-dd");
+return {
+          ...session,
+          // إضافة حقول منسقة للعرض في الـ EJS
+          displayDate: dt.toFormat("yyyy-MM-dd"), // التاريخ: 2026-01-11
+          displayTime: dt.toFormat("hh:mm a"),   // الوقت: 01:15 م
+          displayDay: dt.toFormat("cccc"),   
+          zoomLink:booking.teacherId.zoom_link,
+          isToday: sessionDate === today    // اليوم: الأحد
+        };
+      });
+    }
+    return booking;
+  });
+console.log(formattedBookings.zoomLink, "formattedBookings");
+  // 4. إرسال البيانات المنسقة (formattedBookings) بدلاً من الأصلية
+ 
+ res.status(200).json({
+  statusCode:200,
+  status:"success",
+  data:formattedBookings
+ })
+
+};
 
 module.exports = {
   apiCourseCheckout,
   getapicourses,
-  getapiCourseDetails
+  getapiCourseDetails,
+  getStudentSessionsPage
 };
