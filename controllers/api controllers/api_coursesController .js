@@ -2,7 +2,7 @@
 const Subscription = require("../../models/subscription_model");
 const { DateTime } = require("luxon");
 const Course = require("../../models/course_model");
-
+const User = require("../../models/user_model");
 const getapicourses = async (req, res) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
@@ -152,7 +152,9 @@ const { sendPushNotification } = require("../../utility/notificationService");
 
 // الدالة اللي كتبتها أنت بتهندل جلب التوكنات من الـ DB
 async function notifyUser(userId, content) {
-  const user = await User.findById(userId);
+  console.log(userId,'user id');
+  const user = await User.findOne ({_id:userId});
+  console.log(user,'user');
   if (!user || user.devices.length === 0) return;
 
   const tokens = user.devices.map(device => device.fcmToken);
