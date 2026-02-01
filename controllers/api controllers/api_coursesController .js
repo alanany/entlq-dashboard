@@ -148,6 +148,20 @@ const getStudentSessionsPage = async (req, res) => {
   }
 };
 
+const { sendPushNotification } = require("../../utility/notificationService");
+
+// الدالة اللي كتبتها أنت بتهندل جلب التوكنات من الـ DB
+async function notifyUser(userId, content) {
+  const user = await User.findById(userId);
+  if (!user || user.devices.length === 0) return;
+
+  const tokens = user.devices.map(device => device.fcmToken);
+
+  // هنا بننادي على الـ Service اللي فوق
+  return await sendPushNotification(tokens, content);
+}
+
+// مثال: إرسال إشعار عند نجاح الدفع
 
 module.exports = {
   apiCourseCheckout,

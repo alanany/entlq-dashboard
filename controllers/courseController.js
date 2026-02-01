@@ -3,6 +3,7 @@
 const Category = require('../models/category_model.js');
 const Course = require('../models/course_model.js');
 const User = require('../models/user_model.js');
+const { notifyUser } = require('../api controllers/api_coursesController');
 const Subscription= require('../models/subscription_model.js');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
@@ -364,7 +365,12 @@ const confirmBookingPayment = async (req, res) => {
     if (paymentStatus === 'confirmed') {
       // sendNotificationToStudent(...)
     }
-
+    const userId=updatedSubscription.studentId._id;
+ await notifyUser(userId, {
+        title: "تم  تسجيل الاشتراك بنجاح! ✅",
+        body: "يمكنك الآن البدء فى الدورة التدريبية.",
+        data: { screen: "course_details", courseId: "123" }
+    });
     return res.status(200).json({
       success: true,
       message: 'تم تأكيد الدفع بنجاح'
