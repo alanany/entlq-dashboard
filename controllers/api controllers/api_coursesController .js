@@ -167,5 +167,6 @@ module.exports = {
   apiCourseCheckout,
   getapicourses,
   getapiCourseDetails,
-  getStudentSessionsPage
+  getStudentSessionsPage,
+  notifyUser
 };
