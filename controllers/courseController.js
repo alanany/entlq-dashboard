@@ -3,7 +3,8 @@
 const Category = require('../models/category_model.js');
 const Course = require('../models/course_model.js');
 const User = require('../models/user_model.js');
-const notifyUser = require('./api controllers/api_coursesController .js');
+
+const api_coursesController = require('./api controllers/api_coursesController .js');
 const Subscription= require('../models/subscription_model.js');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
@@ -366,7 +367,7 @@ const confirmBookingPayment = async (req, res) => {
       // sendNotificationToStudent(...)
     }
     const userId=updatedSubscription.studentId._id;
- await notifyUser(userId, {
+ await api_coursesController.notifyUser(userId, {
         title: "تم  تسجيل الاشتراك بنجاح! ✅",
         body: "يمكنك الآن البدء فى الدورة التدريبية.",
         data: { screen: "course_details", courseId: "123" }
