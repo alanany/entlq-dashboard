@@ -3,7 +3,7 @@
 const Category = require('../models/category_model.js');
 const Course = require('../models/course_model.js');
 const User = require('../models/user_model.js');
-const { notifyUser } = require('./api controllers/api_coursesController .js');
+const notifyUser = require('./api controllers/api_coursesController .js');
 const Subscription= require('../models/subscription_model.js');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
