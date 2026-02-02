@@ -3,114 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الطلاب | أكاديمية إتقان</title>
+    <title>إدارة الطلاب | <%= settings.academyName %></title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .main-card { border-radius: 2rem; background: white; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05); }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        :root {
+            --primary: #FE5D37;
+            --primary-light: #FFF0ED;
+            --accent: #000B1C;
+        }
+
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: #f7f9fc;
+            color: #1F2937;
+            min-height: 100vh;
+        }
+
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .glass-card {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
     </style>
 </head>
-<body class="bg-[#fcfcfd] p-4 md:p-8">
+<body class="p-6 md:p-10">
 
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto space-y-8">
         
-        <div class="flex items-center justify-between mb-10">
-            <div class="flex items-center gap-4">
-                <button onclick="history.back()" class="flex items-center justify-center w-12 h-12 bg-white border border-gray-100 rounded-2xl text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-all shadow-sm group">
-                    <i data-feather="arrow-right" class="w-6 h-6 group-hover:translate-x-1 transition-transform"></i>
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 fade-in">
+            <div class="flex items-center gap-5">
+                <button onclick="history.back()" class="flex items-center justify-center w-12 h-12 bg-white rounded-xl text-gray-500 shadow-sm border border-gray-100 hover:bg-[#FE5D37] hover:text-white transition-all transform active:scale-90 group">
+                    <i data-feather="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
                 </button>
                 <div>
-                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">إدارة الطلاب المشتركين</h2>
-                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">العدد الإجمالي: <%= students.length %> طالب</p>
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">قائمة الطلاب</h2>
+                    <p class="text-xs text-gray-400 font-bold mt-1 outfit-font uppercase tracking-wider">Student Management System</p>
                 </div>
             </div>
             
-            <div class="flex items-center gap-3 bg-white p-2 pr-4 rounded-2xl border border-gray-100 shadow-sm">
-                <span class="text-xs font-black text-gray-700"><%= user.name %></span>
-                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
-                    <i data-feather="user" class="w-5 h-5"></i>
+            <div class="flex items-center gap-3 bg-white p-2 pr-5 rounded-2xl border border-gray-100 shadow-sm">
+                <div class="text-right">
+                    <p class="text-[10px] font-bold text-[#FE5D37] uppercase tracking-widest leading-none mb-1 outfit-font">Active Students</p>
+                    <p class="text-sm font-black text-gray-900"><%= students.length %> طالباً</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-[#FE5D37] flex items-center justify-center text-white shadow-md">
+                    <i data-feather="users" class="w-5 h-5"></i>
                 </div>
             </div>
         </div>
 
-        <div class="main-card p-3 mb-6 flex items-center">
+        <!-- Search Bar -->
+        <div class="glass-card p-2 rounded-2xl flex items-center fade-in" style="animation-delay: 0.1s;">
             <div class="relative flex-1">
-                <i data-feather="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300"></i>
+                <i data-feather="search" class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300"></i>
                 <input type="text" id="studentSearch" onkeyup="searchStudent()" 
-                       class="w-full bg-transparent border-none p-4 pr-12 rounded-xl outline-none text-sm font-bold"
-                       placeholder="ابحث عن اسم الطالب أو البريد الإلكتروني...">
+                       class="w-full bg-transparent border-none py-4 pr-12 pl-6 rounded-xl outline-none text-sm font-bold placeholder:text-gray-300"
+                       placeholder="ابحث عن طالب بالاسم، البريد أو الدورة...">
             </div>
-            <button class="bg-gray-50 text-gray-400 p-4 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-all">
-                <i data-feather="sliders" class="w-5 h-5"></i>
-            </button>
         </div>
 
-        <div class="main-card overflow-hidden">
-            <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full text-right text-sm">
+        <!-- Table -->
+        <div class="glass-card rounded-2xl overflow-hidden fade-in shadow-sm" style="animation-delay: 0.2s;">
+            <div class="overflow-x-auto">
+                <table class="w-full text-right">
                     <thead>
-                        <tr class="bg-gray-50/50 border-b border-gray-100">
-                            <th class="px-8 py-5 font-black text-gray-400 text-[10px] uppercase tracking-widest">بيانات الطالب</th>
-                            <th class="px-6 py-5 font-black text-gray-400 text-[10px] uppercase tracking-widest text-center">الكورس</th>
-                            <th class="px-6 py-5 font-black text-gray-400 text-[10px] uppercase tracking-widest text-center">عدد الحصص الشهرية </th>
-                            <th class="px-6 py-5 font-black text-gray-400 text-[10px] uppercase tracking-widest text-center">الحصص المكتملة</th>
-                            <th class="px-8 py-5 font-black text-gray-400 text-[10px] uppercase tracking-widest text-center">الجدول </th>
+                        <tr class="bg-gray-50 text-[10px] text-gray-400 font-black tracking-widest uppercase outfit-font">
+                            <th class="px-8 py-5">Student Information</th>
+                            <th class="px-6 py-5 text-center">Course</th>
+                            <th class="px-6 py-5 text-center">Sessions</th>
+                            <th class="px-6 py-5 text-center">Status</th>
+                            <th class="px-8 py-5 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="studentTableBody" class="divide-y divide-gray-50">
                         <% if (students && students.length > 0) { %>
                             <% students.forEach(student => { %>
-                                <tr class="hover:bg-gray-50/50 transition-all group">
+                                <tr class="hover:bg-gray-50/50 transition-colors group">
                                     <td class="px-8 py-5">
                                         <div class="flex items-center gap-4">
-                                            <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-xs border border-indigo-100">
-                                                <%= student.name.charAt(0) %>
+                                            <div class="w-12 h-12 rounded-xl bg-[#FFF0ED] text-[#FE5D37] flex items-center justify-center font-black text-sm border border-transparent group-hover:border-[#FE5D37] transition-all">
+                                                <%= (student.name || 'U').charAt(0).toUpperCase() %>
                                             </div>
                                             <div>
-                                                <p class="font-black text-gray-900 leading-none mb-1"><%= student.name %></p>
-                                                <p class="text-[10px] text-gray-400 font-medium"><%= student.email %></p>
+                                                <p class="font-bold text-gray-900 text-sm"><%= student.name %></p>
+                                                <p class="text-[10px] text-gray-400 font-bold"><%= student.email %></p>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-5 text-center">
-                                        <span class="text-[11px] font-bold text-gray-600 px-3 py-1 bg-white border border-gray-100 rounded-lg"><%= student.courseTitle %></span>
-                                    </td>
-                                    <td class="px-6 py-5 text-center" >
-                                         <span class="text-[10px] font-bold   'text-emerald-600' %>">
-                                               <%= student.numberOfSessionsPerMonth.toString()  %>
-                                            </span>
+                                        <span class="px-3 py-1 bg-white border border-gray-100 text-gray-600 rounded-lg text-[10px] font-black group-hover:bg-[#FFF0ED] group-hover:text-[#FE5D37] transition-all">
+                                            <%= student.courseTitle %>
+                                        </span>
                                     </td>
                                     <td class="px-6 py-5 text-center">
-                                        <div class="flex items-center justify-center gap-1.5">
-                                            <span class="w-1.5 h-1.5 rounded-full <%= student.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300' %>"></span>
-                                            <span class="text-[10px] font-bold <%= student.isActive ? 'text-emerald-600' : 'text-gray-400' %>">
-                                                <%= student.completedSessions   %>
-                                            </span>
-                                        </div>
+                                         <div class="inline-flex flex-col items-center">
+                                                <span class="text-xs font-black text-gray-900 outfit-font"><%= student.completedSessions %> / <%= student.numberOfSessionsPerMonth %></span>
+                                                <div class="w-16 h-1 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
+                                                    <div class="h-full bg-[#FE5D37]" style="width: <%= (student.completedSessions / student.numberOfSessionsPerMonth * 100) %>%"></div>
+                                                </div>
+                                         </div>
+                                    </td>
+                                    <td class="px-6 py-5 text-center">
+                                        <% if(student.isActive) { %>
+                                            <span class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">نشط</span>
+                                        <% } else { %>
+                                            <span class="text-[10px] font-black text-gray-400 bg-gray-50 px-3 py-1 rounded-full">غير نشط</span>
+                                        <% } %>
                                     </td>
                                     <td class="px-8 py-5">
                                         <div class="flex items-center justify-center gap-2">
-                                            <button onclick="window.location.href='/student/my-sessions/<%= student._id %>'" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
-                                                <i data-feather="table" class="w-4 h-4"></i>
+                                            <button onclick="window.location.href='/student/my-sessions/<%= student._id %>'" 
+                                                    class="w-10 h-10 flex items-center justify-center bg-white text-gray-400 rounded-lg hover:bg-[#FE5D37] hover:text-white transition-all shadow-sm border border-gray-50 active:scale-90 group/btn">
+                                                <i data-feather="monitor" class="w-4 h-4"></i>
                                             </button>
-                                           
+                                            <button class="w-10 h-10 flex items-center justify-center bg-white text-gray-400 rounded-lg hover:bg-[#000B1C] hover:text-white transition-all shadow-sm border border-gray-50 active:scale-95 group/btn2">
+                                                <i data-feather="mail" class="w-4 h-4"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
                             <% }) %>
                         <% } else { %>
                             <tr>
-                                <td colspan="5" class="px-8 py-20 text-center text-gray-400 font-bold">لا يوجد طلاب مسجلين حالياً</td>
+                                <td colspan="5" class="px-8 py-20 text-center text-gray-400 font-bold italic">لا يوجد طلاب مسجلون حالياً</td>
                             </tr>
                         <% } %>
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- Footer -->
+        <footer class="py-10 text-center text-gray-400 fade-in" style="animation-delay: 0.3s;">
+            <p class="text-[10px] font-bold uppercase tracking-widest outfit-font opacity-60">
+                &copy; <%= new Date().getFullYear() %> <%= settings.academyName %> &bull; Student Records
+            </p>
+        </footer>
     </div>
 
     <script>
@@ -120,7 +160,6 @@
             const input = document.getElementById('studentSearch').value.toLowerCase();
             const rows = document.querySelectorAll('#studentTableBody tr');
             rows.forEach(row => {
-                if(row.querySelector('td[colspan]')) return;
                 const text = row.innerText.toLowerCase();
                 row.style.display = text.includes(input) ? '' : 'none';
             });

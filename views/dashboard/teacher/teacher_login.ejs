@@ -5,122 +5,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - لوحة المعلم</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
-        .login-card { border-radius: 3rem; }
-        .input-group:focus-within .icon-box { background-color: #4f46e5; color: white; }
+        :root {
+            --primary: #FE5D37;
+            --primary-light: #FFF0ED;
+            --accent: #000B1C;
+        }
+
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: #f7f9fc;
+            color: #1F2937;
+        }
+
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .login-card { 
+            border-radius: 2.5rem; 
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-box:focus-within {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(254, 93, 55, 0.1);
+        }
+
+        .input-box:focus-within .icon-box {
+            color: var(--primary);
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
 
-    <div class="max-w-md w-full">
-        <div class="text-center mb-10">
-            <div class="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center text-white mx-auto shadow-xl shadow-indigo-100 mb-4">
-                <i data-feather="book-open" class="w-8 h-8"></i>
+    <div class="max-w-md w-full space-y-8">
+        <div class="text-center">
+            <div class="w-14 h-14 bg-[#FE5D37] rounded-2xl flex items-center justify-center text-white mx-auto shadow-lg shadow-[#FE5D37]/20 mb-6">
+                <i data-feather="lock" class="w-6 h-6"></i>
             </div>
-            <h1 class="text-2xl font-black text-gray-900">مرحباً بك مجدداً</h1>
-            <p class="text-gray-400 text-xs mt-2 font-bold">سجل دخولك لإدارة حصصك اليوم</p>
+            <h1 class="text-2xl font-black text-gray-900 tracking-tight">مرحباً بك مجدداً</h1>
+            <p class="text-xs text-gray-400 mt-2 font-bold outfit-font uppercase tracking-widest leading-relaxed">Educator Portal Access</p>
         </div>
 
-        <div class="bg-white p-8 md:p-10 login-card shadow-2xl shadow-indigo-100 border border-gray-50">
+        <div class="p-8 md:p-10 login-card">
             <form id="teacherForm" class="space-y-6" onsubmit="handleSubmit(event)">
                 
-                <div class="input-group">
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 mr-1">البريد الإلكتروني</label>
-                        <div class="relative">
-                            <div class="icon-box absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center transition-all pointer-events-none">
-                                <i data-feather="mail" class="w-4 h-4"></i>
-                            </div>
-                            <input type="email" id="email" required class="w-full bg-gray-50 border-2 border-transparent pr-14 pl-4 py-4 rounded-2xl text-sm font-bold focus:bg-white focus:border-indigo-500/10 outline-none transition-all" placeholder="mail@example.com">
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 outfit-font">Email Address</label>
+                    <div class="input-box relative flex items-center bg-gray-50 border-2 border-transparent rounded-2xl transition-all">
+                        <div class="icon-box px-4 text-gray-400 transition-colors">
+                            <i data-feather="mail" class="w-4 h-4"></i>
                         </div>
+                        <input type="email" id="email" required class="w-full bg-transparent py-4 text-sm font-bold outline-none" placeholder="mail@example.com">
                     </div>
+                </div>
 
-                <div class="input-group">
-                    <div class="flex justify-between items-center mb-2 mr-1">
-                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">كلمة المرور</label>
-                        <a href="#" class="text-[10px] font-bold text-indigo-600 hover:underline">نسيت كلمة المرور؟</a>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center mr-2">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest outfit-font">Password</label>
+                        <a href="#" class="text-[10px] font-bold text-[#FE5D37] hover:underline">Forgot?</a>
                     </div>
-                    <div class="relative">
-                        <div class="icon-box absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center transition-all">
-                            <i data-feather="lock" class="w-4 h-4"></i>
+                    <div class="input-box relative flex items-center bg-gray-50 border-2 border-transparent rounded-2xl transition-all">
+                        <div class="icon-box px-4 text-gray-400 transition-colors">
+                            <i data-feather="shield" class="w-4 h-4"></i>
                         </div>
-                        <input type="password" name="password" required id="password"
-                               class="w-full bg-gray-50 border-none pr-14 pl-4 py-4 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                               placeholder="••••••••">
+                        <input type="password" id="password" required class="w-full bg-transparent py-4 text-sm font-bold outline-none" placeholder="••••••••">
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2 px-1">
-                    <input type="checkbox" id="remember" class="w-4 h-4 accent-indigo-600 rounded">
-                    <label for="remember" class="text-xs text-gray-500 font-medium">تذكرني على هذا الجهاز</label>
+                    <input type="checkbox" id="remember" class="w-4 h-4 accent-[#FE5D37] rounded border-gray-300">
+                    <label for="remember" class="text-xs text-gray-500 font-bold">تذكرني على هذا المتصفح</label>
                 </div>
 
-                 <button
-            id="saveBtn"
-            type="submit"
-            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150"
-          >   دخول اللوحة
-                    <i data-feather="log-in" class="w-5 h-5"></i>
+                 <button id="saveBtn" type="submit" class="w-full py-4 bg-[#FE5D37] text-white rounded-2xl font-black text-sm shadow-lg shadow-[#FE5D37]/10 hover:bg-black transition-all flex items-center justify-center gap-3">
+                    <i data-feather="log-in" class="w-4 h-4"></i>
+                    دخول اللوحة الرئيسية
                 </button>
             </form>
 
             <div class="mt-8 pt-6 border-t border-gray-50 text-center">
                 <p class="text-xs text-gray-400 font-bold">
                     ليس لديك حساب معلم؟ 
-                    <a href="/teacher/register" class="text-indigo-600 hover:underline ml-1">إنشاء حساب جديد</a>
+                    <a href="/teacher/register" class="text-[#FE5D37] hover:underline font-black ms-1">سجل الآن</a>
                 </p>
             </div>
         </div>
 
-        <a href="/" class="flex items-center justify-center gap-2 mt-8 text-gray-400 hover:text-gray-600 transition text-xs font-bold">
-            <i data-feather="home" class="w-4 h-4"></i>
-            العودة للموقع الرئيسي
+        <a href="/" class="flex items-center justify-center gap-2 text-gray-400 hover:text-gray-900 transition-all text-xs font-bold outfit-font">
+            <i data-feather="arrow-right" class="w-4 h-4"></i>
+            Back to Home
         </a>
     </div>
 
-<div id="toastContainer" class="fixed bottom-4 right-4 z-[70] space-y-3"></div>
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-[70] space-y-3"></div>
 
     <script>
         feather.replace();
 
         const saveBtn = document.getElementById("saveBtn");
-        const originalButtonText = "الدخول  لحسابي الآن";
-
-        function startLoading() {
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = `<span>جاري الدخول...</span>`;
-        }
-
-        function stopLoading() {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = `<i data-feather="log-in" class="w-5 h-5"></i><span>${originalButtonText}</span>`;
-            feather.replace();
-        }
 
         function showToast(message, type = "info") {
             const container = document.getElementById("toastContainer");
             const toast = document.createElement("div");
-            let bgColor = type === "success" ? "bg-green-600" : type === "error" ? "bg-red-600" : "bg-blue-600";
-            let icon = type === "success" ? "check-circle" : type === "error" ? "alert-triangle" : "info";
-
-            toast.className = `p-4 min-w-[250px] text-white ${bgColor} rounded-xl shadow-xl flex items-center justify-between transform transition-all duration-300 translate-x-full opacity-0`;
-            toast.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <i data-feather="${icon}" class="w-5 h-5"></i>
-                    <span class="text-sm font-bold">${message}</span>
-                </div>
-                <button onclick="this.parentElement.remove()" class="mr-4"><i data-feather="x" class="w-4 h-4"></i></button>
-            `;
-
+            const bgColor = type === "success" ? "bg-emerald-600" : type === "error" ? "bg-red-600" : "bg-blue-600";
+            toast.className = `p-4 min-w-[280px] text-white ${bgColor} rounded-xl shadow-xl flex items-center justify-between transform transition-all duration-300 translate-x-full opacity-0`;
+            toast.innerHTML = `<span class="text-xs font-black">${message}</span><button onclick="this.parentElement.remove()"><i data-feather="x" class="wh-3"></i></button>`;
             container.appendChild(toast);
             feather.replace();
-
-            setTimeout(() => {
-                toast.classList.remove("translate-x-full", "opacity-0");
-            }, 10);
-
+            setTimeout(() => toast.classList.remove("translate-x-full", "opacity-0"), 10);
             setTimeout(() => {
                 toast.classList.add("translate-x-full", "opacity-0");
                 setTimeout(() => toast.remove(), 300);
@@ -129,45 +126,30 @@
 
         async function handleSubmit(event) {
             event.preventDefault();
-
+            const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
-         
-            if (password.length < 6) {
-                showToast("كلمة المرور يجب ان تكون على الاقل 8 حروف", "error");
-                return;
-            }
-
-            const userData = {
-                email: document.getElementById("email").value,
-                password: password,
-                role: "teacher"
-            };
-console.error(userData);
-            startLoading();
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `<span>جاري الدخول...</span>`;
 
             try {
                 const response = await fetch("/teacher/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(userData),
+                    body: JSON.stringify({ email, password, role: "teacher" }),
                 });
 
                 const result = await response.json();
+                if (!response.ok) throw result.errors?.email || result.errors?.password || "فشل الدخول";
 
-                if (!response.ok) {
-                    throw new Error(result.errors.email ||result.errors.password || "حدث خطأ غير متوقع");
-                }
-
-                showToast("تم تسجيل الدخول  بنجاح!", "success");
-                setTimeout(() => {
-                    window.location.href = "/teacher/home";
-                }, 1500);
+                showToast("تم تسجيل الدخول بنجاح!", "success");
+                setTimeout(() => window.location.href = "/teacher/home", 1000);
 
             } catch (error) {
-            
-                stopLoading();
-                showToast(error.message, "error");
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<i data-feather="log-in" class="w-4 h-4"></i><span>دخول اللوحة الرئيسية</span>`;
+                feather.replace();
+                showToast(error, "error");
             }
         }
     </script>
