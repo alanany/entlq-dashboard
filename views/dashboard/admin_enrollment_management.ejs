@@ -299,6 +299,7 @@
                 <td class="px-3 py-3">
                     <div class="fw-bold text-dark">${b.studentId?.name || '---'}</div>
                     <div class="text-primary small" style="font-size: 0.7rem;">المعلم: ${b.teacherId?.name || 'غير محدد'}</div>
+                    ${b.teacherHourlyRate ? `<div class="text-muted small" style="font-size: 0.65rem;">السعر: ${b.teacherHourlyRate} ر.س</div>` : ''}
                 </td>
                 <td class="px-3 py-3 text-center">
                     <div class="fw-bold text-dark small">${b.courseId?.title || '---'}</div>

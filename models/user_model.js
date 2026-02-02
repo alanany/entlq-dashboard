@@ -48,9 +48,11 @@ zoom_link: {
     enum: ['active', 'archived'],
     default: 'active'
   },
-  hour_rate: {
-    type: Number,
-  },
+  hour_rate: { type: Number, default: 0 },
+  hourly_rates: [{
+    label: { type: String },
+    rate: { type: Number }
+  }],
   image: {
     type: String,
   },

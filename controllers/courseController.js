@@ -326,7 +326,7 @@ const confirmBookingPayment = async (req, res) => {
     console.log('BODY:', req.body);
 
     const bookingId = req.params.id;
-    const { startDate, paymentStatus, teacherId } = req.body;
+    const { startDate, paymentStatus, teacherId, teacherHourlyRate, adminNotes } = req.body;
 
     // ✅ تحقق من البيانات
     if (!startDate || !paymentStatus  || !teacherId) {
@@ -340,13 +340,14 @@ const confirmBookingPayment = async (req, res) => {
     const updateData = {
       startDate,
       status: paymentStatus,
-      teacherId
+      teacherId,
+      teacherHourlyRate: Number(teacherHourlyRate) || 0,
+      adminNotes: adminNotes || ''
     };
 
     // إضافة تاريخ التأكيد فقط عند التأكيد
     if (paymentStatus === 'confirmed') {
       updateData.confirmedAt = new Date();
-      updateData.sessions = [];
     }
 
     // ✅ التحديث
@@ -376,15 +377,17 @@ const confirmBookingPayment = async (req, res) => {
             status: 'completed'
         });
     }
-    const userId=updatedSubscription.studentId._id;
- await api_coursesController.notifyUser(userId, {
-        title: "تم  تسجيل الاشتراك بنجاح! ✅",
-        body: "يمكنك الآن البدء فى الدورة التدريبية.",
-        data: { screen: "course_details", courseId: "123" }
-    });
+    if (paymentStatus === 'confirmed') {
+        const userId = updatedSubscription.studentId._id || updatedSubscription.studentId;
+        await api_coursesController.notifyUser(userId, {
+            title: "تم تسجيل الاشتراك بنجاح! ✅",
+            body: "يمكنك الآن البدء فى الدورة التدريبية.",
+            data: { screen: "course_details", courseId: updatedSubscription.courseId }
+        });
+    }
     return res.status(200).json({
       success: true,
-      message: 'تم تأكيد الدفع بنجاح'
+      message: 'تم تحديث بيانات الحجز والدفع بنجاح'
     });
 
   } catch (error) {
@@ -668,7 +671,12 @@ const markSessionAsComplete = async (req, res, next) => {
             { $unwind: '$teacher' },
             { $group: {
                 _id: null,
-                total: { $sum: { $multiply: [{ $divide: [{ $toDouble: '$selectedPriceOption' }, 60] }, { $ifNull: ['$teacher.hour_rate', 0] }] } }
+                total: { $sum: { 
+                    $multiply: [
+                        { $divide: [{ $toDouble: "$selectedPriceOption" }, 60] }, 
+                        { $ifNull: ["$teacherHourlyRate", { $ifNull: ["$teacher.hour_rate", 0] }] }
+                    ] 
+                }}
             }}
         ]);
         const pendingExpenses = pendingTeacherDues[0]?.total || 0;
@@ -760,7 +768,7 @@ const updateTeacher = async (req, res) => {
             zoom_link: req.body.zoom_link,
             phone_number: req.body.phone_number,
             notes: req.body.notes,
-            hour_rate: req.body.hour_rate
+            hourly_rates: req.body.hourly_rates
         };
 
         // تحديث المستخدم في قاعدة البيانات
@@ -796,12 +804,12 @@ const addTeacher = async (req, res) => {
             name,
             phone_number,
             zoom_link,
-            hour_rate,
+            hourly_rates: req.body.hourly_rates,
             notes,
-            email,      // إذا كنت ستضيف إيميل في الفورم
-            password: defaultPassword,   // يفضل وضع كلمة مرور افتراضية أو استقبالها
-            role: 'teacher', // تعيين الرتبة تلقائياً
-            status: 'active' // الحالة الافتراضية
+            email,
+            password: defaultPassword,
+            role: 'teacher',
+            status: 'active'
         });
 
         // 3. حفظ في قاعدة البيانات

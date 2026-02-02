@@ -59,7 +59,10 @@ const bookingSchema = new mongoose.Schema({
     teacherId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user', // افترض أن لديك موديل User
-       
+    },
+    teacherHourlyRate: {
+        type: Number,
+        default: 0
     },
     status: { // حالة الحجز (بانتظار الدفع، مؤكد، ملغي، مكتمل)
         type: String,

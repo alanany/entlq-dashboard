@@ -148,7 +148,15 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-muted outfit-font" style="font-size: 0.8rem;"><%= teacher.phone_number %></td>
-                                <td class="px-4 py-3 text-center fw-bold text-dark"><%= teacher.hour_rate %> ر.س</td>
+                                <td class="px-4 py-3 text-center fw-bold text-dark">
+                                    <% if (teacher.hourly_rates && teacher.hourly_rates.length > 0) { %>
+                                        <% teacher.hourly_rates.forEach(r => { %>
+                                            <div class="small"><%= r.label %>: <%= r.rate %> ر.س</div>
+                                        <% }) %>
+                                    <% } else { %>
+                                        ---
+                                    <% } %>
+                                </td>
                                 <td class="px-4 py-3 text-center">
                                     <a href="<%= teacher.zoom_link %>" target="_blank" class="btn btn-outline-primary btn-sm rounded-3">
                                         <i class="fas fa-video"></i>
@@ -220,15 +228,18 @@
                             <label class="small text-muted mb-1 d-block">الايميل</label>
                             <input type="email" id="email" dir="ltr" class="form-control border-0 bg-light rounded-3 py-2 px-3 fw-bold" style="font-size: 0.85rem;">
                         </div>
-                        <div class="row g-3 mb-4">
-                            <div class="col-6">
-                                <label class="small text-muted mb-1 d-block">سعر الساعة</label>
-                                <input type="number" id="hourlyRate" dir="ltr" class="form-control border-0 bg-light rounded-3 py-2 px-3 fw-bold" style="font-size: 0.85rem;">
+                        <div class="mb-3">
+                            <label class="small text-muted mb-1 d-block">سعر ساعة المعلم (خيارات متعددة)</label>
+                            <div id="ratesContainer">
+                                <!-- Dynamic Rates -->
                             </div>
-                            <div class="col-6">
-                                <label class="small text-muted mb-1 d-block">رابط زووم</label>
-                                <input type="url" id="zoom" dir="ltr" class="form-control border-0 bg-light rounded-3 py-2 px-3 fw-bold" style="font-size: 0.85rem;">
-                            </div>
+                            <button type="button" onclick="addRateRow()" class="btn btn-sm btn-outline-primary mt-2">
+                                <i class="fas fa-plus me-1"></i> إضافة سعر جديد
+                            </button>
+                        </div>
+                        <div class="mb-4">
+                            <label class="small text-muted mb-1 d-block">رابط زووم</label>
+                            <input type="url" id="zoom" dir="ltr" class="form-control border-0 bg-light rounded-3 py-2 px-3 fw-bold" style="font-size: 0.85rem;">
                         </div>
                         <div class="d-flex gap-3">
                             <button type="button" class="btn btn-light rounded-pill flex-grow-1" data-bs-dismiss="modal">إلغاء</button>
@@ -304,6 +315,9 @@
         }
 
         function showInstructorModal(mode, teacher = null) {
+            const ratesContainer = document.getElementById('ratesContainer');
+            ratesContainer.innerHTML = '';
+
             if(mode === 'edit' && teacher) {
                 currentTeacherId = teacher._id;
                 document.getElementById('modalTitle').innerText = "تعديل المدرب";
@@ -311,13 +325,39 @@
                 document.getElementById('email').value = teacher.email;
                 document.getElementById('zoom').value = teacher.zoom_link || '';
                 document.getElementById('phone').value = teacher.phone_number || '';
-                document.getElementById('hourlyRate').value = teacher.hour_rate || '';
+                
+                if (teacher.hourly_rates && teacher.hourly_rates.length > 0) {
+                    teacher.hourly_rates.forEach(r => addRateRow(r.label, r.rate));
+                } else {
+                    addRateRow();
+                }
             } else {
                 currentTeacherId = null;
                 document.getElementById('modalTitle').innerText = "إضافة مدرب جديد";
                 document.getElementById('instructorForm').reset();
+                addRateRow();
             }
             instructorModal.show();
+        }
+
+        function addRateRow(label = '', rate = '') {
+            const container = document.getElementById('ratesContainer');
+            const div = document.createElement('div');
+            div.className = 'row g-2 mb-2 rate-row';
+            div.innerHTML = `
+                <div class="col-6">
+                    <input type="text" placeholder="مثلاً: لغة عربية" value="${label}" class="form-control bg-light border-0 rate-label" required>
+                </div>
+                <div class="col-5">
+                    <input type="number" placeholder="السعر" value="${rate}" class="form-control bg-light border-0 rate-value" required>
+                </div>
+                <div class="col-1 d-flex align-items-center">
+                    <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-danger border-0 bg-transparent">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
         }
 
         function closeModal() {
@@ -326,11 +366,18 @@
 
         document.getElementById('instructorForm').onsubmit = async (e) => {
             e.preventDefault();
+            const rates = [];
+            document.querySelectorAll('.rate-row').forEach(row => {
+                const label = row.querySelector('.rate-label').value;
+                const rate = row.querySelector('.rate-value').value;
+                if (label && rate) rates.push({ label, rate: Number(rate) });
+            });
+
             const formData = {
                 name: document.getElementById('name').value,
                 zoom_link: document.getElementById('zoom').value,
                 phone_number: document.getElementById('phone').value,
-                hour_rate: document.getElementById('hourlyRate').value,
+                hourly_rates: rates,
                 email: document.getElementById('email').value
             };
             const url = currentTeacherId ? `/admin/teachers/update/${currentTeacherId}` : `/admin/teachers/add`;

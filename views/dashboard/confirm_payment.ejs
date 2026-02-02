@@ -238,12 +238,20 @@
                     <form onsubmit="submitForm(event)" class="row g-4">
                         <div class="col-12">
                             <label class="form-label-custom"><i class="fas fa-user-tie"></i> إسناد الطلب لمعلم</label>
-                            <select id="teacherId" name="teacherId" required class="form-select">
+                            <select id="teacherId" name="teacherId" required class="form-select" onchange="updateTeacherRates()">
                                 <option value="" disabled <%= !booking.teacherId ? 'selected' : '' %>>اختر المعلم المسؤول...</option>
                                 <% teachers.forEach(teacher => { %>
-                                    <option value="<%= teacher._id %>" <%= booking.teacherId && booking.teacherId.toString() === teacher._id.toString() ? 'selected' : '' %>><%= teacher.name %></option>
+                                    <option value="<%= teacher._id %>" data-rates='<%- JSON.stringify(teacher.hourly_rates || []) %>' <%= booking.teacherId && booking.teacherId.toString() === teacher._id.toString() ? 'selected' : '' %>><%= teacher.name %></option>
                                 <% }); %>
                             </select>
+                        </div>
+
+                        <div class="col-12" id="rateSelectionContainer" style="display: none;">
+                            <label class="form-label-custom"><i class="fas fa-coins"></i> سعر الساعة المتفق عليه مع المعلم</label>
+                            <select id="teacherHourlyRate" name="teacherHourlyRate" class="form-select">
+                                <!-- Options will be loaded by JS -->
+                            </select>
+                            <small class="text-muted mt-2 d-block" style="font-size: 0.75rem;">اختر السعر الذي سيتم محاسبة المعلم بناءً عليه في هذا الطلب.</small>
                         </div>
 
                         <div class="col-md-6">
@@ -304,11 +312,47 @@
 
             const minDateString = formatDate(today);
             const maxDateString = formatDate(maxDate);
-            const startDateInput = document.getElementById('startDate');
-            
             startDateInput.setAttribute('min', minDateString); 
             startDateInput.setAttribute('max', maxDateString); 
+
+            // Initial call to populate rates if teacher is already selected
+            updateTeacherRates();
         });
+
+        function updateTeacherRates() {
+            const teacherSelect = document.getElementById('teacherId');
+            const rateContainer = document.getElementById('rateSelectionContainer');
+            const rateSelect = document.getElementById('teacherHourlyRate');
+            
+            const selectedOption = teacherSelect.options[teacherSelect.selectedIndex];
+            if (!selectedOption || !selectedOption.value) {
+                rateContainer.style.display = 'none';
+                return;
+            }
+
+            const rates = JSON.parse(selectedOption.getAttribute('data-rates') || '[]');
+            rateSelect.innerHTML = '';
+            
+            if (rates.length > 0) {
+                rates.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.rate;
+                    opt.textContent = `${r.label} - ${r.rate} ر.س`;
+                    if (Number(r.rate) === Number('<%= booking.teacherHourlyRate || 0 %>')) {
+                        opt.selected = true;
+                    }
+                    rateSelect.appendChild(opt);
+                });
+                rateContainer.style.display = 'block';
+                rateSelect.required = true;
+            } else {
+                const opt = document.createElement('option');
+                opt.value = 0;
+                opt.textContent = 'لا توجد أسعار معرفة لهذا المعلم';
+                rateSelect.appendChild(opt);
+                rateContainer.style.display = 'block';
+            }
+        }
 
         async function submitForm(event) {
             event.preventDefault();
@@ -320,6 +364,7 @@
                 const paymentStatus = document.getElementById('paymentStatus').value;
                 const adminNotes = document.getElementById('adminNotes').value || '';
                 const teacherId = document.getElementById('teacherId').value;
+                const teacherHourlyRate = document.getElementById('teacherHourlyRate').value;
 
                 if (!teacherId) {
                     showToast('يرجى اختيار المعلم المسؤول لإكمال المهمة', 'danger');
@@ -332,7 +377,7 @@
                 const response = await fetch(`/booking/<%= booking._id %>/confirm-payment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ startDate, paymentStatus, adminNotes, teacherId })
+                    body: JSON.stringify({ startDate, paymentStatus, adminNotes, teacherId, teacherHourlyRate })
                 });
 
                 const data = await response.json();

@@ -145,7 +145,7 @@ const teacherStatics = async (req, res) => {
       teacherId: teacherId,
     });
 
-    const teacherHourlyRate = Number(req.user.hour_rate) || 0;
+    const teacherHourlyRateDefault = Number(req.user.hour_rate) || (req.user.hourly_rates && req.user.hourly_rates.length > 0 ? req.user.hourly_rates[0].rate : 0);
 
     // جلب الاشتراكات مع الحصص المكتملة والتي حضرها المعلم فعلياً
     const bookings = await Subscription.find({
@@ -165,7 +165,8 @@ const teacherStatics = async (req, res) => {
           // تحويل مدة الحصة (بالدقائق) إلى ساعات للحساب الصحيح
           // مثال: 30 دقيقة تصبح 0.5 ساعة مضروبة في سعر الساعة
           const durationInMinutes = Number(booking.selectedPriceOption) || 60;
-          const sessionPrice = teacherHourlyRate * (durationInMinutes / 60);
+          const rateToUse = booking.teacherHourlyRate || teacherHourlyRateDefault;
+          const sessionPrice = rateToUse * (durationInMinutes / 60);
 
           // استخراج الشهر من تاريخ الحصة
           const sessionDate = new Date(session.date);
@@ -241,7 +242,7 @@ const login_get = (req, res) => {
 const finanical_page = async (req, res) => {
   try {
     const teacherId = req.user._id;
-    const teacherHourlyRate = Number(req.user.hour_rate) || 0;
+    const teacherHourlyRateDefault = Number(req.user.hour_rate) || (req.user.hourly_rates && req.user.hourly_rates.length > 0 ? req.user.hourly_rates[0].rate : 0);
 
     // 1. جلب سجل المدفوعات التي استلمها المعلم فعلياً من الإدارة
     const paymentHistory = await Payment.find({ teacherId: teacherId })
@@ -263,7 +264,8 @@ const finanical_page = async (req, res) => {
       booking.sessions.forEach((session) => {
         if (session.status === "completed" && session.attended) {
           const durationInMinutes = Number(booking.selectedPriceOption) || 60;
-          const sessionPrice = teacherHourlyRate * (durationInMinutes / 60);
+          const rateToUse = booking.teacherHourlyRate || teacherHourlyRateDefault;
+          const sessionPrice = rateToUse * (durationInMinutes / 60);
 
           const sessionDate = new Date(session.date);
           const monthKey = `${sessionDate.getFullYear()}-${
@@ -321,7 +323,7 @@ const getAdminTeacherFinancial = async (req, res) => {
     const teacher = await User.findById(teacherId);
     if (!teacher) return res.status(404).send("المعلم غير موجود");
 
-    const teacherHourlyRate = Number(teacher.hour_rate) || 0;
+    const teacherHourlyRateDefault = Number(teacher.hour_rate) || (teacher.hourly_rates && teacher.hourly_rates.length > 0 ? teacher.hourly_rates[0].rate : 0);
 
     const bookings = await Subscription.find({
       teacherId: teacherId,
@@ -340,7 +342,8 @@ const getAdminTeacherFinancial = async (req, res) => {
         booking.sessions.forEach((session) => {
           if (session.status === "completed") {
             const duration = Number(booking.selectedPriceOption) || 60;
-            const sessionPrice = teacherHourlyRate * (duration / 60);
+            const rateToUse = booking.teacherHourlyRate || teacherHourlyRateDefault;
+            const sessionPrice = rateToUse * (duration / 60);
             const sessionDate = new Date(session.date);
 
             const monthKey = `${sessionDate.getFullYear()}-${
@@ -931,7 +934,7 @@ const getTeacherPage = async (req, res) => {
     const teacher = await User.findById(teacherId);
     if (!teacher) return res.status(404).send("المعلم غير موجود");
 
-    const teacherHourlyRate = Number(teacher.hour_rate) || 0;
+    const teacherHourlyRateDefault = Number(teacher.hour_rate) || (teacher.hourly_rates && teacher.hourly_rates.length > 0 ? teacher.hourly_rates[0].rate : 0);
 
     const allSubscriptions = await Subscription.find({ teacherId: teacherId })
       .populate("studentId")
@@ -958,7 +961,8 @@ const getTeacherPage = async (req, res) => {
       const remaining = Math.max(0, totalPlanned - actualCompleted);
       
       const duration = Number(sub.selectedPriceOption) || 60;
-      const subPendingEarnings = unpaidCompleted * (teacherHourlyRate * (duration / 60));
+      const rateToUse = sub.teacherHourlyRate || teacherHourlyRateDefault;
+      const subPendingEarnings = unpaidCompleted * (rateToUse * (duration / 60));
 
       // تحديث الإحصائيات العامة
       totalPendingEarnings += subPendingEarnings;

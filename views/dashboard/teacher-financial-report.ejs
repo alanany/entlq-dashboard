@@ -164,7 +164,14 @@
                     <h4 class="mb-0 fw-bold text-dark">التقرير المالي: <%= teacher.name %></h4>
                     <p class="mb-0 small text-muted">
                         <i class="fas fa-money-bill-wave me-1"></i>
-                        سعر الساعة: <span class="fw-bold text-primary"><%= teacher.hour_rate || 0 %> ر.س</span>
+                        أسعار الساعة: 
+                        <% if (teacher.hourly_rates && teacher.hourly_rates.length > 0) { %>
+                            <% teacher.hourly_rates.forEach((r, idx) => { %>
+                                <span class="fw-bold text-primary"><%= r.label %>: <%= r.rate %> ر.س</span><%= idx < teacher.hourly_rates.length - 1 ? ' | ' : '' %>
+                            <% }) %>
+                        <% } else { %>
+                            <span class="fw-bold text-primary"><%= teacher.hour_rate || 0 %> ر.س</span>
+                        <% } %>
                     </p>
                 </div>
             </div>
