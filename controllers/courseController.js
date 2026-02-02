@@ -9,6 +9,7 @@ const Subscription= require('../models/subscription_model.js');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const {DateTime}  =require ("luxon");
+const Payment = require('../models/Payment.js');
 const storage = multer.diskStorage({
         destination: function (req, file, cb) {
             cb(null, 'uploads/');
@@ -364,7 +365,16 @@ const confirmBookingPayment = async (req, res) => {
 
     // ✅ منطق الإشعارات (اختياري)
     if (paymentStatus === 'confirmed') {
-      // sendNotificationToStudent(...)
+        // تسجيل عملية الدفع
+        await Payment.create({
+            type: 'income',
+            category: 'subscription',
+            amount: updatedSubscription.totalAmount, 
+            subscriptionId: updatedSubscription._id,
+            fromUser: updatedSubscription.studentId, // Ensure populated or just ID is fine
+            description: `تسجيل باقة اشتراك جديد`,
+            status: 'completed'
+        });
     }
     const userId=updatedSubscription.studentId._id;
  await api_coursesController.notifyUser(userId, {
@@ -623,7 +633,102 @@ const markSessionAsComplete = async (req, res, next) => {
     }
 };
  const adminReportPage = async(req, res) => {
-  res.render('../views/dashboard/reports', { title: 'التقارير الموقع'});
+    try {
+        // استخراج فلاتر البحث من Query Parameters
+        const { month, type } = req.query;
+        
+        // 1. إجمالي الإيرادات (Income)
+        const incomeAgg = await Payment.aggregate([
+            { $match: { type: 'income', status: 'completed' } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const totalIncome = incomeAgg[0]?.total || 0;
+
+        // 2. إجمالي المصروفات (Expenses - رواتب المعلمين)
+        const expenseAgg = await Payment.aggregate([
+            { $match: { 
+                $or: [
+                    { type: 'expense' },
+                    { teacherId: { $exists: true }, type: { $exists: false } }, // السجلات القديمة
+                    { status: 'paid' } // السجلات القديمة كان حالتها paid
+                ]
+            } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const totalExpenses = expenseAgg[0]?.total || 0;
+
+        // 3. صافي الأرباح
+        const netProfit = totalIncome - totalExpenses;
+
+        // 4. مستحقات المعلمين المعلقة (حصص مكتملة ولم تدفع بعد)
+        const pendingTeacherDues = await Subscription.aggregate([
+            { $unwind: '$sessions' },
+            { $match: { 'sessions.status': 'completed', 'sessions.isPaidByAdmin': { $ne: true } } },
+            { $lookup: { from: 'users', localField: 'teacherId', foreignField: '_id', as: 'teacher' } },
+            { $unwind: '$teacher' },
+            { $group: {
+                _id: null,
+                total: { $sum: { $multiply: [{ $divide: [{ $toDouble: '$selectedPriceOption' }, 60] }, { $ifNull: ['$teacher.hour_rate', 0] }] } }
+            }}
+        ]);
+        const pendingExpenses = pendingTeacherDues[0]?.total || 0;
+
+        // 5. بناء فلتر المعاملات
+        let transactionFilter = {};
+        
+        // فلتر النوع (income / expense)
+        if (type && (type === 'income' || type === 'expense')) {
+            transactionFilter.type = type;
+        }
+        
+        // فلتر الشهر (format: 2026-02)
+        if (month) {
+            const [year, monthNum] = month.split('-').map(Number);
+            if (year && monthNum) {
+                const startDate = new Date(year, monthNum - 1, 1);
+                const endDate = new Date(year, monthNum, 0, 23, 59, 59, 999);
+                transactionFilter.createdAt = { $gte: startDate, $lte: endDate };
+            }
+        }
+
+        // 6. جلب المعاملات مع الفلاتر
+        const transactions = await Payment.find(transactionFilter)
+            .sort({ createdAt: -1 })
+            .limit(50)
+            .populate('fromUser', 'name')
+            .populate('toUser', 'name')
+            .populate('teacherId', 'name')
+            .lean();
+
+        // 7. جلب قائمة الأشهر المتاحة للفلترة
+        const availableMonths = await Payment.aggregate([
+            { $group: { 
+                _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }
+            }},
+            { $sort: { '_id.year': -1, '_id.month': -1 } },
+            { $limit: 12 }
+        ]);
+
+        res.render('../views/dashboard/reports', { 
+            title: 'التقارير المالية',
+            stats: {
+                totalIncome: totalIncome.toFixed(2),
+                totalExpenses: totalExpenses.toFixed(2),
+                netProfit: netProfit.toFixed(2),
+                pendingExpenses: pendingExpenses.toFixed(2)
+            },
+            transactions,
+            availableMonths,
+            filters: {
+                month: month || '',
+                type: type || ''
+            },
+            user: req.user
+        });
+    } catch (err) {
+        console.error("Error in adminReportPage:", err);
+        res.status(500).send("خطأ في تحميل التقارير المالية");
+    }
 }
 
 
@@ -784,17 +889,21 @@ const getDashboardStats=  async () => {
             activeCourses,
             revenueData,
             popularCourses,
-            recentRegistrations
+            recentSubscriptions
         ] = await Promise.all([
             User.countDocuments({ role: 'student' }),
             User.countDocuments({ role: 'teacher' }),
             Course.countDocuments(),
-            Subscription.aggregate([{ $group: { _id: null, total: { $sum: "$amount" } } }]), // إجمالي الإيرادات
-            Course.find().sort({ studentsCount: -1 }).limit(5), // الأكثر طلباً
-            User.find({ role: 'student' }).sort({ createdAt: -1 }).limit(10) // أحدث التسجيلات
+            Subscription.aggregate([{ $group: { _id: null, total: { $sum: "$totalAmount" } } }]), // استخدم totalAmount بدلاً من amount
+            Course.find().sort({ studentsCount: -1 }).limit(5), 
+            Subscription.find()
+                .sort({ createdAt: -1 })
+                .limit(6)
+                .populate('studentId', 'name')
+                .populate('courseId', 'title')
         ]);
-console.log(totalStudents,'totalStudents');
-return {
+
+        return {
             summary: {
                 students: totalStudents,
                 teachers: totalTeachers,
@@ -802,7 +911,7 @@ return {
                 revenue: revenueData[0]?.total || 0
             },
             popularCourses,
-            recentRegistrations
+            recentRegistrations: recentSubscriptions
         };
     } catch (error) {
         console.log(error);
@@ -813,6 +922,132 @@ return {
     };
     }
 }
+
+
+
+const getUpcomingSessions = async (req, res) => {
+    try {
+        // Default Filtering: Today
+        // Using request query params if available, otherwise default to today
+        let startDate = req.query.from ? DateTime.fromISO(req.query.from).startOf('day') : DateTime.now().startOf('day');
+        let endDate = req.query.to ? DateTime.fromISO(req.query.to).endOf('day') : DateTime.now().endOf('day');
+
+        // Check validity, if invalid fallback to today
+        if (!startDate.isValid) startDate = DateTime.now().startOf('day');
+        if (!endDate.isValid) endDate = DateTime.now().endOf('day');
+
+        const subscriptions = await Subscription.find({ 
+            status: 'confirmed',
+            'sessions.0': { $exists: true } 
+        })
+        .populate({ path: 'studentId', select: 'name email devices phone_number' })
+        .populate({ path: 'teacherId', select: 'name' })
+        .populate({ path: 'courseId', select: 'title' });
+
+        let upcomingSessions = [];
+
+        subscriptions.forEach(sub => {
+            if (!sub.sessions) return;
+            sub.sessions.forEach(session => {
+                if (!session.utcDateAndTime) return;
+
+                const sessionTime = DateTime.fromISO(session.utcDateAndTime);
+                
+                // Compare with Filter Range (Inclusive)
+                if (sessionTime >= startDate && sessionTime <= endDate && session.status !== 'completed' && session.status !== 'missed') {
+                    
+                    // Filter out unknown students
+                    if (!sub.studentId) return;
+
+                    upcomingSessions.push({
+                         sessionId: session._id,
+                         subscriptionId: sub._id,
+                         studentName: sub.studentId.name || 'طالب بدون اسم', // Fallback just in case name is empty but object exists
+                         studentId: sub.studentId._id,
+                         courseTitle: sub.courseId ? sub.courseId.title : 'دورة غير معروفة',
+                         teacherName: sub.teacherId ? sub.teacherId.name : 'معلم غير محدد',
+                         date: session.date, 
+                         time: session.time,
+                         displayDate: sessionTime.setZone('Asia/Riyadh').toFormat('yyyy-MM-dd'),
+                         displayTime: sessionTime.setZone('Asia/Riyadh').toFormat('hh:mm a'),
+                         utcDate: session.utcDateAndTime,
+                         link: session.link
+                    });
+                }
+            });
+        });
+
+        // Sort by date (nearest first)
+        upcomingSessions.sort((a, b) => DateTime.fromISO(a.utcDate) - DateTime.fromISO(b.utcDate));
+
+        res.render('dashboard/upcoming_sessions', { 
+            title: 'الجلسات القادمة وإرسال الإشعارات',
+            sessions: upcomingSessions,
+            user: req.user,
+            filters: {
+                from: startDate.toFormat('yyyy-MM-dd'),
+                to: endDate.toFormat('yyyy-MM-dd')
+            }
+        });
+
+    } catch (error) {
+        console.error("Error fetching upcoming sessions:", error);
+        res.status(500).send("Server Error");
+    }
+};
+
+
+const sendSessionNotification = async (req, res) => {
+    try {
+        const { title, body, sessionIds } = req.body;
+        
+        if (!title || !body) {
+            return res.status(400).json({ success: false, message: "Title and body are required" });
+        }
+
+        let userIdsToNotify = new Set();
+        let targetSessions = [];
+
+        if (sessionIds && Array.isArray(sessionIds) && sessionIds.length > 0) {
+             targetSessions = sessionIds;
+        } 
+
+        if (targetSessions.length > 0) {
+             const subscriptions = await Subscription.find({
+                 'sessions._id': { $in: targetSessions }
+             }).populate('studentId');
+             
+             subscriptions.forEach(sub => {
+                 if (sub.studentId && sub.studentId._id) {
+                     userIdsToNotify.add(sub.studentId._id.toString());
+                 }
+             });
+        }
+
+        console.log(`Sending notification to ${userIdsToNotify.size} unique users`);
+        
+        if (userIdsToNotify.size === 0) {
+             return res.json({ success: true, count: 0, message: "No users found or no sessions selected" });
+        }
+
+        const notifications = [];
+        for (const userId of userIdsToNotify) {
+            notifications.push(api_coursesController.notifyUser(userId, {
+                title,
+                body,
+                data: { screen: 'sessions' }
+            }));
+        }
+        
+        await Promise.all(notifications);
+
+        res.json({ success: true, count: userIdsToNotify.size });
+
+    } catch (error) {
+        console.error("Notification Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 
 module.exports = {
     getDashboardStats,
@@ -830,5 +1065,7 @@ module.exports = {
     getScheduleSessions,
     postUpdateSessions,
     getManageSessionsLinks,
-    postUpdateSessionsLinks,getManageStudents,markSessionAsComplete
+    postUpdateSessionsLinks,getManageStudents,markSessionAsComplete,
+    getUpcomingSessions,
+    sendSessionNotification
 };

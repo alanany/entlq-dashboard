@@ -31,7 +31,7 @@
         
         <aside id="sidebar" class="fixed inset-y-0 right-0 z-50 w-72 bg-white border-l border-gray-100 transition-transform duration-300 sidebar-closed lg:translate-x-0 lg:static lg:block shadow-2xl lg:shadow-none">
             <div class="h-20 flex items-center justify-between px-6 border-b border-gray-50">
-                <span class="text-2xl font-black text-indigo-600">لوحة المعلم</span>
+                <span class="text-2xl font-black text-indigo-600"><%= settings.academyName %></span>
                 <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-400">
                     <i data-feather="x"></i>
                 </button>
@@ -281,6 +281,9 @@
                         </div>
                     </section>
 
+                    <footer class="mt-10 py-6 text-center text-gray-400 border-t border-gray-100">
+                        <small>&copy; <%= settings.academyName %> <%= new Date().getFullYear() %> - <%= settings.footerText %></small>
+                    </footer>
                 </div>
             </main>
         </div>

@@ -1,11 +1,31 @@
 // categoryController.js
 
 const Category = require('../models/category_model.js');
+const SystemSettings = require('../models/SystemSettings');
 const getSettingScreen = async (req, res) => {
     res.render('dashboard/settings', { 
-            title: '  الاعدادات',
-           
+            title: 'الإعدادات',
         });
+};
+
+const getSystemSettings = async (req, res) => {
+    try {
+        let settings = await SystemSettings.findOne();
+        if (!settings) settings = await SystemSettings.create({});
+        res.render('dashboard/settings-system', { title: 'إعدادات النظام', settings });
+    } catch (err) {
+        res.status(500).send('خطأ في جلب بيانات الإعدادات');
+    }
+};
+
+const updateSystemSettings = async (req, res) => {
+    try {
+        const updateData = req.body;
+        let settings = await SystemSettings.findOneAndUpdate({}, updateData, { new: true, upsert: true });
+        res.status(200).json({ message: 'تم التحديث بنجاح', settings });
+    } catch (err) {
+        res.status(500).json({ message: 'فشل التحديث' });
+    }
 };
 // 1. جلب جميع الأقسام (GET)
 const getAllCategories = async (req, res) => {
@@ -67,5 +87,7 @@ module.exports = {
     getAllCategories,
     createCategory,
     deleteCategory,
-    getSettingScreen
+    getSettingScreen,
+    getSystemSettings,
+    updateSystemSettings
 };

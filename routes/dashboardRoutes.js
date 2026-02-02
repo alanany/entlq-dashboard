@@ -28,8 +28,10 @@ dashboardRoutes.get('/courses',requireAuth,checkUser, courseController.getAllCou
 dashboardRoutes.post('/edit-course/:id', upload.single('coverImage'),requireAuth,checkUser, courseController.updateCoursePost);
 dashboardRoutes.get('/course/:id',requireAuth,checkUser, courseController.getEditCourse);
 dashboardRoutes.delete('/course/:id',requireAuth,checkUser, courseController.deleteCourse);
-dashboardRoutes.get('/categories',requireAuth,checkUser, categoryController.getAllCategories);
-dashboardRoutes.get('/settings',requireAuth,checkUser, categoryController.getSettingScreen);
+dashboardRoutes.get('/admin/categories',requireAuth,checkUser, categoryController.getAllCategories);
+dashboardRoutes.get('/dashboard/settings',requireAuth,checkUser, categoryController.getSettingScreen);
+dashboardRoutes.get('/dashboard/settings/system',requireAuth,checkUser, requireAdmin, categoryController.getSystemSettings);
+dashboardRoutes.post('/admin/settings/update',requireAuth,checkUser, requireAdmin, categoryController.updateSystemSettings);
 dashboardRoutes.post('/create-category',requireAuth,checkUser, categoryController.createCategory);
 dashboardRoutes.delete('/category/:id',requireAuth,checkUser, categoryController.deleteCategory);
 dashboardRoutes.get('/subscriptions',requireAuth,checkUser, courseController.getAdminSubscription);
@@ -60,4 +62,7 @@ dashboardRoutes.post('/admin/teacher/update-status',requireAuth,checkUser,requir
 // الحذف النهائي (اختياري)
 dashboardRoutes.post('/admin/teachers/delete/:id',requireAuth,checkUser,requireAdmin, teacherController.deleteTeacher);
 dashboardRoutes.post('/admin/teacher/pay-salary',requireAuth,checkUser,requireAdmin, teacherController.processTeacherSalary);
+dashboardRoutes.get('/upcoming-sessions', requireAuth, checkUser, courseController.getUpcomingSessions);
+dashboardRoutes.post('/features/send-notification', requireAuth, checkUser, courseController.sendSessionNotification);
+
 module.exports = dashboardRoutes;

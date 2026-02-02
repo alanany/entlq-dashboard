@@ -113,7 +113,7 @@
     </button>
     <div class="sidebar-header">
         <h3 class="m-0 text-primary lobster-font" style="font-size: 1.8rem;">
-            <i class="fas fa-laptop-code me-2"></i><%= t('brand_name') %>
+            <i class="fas fa-laptop-code me-2"></i><%= settings.academyName %>
         </h3>
     </div>
     
@@ -135,6 +135,11 @@
             <span><%= t('subscriptions') %></span>
         </a>
         
+        <a href="/upcoming-sessions" class="nav-link-admin <%= currentPage === 'upcoming-sessions' ? 'active' : '' %>">
+            <i class="fas fa-calendar-alt"></i>
+            <span>الجلسات القادمة</span>
+        </a>
+        
         <a href="/admin/students" class="nav-link-admin <%= currentPage === 'students' ? 'active' : '' %>">
             <i class="fas fa-users"></i>
             <span>الطلاب</span>
@@ -151,7 +156,7 @@
             <i class="fas fa-chart-line"></i>
             <span>التقارير المالية</span>
         </a>
-        <a href="/settings" class="nav-link-admin <%= currentPage === 'settings' ? 'active' : '' %>">
+        <a href="/dashboard/settings" class="nav-link-admin <%= currentPage === 'settings' ? 'active' : '' %>">
             <i class="fas fa-cog"></i>
             <span><%= t('settings') %></span>
         </a>

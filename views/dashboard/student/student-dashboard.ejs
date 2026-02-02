@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title><%= t('dashboard') %> - <%= t('brand_name') %></title>
+    <title><%= t('dashboard') %> - <%= settings.academyName %></title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     
     <!-- Favicon -->
@@ -202,7 +202,7 @@
     <div class="sidebar" id="sidebar">
         <div class="p-4 text-center border-bottom">
             <h3 class="m-0 text-primary lobster-font" style="font-size: 2rem;">
-                <i class="fa fa-laptop-code me-2"></i><%= t('brand_name') %>
+                <i class="fa fa-laptop-code me-2"></i><%= settings.academyName %>
             </h3>
         </div>
         <div class="py-4">
@@ -394,7 +394,7 @@
 
         <!-- Bottom Footer (Inside content) -->
         <footer class="mt-auto py-4 text-center text-muted">
-            <small>&copy; <%= t('brand_name') %> 2024 - <%= t('all_rights_reserved') %></small>
+            <small>&copy; <%= settings.academyName %> <%= new Date().getFullYear() %> - <%= settings.footerText %></small>
         </footer>
     </div>
 

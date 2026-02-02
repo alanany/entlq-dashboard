@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - الجلسات القادمة</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f9fc; font-size: 0.9rem; }
+        .main-content { margin-right: 260px; padding: 1.5rem; min-height: 100vh; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .main-content { margin-right: 0; } }
+        .table-custom thead th { background-color: #f8f9fa; color: #6c757d; font-weight: 700; padding: 0.75rem; text-transform: uppercase; }
+        .table-custom tbody td { padding: 0.75rem; vertical-align: middle; border-bottom: 1px solid #f1f1f1; }
+    </style>
+</head>
+<body class="bg-light">
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'upcoming-sessions', user: user }) %>
+
+    <div class="main-content">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-3 shadow-sm">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-3" id="sidebarCollapse"><i class="fas fa-bars"></i></button>
+                <h4 class="mb-0 text-primary fw-bold">📅 الجلسات القادمة</h4>
+            </div>
+            <div>
+                <button class="btn btn-primary rounded-pill px-4" onclick="openNotificationModal('all')">
+                    <i class="fas fa-bell me-2"></i> إرسال إشعار للمحددين
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter & Table -->
+        <div class="bg-white rounded-4 shadow-sm border border-light overflow-hidden p-3">
+             <div class="mb-3 d-flex gap-3 flex-wrap align-items-end">
+                <div class="flex-grow-1">
+                     <label class="small text-muted mb-1">بحث</label>
+                     <input type="text" id="searchInput" class="form-control rounded-pill" placeholder="بحث باسم الطالب أو المعلم..." style="max-width: 300px;">
+                </div>
+                
+                <form action="/upcoming-sessions" method="GET" class="d-flex gap-2 align-items-end">
+                    <div>
+                        <label class="small text-muted mb-1">من تاريخ</label>
+                        <input type="date" name="from" value="<%= filters.from %>" class="form-control rounded-3" style="font-size: 0.9rem;">
+                    </div>
+                    <div>
+                        <label class="small text-muted mb-1">إلى تاريخ</label>
+                        <input type="date" name="to" value="<%= filters.to %>" class="form-control rounded-3" style="font-size: 0.9rem;">
+                    </div>
+                    <button type="submit" class="btn btn-primary rounded-3 px-3">
+                        <i class="fas fa-filter"></i> تصفية
+                    </button>
+                    <a href="/upcoming-sessions" class="btn btn-outline-secondary rounded-3 px-3" title="اليوم">
+                        اليوم
+                    </a>
+                </form>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-custom mb-0 text-end">
+                    <thead>
+                        <tr>
+                            <th class="px-3" style="width: 50px;">
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                            <th class="px-3">التاريخ والوقت</th>
+                            <th class="px-3">الطالب</th>
+                            <th class="px-3">المعلم</th>
+                            <th class="px-3">الدورة</th>
+                            <th class="px-3 text-center">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionsTableBody">
+                        <!-- Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية 2024</small>
+        </footer>
+    </div>
+
+    <!-- Notification Modal -->
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">إرسال إشعار</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">عنوان الإشعار</label>
+                        <input type="text" id="notifTitle" class="form-control rounded-3" value="تذكير بموعد الجلسة 🎓">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">نص الرسالة</label>
+                        <textarea id="notifBody" class="form-control rounded-3" rows="3">مرحباً، نذكرك بموعد جلستك القادمة. نرجو الاستعداد قبل الموعد بـ 5 دقائق.</textarea>
+                    </div>
+                    <div id="targetSummary" class="alert alert-info small py-2">
+                        سيتم إرسال الإشعار إلى <span id="targetCount" class="fw-bold">0</span> مستخدم.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" onclick="sendNotification()" class="btn btn-primary rounded-pill px-4" id="sendBtn">
+                        <i class="fas fa-paper-plane me-2"></i> إرسال
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const allSessions = <%- JSON.stringify(sessions) %>;
+        let selectedSessions = new Set();
+        let targetType = 'selected'; // 'selected' or 'single'
+
+        function renderTable() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allSessions.filter(s => 
+                (s.studentName || "").toLowerCase().includes(query) || 
+                (s.teacherName || "").toLowerCase().includes(query) || 
+                (s.courseTitle || "").toLowerCase().includes(query)
+            );
+
+            const tbody = document.getElementById('sessionsTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">لا توجد جلسات قادمة</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => `
+                <tr>
+                    <td class="px-3">
+                        <input type="checkbox" class="form-check-input session-checkbox" value="${s.sessionId}" 
+                            ${selectedSessions.has(s.sessionId) ? 'checked' : ''} onchange="toggleSession('${s.sessionId}')">
+                    </td>
+                    <td class="px-3">
+                        <div class="fw-bold text-dark">${s.displayDate}</div>
+                        <div class="small text-primary">${s.displayTime}</div>
+                    </td>
+                    <td class="px-3 fw-bold">${s.studentName}</td>
+                    <td class="px-3 text-muted">${s.teacherName}</td>
+                    <td class="px-3 small">${s.courseTitle}</td>
+                    <td class="px-3 text-center">
+                        <button class="btn btn-sm btn-light text-primary rounded-circle" title="إرسال لهذا الطالب" onclick="openSingleNotif('${s.sessionId}')">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <a href="${s.link || '#'}" target="_blank" class="btn btn-sm btn-light text-success rounded-circle ${!s.link ? 'disabled' : ''}" title="رابط الزووم">
+                            <i class="fas fa-video"></i>
+                        </a>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Toggle Selection
+        function toggleSession(id) {
+            if (selectedSessions.has(id)) selectedSessions.delete(id);
+            else selectedSessions.add(id);
+            updateSelectAllState();
+        }
+
+        // Select All Handler
+        document.getElementById('selectAll').addEventListener('change', (e) => {
+            const checkboxes = document.querySelectorAll('.session-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = e.target.checked;
+                if (e.target.checked) selectedSessions.add(cb.value);
+                else selectedSessions.delete(cb.value);
+            });
+        });
+
+        function updateSelectAllState() {
+            document.getElementById('selectAll').checked = selectedSessions.size > 0 && selectedSessions.size === document.querySelectorAll('.session-checkbox').length;
+        }
+
+        // Search Handler
+        document.getElementById('searchInput').addEventListener('input', renderTable);
+
+        // Modal Logic
+        const notifModal = new bootstrap.Modal(document.getElementById('notificationModal'));
+        let singleTargetId = null;
+
+        function openNotificationModal(type) {
+            targetType = type;
+            singleTargetId = null;
+            
+            let count = 0;
+            if (type === 'all') {
+                count = selectedSessions.size;
+                if (count === 0) return alert('يرجى اختيار جلسة واحدة على الأقل');
+            }
+            
+            document.getElementById('targetCount').textContent = count;
+            notifModal.show();
+        }
+
+        function openSingleNotif(sessionId) {
+            targetType = 'single';
+            singleTargetId = sessionId;
+            document.getElementById('targetCount').textContent = '1';
+            notifModal.show();
+        }
+
+        async function sendNotification() {
+            const title = document.getElementById('notifTitle').value;
+            const body = document.getElementById('notifBody').value;
+            const btn = document.getElementById('sendBtn');
+            
+            let sessionIds = [];
+            if (targetType === 'single') sessionIds = [singleTargetId];
+            else sessionIds = Array.from(selectedSessions);
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+
+            try {
+                const res = await fetch('/features/send-notification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, body, sessionIds })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert(`تم إرسال الإشعار بنجاح إلى ${data.count} مستخدم`);
+                    notifModal.hide();
+                    if (targetType === 'selected') {
+                        selectedSessions.clear();
+                        renderTable();
+                        updateSelectAllState();
+                    }
+                } else {
+                    alert('خطأ: ' + data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('حدث خطأ في الاتصال');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> إرسال';
+            }
+        }
+
+        // Init
+        renderTable();
+    </script>
+</body>
+</html>

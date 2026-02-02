@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title><%= t('brand_name') %> - لوحة تحكم الإدارة</title>
+    <title><%= settings.academyName %> - لوحة تحكم الإدارة</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     
     <!-- Favicon -->
@@ -268,9 +268,9 @@
         <div class="row g-3 mb-4 animate__animated animate__fadeInUp">
             <!-- Charts Section (Placeholder) -->
             <div class="col-lg-8">
-                <div class="section-card">
+                <div class="section-card h-100">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold mb-0">مقارنة أداء الطلاب</h5>
+                        <h5 class="fw-bold mb-0">مقارنة أداء التسجيل</h5>
                         <select class="form-select form-select-sm w-auto border-0 bg-light rounded-pill px-3" style="font-size: 0.75rem;">
                             <option>آخر 6 أشهر</option>
                             <option>آخر سنة</option>
@@ -290,33 +290,21 @@
                 <div class="section-card h-100">
                     <h5 class="fw-bold mb-4">الدورات الأكثر طلباً</h5>
                     <div class="list-group list-group-flush border-0">
-                        <div class="list-group-item px-0 py-3 bg-transparent border-bottom">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-0 fw-bold small">تطوير تطبيقات React</h6>
-                                    <small class="text-muted">برمجة</small>
+                        <% if (stats.popularCourses && stats.popularCourses.length > 0) { %>
+                            <% stats.popularCourses.forEach(course => { %>
+                                <div class="list-group-item px-0 py-3 bg-transparent border-bottom">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0 fw-bold small"><%= course.title %></h6>
+                                            <small class="text-muted"><%= course.level || 'كورس' %></small>
+                                        </div>
+                                        <span class="badge bg-primary text-white rounded-pill small"><%= course.studentsCount || 0 %> طالب</span>
+                                    </div>
                                 </div>
-                                <span class="badge bg-primary text-white rounded-pill small">950 طالب</span>
-                            </div>
-                        </div>
-                        <div class="list-group-item px-0 py-3 bg-transparent border-bottom">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-0 fw-bold small">التسويق الرقمي المتقدم</h6>
-                                    <small class="text-muted">أعمال</small>
-                                </div>
-                                <span class="badge bg-primary text-white rounded-pill small">620 طالب</span>
-                            </div>
-                        </div>
-                        <div class="list-group-item px-0 py-3 bg-transparent border-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-0 fw-bold small">أساسيات Figma</h6>
-                                    <small class="text-muted">تصميم</small>
-                                </div>
-                                <span class="badge bg-primary text-white rounded-pill small">410 طالب</span>
-                            </div>
-                        </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p class="text-center text-muted py-5 small">لا توجد بيانات متاحة</p>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -325,8 +313,8 @@
         <!-- Latest Registrations -->
         <div class="section-card p-0 overflow-hidden animate__animated animate__fadeInUp">
             <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0">أحدث عمليات التسجيل</h5>
-                <a href="/admin/reports" class="btn btn-link text-primary text-decoration-none fw-bold small">عرض الكل</a>
+                <h5 class="fw-bold mb-0">أحدث عمليات التسجيل (الاشتراكات)</h5>
+                <a href="/admin/subscription" class="btn btn-link text-primary text-decoration-none fw-bold small">عرض الكل</a>
             </div>
             <div class="table-responsive">
                 <table class="table table-custom mb-0">
@@ -340,27 +328,36 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td class="ps-4 fw-bold">أحمد محمد</td>
-                            <td>برمجة بايثون للمبتدئين</td>
-                            <td class="outfit-font">05 Dec 2025</td>
-                            <td class="fw-bold text-success">$49.00</td>
-                            <td><span class="badge rounded-pill bg-success text-white small px-3 py-2">مدفوع</span></td>
-                        </tr>
-                        <tr>
-                            <td class="ps-4 fw-bold">سارة علي</td>
-                            <td>التسويق الرقمي الشامل</td>
-                            <td class="outfit-font">04 Dec 2025</td>
-                            <td class="fw-bold text-success">$89.00</td>
-                            <td><span class="badge rounded-pill bg-success text-white small px-3 py-2">مدفوع</span></td>
-                        </tr>
+                        <% if (stats.recentRegistrations && stats.recentRegistrations.length > 0) { %>
+                            <% stats.recentRegistrations.forEach(sub => { %>
+                                <tr>
+                                    <td class="ps-4 fw-bold"><%= sub.studentId ? sub.studentId.name : 'مستخدم غير معروف' %></td>
+                                    <td><%= sub.courseId ? sub.courseId.title : 'كورس محذوف' %></td>
+                                    <td class="outfit-font"><%= new Date(sub.createdAt).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' }) %></td>
+                                    <td class="fw-bold text-success"><%= sub.totalAmount %> ر.س</td>
+                                    <td>
+                                        <% if (sub.status === 'confirmed') { %>
+                                            <span class="badge rounded-pill bg-success text-white small px-3 py-2">مؤكد</span>
+                                        <% } else if (sub.status === 'pending') { %>
+                                            <span class="badge rounded-pill bg-warning text-dark small px-3 py-2">معلق</span>
+                                        <% } else { %>
+                                            <span class="badge rounded-pill bg-secondary text-white small px-3 py-2"><%= sub.status %></span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-5">لا توجد اشتراكات حديثة</td>
+                            </tr>
+                        <% } %>
                     </tbody>
                 </table>
             </div>
         </div>
 
         <footer class="mt-auto py-4 text-center text-muted border-top">
-            <small>&copy; منصة <%= t('brand_name') %> التعليمية 2024 - جميع الحقوق محفوظة</small>
+            <small>&copy; <%= settings.academyName %> <%= new Date().getFullYear() %> - <%= settings.footerText %></small>
         </footer>
     </div>
 

@@ -1015,12 +1015,17 @@ const processTeacherSalary = async (req, res) => {
     // 💡 نصيحة: أرسل من الفرونت إند monthKey بصيغة "2024-5" بدلاً من "مايو"
     console.log(teacherId, monthKey, amount, "بيانات الدفع");
     const newPayment = new Payment({
+      type: 'expense',
+      category: 'salary',
       teacherId,
+      toUser: teacherId,
       amount: parseFloat(amount),
       month: monthKey, // حفظ الكي الموحد
       paymentDate: new Date(),
+      date: new Date(),
       adminId: req.user._id,
-      status: "paid",
+      status: "completed",
+      description: `راتب المعلم لشهر ${monthKey}`
     });
     await newPayment.save();
 

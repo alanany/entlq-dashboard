@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user_model');
+const SystemSettings = require('../models/SystemSettings');
 
 const requireAuth = (req, res, next) => {
     const token = req.cookies.jwt;
@@ -35,6 +36,14 @@ const checkUser = (req, res, next) => {
             } else {
                 let user = await User.findById(decodedToken.id);
                 res.locals.user = user;
+                
+                // جلب إعدادات النظام وتوفيرها عالمياً
+                let settings = await SystemSettings.findOne();
+                if (!settings) {
+                    settings = await SystemSettings.create({});
+                }
+                res.locals.settings = settings;
+
                 console.log(res.locals.user);
                 req.user = res.locals.user;
                 next();
@@ -42,7 +51,18 @@ const checkUser = (req, res, next) => {
         });
     } else {
         res.locals.user = null;
-        next();
+        // جلب إعدادات النظام حتى لغير المسجلين
+        SystemSettings.findOne().then(settings => {
+            if (!settings) return SystemSettings.create({});
+            return settings;
+        }).then(settings => {
+            res.locals.settings = settings;
+            next();
+        }).catch(err => {
+            res.locals.settings = {};
+            next();
+        });
+        return;
     }
 };
 const requireAdmin = (req, res, next) => {

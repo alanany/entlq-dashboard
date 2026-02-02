@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title><%= settings.academyName %> - إعدادات النظام</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Alexandria:wght@300;400;500;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: 1.5rem;
+            border: 1px solid #f1f1f1;
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.03);
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+
+        .settings-header {
+            background: linear-gradient(135deg, var(--primary), #ff8a6c);
+            padding: 1.5rem 2rem;
+            color: white;
+        }
+
+        .settings-body {
+            padding: 2rem;
+            background: #fff;
+        }
+
+        .form-label-custom {
+            font-weight: 700;
+            color: #64748b;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control-custom {
+            background: #f8fafc;
+            border: 1px solid #eef0f2;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .form-control-custom:focus {
+            background: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(254, 93, 55, 0.1);
+            outline: none;
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.75rem 2rem;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(254, 93, 55, 0.3);
+        }
+
+        .section-title {
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'settings', user: user }) %>
+
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2">
+                    <i class="fas fa-cog fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0 fw-bold">إعدادات النظام</h4>
+                    <p class="mb-0 small text-muted">إدارة بيانات المنصة العامة والخيارات الأساسية</p>
+                </div>
+            </div>
+            <a href="/dashboard/settings" class="btn btn-light rounded-pill px-4">
+                <i class="fas fa-arrow-left me-2"></i> رجوع
+            </a>
+        </div>
+
+        <div class="settings-card">
+            <div class="settings-body">
+                <form id="systemSettingsForm" onsubmit="handleSettingsUpdate(event)">
+                    <div class="row g-4">
+                        <!-- Basic Info Section -->
+                        <div class="col-12">
+                            <h5 class="section-title">
+                                <i class="fas fa-info-circle"></i>
+                                المعلومات الأساسية
+                            </h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <label class="form-label-custom">اسم المنصة / الأكاديمية</label>
+                            <input type="text" name="academyName" value="<%= settings.academyName %>" class="form-control form-control-custom" required>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <label class="form-label-custom">البريد الإلكتروني الأساسي</label>
+                            <input type="email" name="academyEmail" value="<%= settings.academyEmail %>" class="form-control form-control-custom" required dir="ltr">
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <label class="form-label-custom">رقم التواصل</label>
+                            <input type="text" name="academyPhone" value="<%= settings.academyPhone %>" class="form-control form-control-custom" dir="ltr">
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <label class="form-label-custom">العملة المفترضة</label>
+                            <input type="text" name="currency" value="<%= settings.currency %>" class="form-control form-control-custom" placeholder="مثال: ر.س">
+                        </div>
+
+                        <!-- General Settings -->
+                        <div class="col-12 mt-5">
+                            <h5 class="section-title">
+                                <i class="fas fa-sliders-h"></i>
+                                إعدادات عامة
+                            </h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <label class="form-label-custom">حالة التسجيل</label>
+                            <select name="registrationStatus" class="form-select form-control-custom text-end">
+                                <option value="true" <%= settings.registrationStatus ? 'selected' : '' %>>مفتوح - متاح للجميع</option>
+                                <option value="false" <%= !settings.registrationStatus ? 'selected' : '' %>>مغلق - تسجيل معطل</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <label class="form-label-custom">نسبة الضريبة (إن وجدت %)</label>
+                            <input type="number" name="taxPercentage" value="<%= settings.taxPercentage %>" class="form-control form-control-custom" min="0" max="100">
+                        </div>
+                        <div class="col-12 text-end">
+                            <label class="form-label-custom">العنوان / الموقع</label>
+                            <input type="text" name="address" value="<%= settings.address %>" class="form-control form-control-custom">
+                        </div>
+
+                        <!-- Social Media -->
+                        <div class="col-12 mt-5">
+                            <h5 class="section-title">
+                                <i class="fas fa-share-alt"></i>
+                                روابط التواصل الاجتماعي
+                            </h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <label class="form-label-custom">واتساب</label>
+                            <input type="text" name="whatsapp" value="<%= settings.socialLinks?.whatsapp %>" class="form-control form-control-custom" dir="ltr">
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <label class="form-label-custom">فيسبوك</label>
+                            <input type="text" name="facebook" value="<%= settings.socialLinks?.facebook %>" class="form-control form-control-custom" dir="ltr">
+                        </div>
+
+                        <div class="col-12 mt-5">
+                            <div class="bg-light p-4 rounded-4 border border-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="fw-bold mb-1">حفظ التغييرات</h6>
+                                        <p class="small text-muted mb-0">سيتم تطبيق هذه البيانات على جميع أجزاء المنصة فور الحفظ.</p>
+                                    </div>
+                                    <button type="submit" id="saveBtn" class="btn-save">
+                                        حفظ الإعدادات بالكامل
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        async function handleSettingsUpdate(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = {
+                academyName: formData.get('academyName'),
+                academyEmail: formData.get('academyEmail'),
+                academyPhone: formData.get('academyPhone'),
+                currency: formData.get('currency'),
+                address: formData.get('address'),
+                taxPercentage: formData.get('taxPercentage'),
+                registrationStatus: formData.get('registrationStatus') === 'true',
+                socialLinks: {
+                    whatsapp: formData.get('whatsapp'),
+                    facebook: formData.get('facebook')
+                }
+            };
+
+            const saveBtn = document.getElementById('saveBtn');
+            const originalText = saveBtn.innerText;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري الحفظ...';
+
+            try {
+                const response = await fetch('/admin/settings/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم التحديث!',
+                        text: 'تم حفظ إعدادات النظام وتطبيقها بنجاح.',
+                        confirmButtonColor: '#FE5D37'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    throw new Error('فشل تحديث البيانات');
+                }
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: 'حدث خطأ غير متوقع أثناء الحفظ.',
+                    confirmButtonColor: '#FE5D37'
+                });
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerText = originalText;
+            }
+        }
+    </script>
+</body>
+</html>

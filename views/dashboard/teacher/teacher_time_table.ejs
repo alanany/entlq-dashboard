@@ -1,178 +1,379 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>جدول المعلم الاحترافي | أكاديمية انطلق</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <meta charset="utf-8">
+    <title><%= settings.academyName %> - جدول الحصص</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .tab-btn.active { background-color: #4f46e5; color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
-        .animate-in { animation: slideUp 0.4s ease-out forwards; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background-color: #f1f5f9; border-radius: 2rem; overflow: hidden; border: 2px solid #f1f5f9; }
-        .calendar-day { min-height: 140px; background-color: white; padding: 10px; transition: all 0.2s; position: relative; }
-        .calendar-day.today { background-color: #f5f3ff; }
-        
-        .event-bar { 
-            font-size: 10px; padding: 5px 8px; border-radius: 8px; margin-top: 4px; 
-            cursor: pointer; font-weight: 800; border-right-width: 3px; transition: all 0.2s;
-            display: flex; flex-direction: column; gap: 1px;
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
         }
-        .event-bar.completed { cursor: default; opacity: 0.6; filter: grayscale(0.5); }
-        .event-bar:not(.completed):hover { transform: scale(1.02); z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        
-        .session-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #f1f5f9; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .main-content {
+            padding: 2rem;
+            min-height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            transition: all 0.3s;
+        }
+
+        /* Tab Buttons */
+        .view-tabs {
+            background: #f1f5f9;
+            padding: 0.35rem;
+            border-radius: 1rem;
+            display: inline-flex;
+        }
+
+        .view-tabs .btn {
+            border-radius: 0.75rem;
+            padding: 0.5rem 2rem;
+            font-weight: 700;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .view-tabs .btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(254, 93, 55, 0.3);
+        }
+
+        .view-tabs .btn:not(.active) {
+            background: transparent;
+            color: #6c757d;
+        }
+
+        /* Calendar Grid */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            background-color: #f1f5f9;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            border: 2px solid #f1f5f9;
+        }
+
+        .calendar-day {
+            min-height: 130px;
+            background-color: white;
+            padding: 10px;
+            position: relative;
+        }
+
+        .calendar-day.today {
+            background-color: rgba(254, 93, 55, 0.05);
+        }
+
+        .calendar-day-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .calendar-day-header > div {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #6c757d;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 0.75rem;
+        }
+
+        /* Event Bars */
+        .event-bar {
+            font-size: 0.65rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.5rem;
+            margin-top: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            border-right: 3px solid;
+            transition: all 0.2s;
+        }
+
+        .event-bar:hover:not(.completed) {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .event-bar.completed {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        /* Session Cards */
+        .session-card {
+            background: #fff;
+            border: 1px solid #f1f1f1;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .session-card:hover {
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .session-card .status-indicator {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .day-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            border: 1px solid #f1f1f1;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .day-header {
+            background: linear-gradient(135deg, var(--primary), #ff8a6c);
+            color: white;
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse-animation {
+            animation: pulse-border 2s infinite;
+        }
     </style>
 </head>
-<body class="overflow-hidden">
+<body class="bg-light">
 
-    <div class="flex h-screen overflow-hidden">
-        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            
-            <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 h-16 flex items-center justify-between shadow-sm">
-                <div class="flex items-center gap-4">
-                    <button onclick="window.history.back()" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                        <i data-feather="arrow-right" class="w-5 h-5 text-gray-600"></i>
-                    </button>
-                    <h1 class="text-xl font-black text-gray-900">جدول الحصص</h1>
+    <div class="main-content">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <a href="javascript:history.back()" class="btn btn-light rounded-circle p-2">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div>
+                    <h4 class="mb-0 fw-bold text-dark">جدول الحصص</h4>
+                    <p class="mb-0 small text-muted">عرض وإدارة مواعيد الحصص الأسبوعية والشهرية</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full local-tz-label">جاري مزامنة التوقيت...</span>
-                    <div class="bg-indigo-600 text-white p-2 rounded-xl">
-                        <i data-feather="calendar" class="w-5 h-5"></i>
-                    </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-primary text-white rounded-pill px-3 py-2 local-tz-label">
+                    <i class="fas fa-globe me-1"></i> جاري التحميل...
+                </span>
+                <div class="bg-primary text-white rounded-3 p-2">
+                    <i class="fas fa-calendar-alt"></i>
                 </div>
-            </header>
+            </div>
+        </div>
 
-            <main class="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar">
-                <div class="max-w-7xl mx-auto">
-                    
-                    <div class="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
-                        <div class="flex bg-gray-100 p-1.5 rounded-2xl w-full md:w-auto">
-                            <button onclick="switchView('weekly')" id="btn-weekly" class="tab-btn active px-10 py-2.5 rounded-xl text-sm font-bold transition-all">أسبوعي</button>
-                            <button onclick="switchView('monthly')" id="btn-monthly" class="tab-btn px-10 py-2.5 rounded-xl text-sm font-bold transition-all text-gray-500">شهري</button>
-                        </div>
-                        
-                        <div id="nav-controls" class="flex items-center gap-6 bg-white px-6 py-2.5 rounded-2xl border border-gray-100 shadow-sm invisible">
-                            <button onclick="changeMonth(-1)" class="text-gray-400 hover:text-indigo-600"><i data-feather="chevron-right"></i></button>
-                            <h3 id="currentMonthLabel" class="text-lg font-black text-gray-800 min-w-[150px] text-center uppercase">---</h3>
-                            <button onclick="changeMonth(1)" class="text-gray-400 hover:text-indigo-600"><i data-feather="chevron-left"></i></button>
-                        </div>
-                    </div>
+        <!-- View Tabs & Navigation -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div class="view-tabs">
+                <button onclick="switchView('weekly')" id="btn-weekly" class="btn active">
+                    <i class="fas fa-th-list me-2"></i> أسبوعي
+                </button>
+                <button onclick="switchView('monthly')" id="btn-monthly" class="btn">
+                    <i class="fas fa-calendar me-2"></i> شهري
+                </button>
+            </div>
 
-                    <div id="weeklyView" class="space-y-6 animate-in">
-                        <% const now = new Date(); const sortedDates = Object.keys(schedule).sort(); %>
-                        <% sortedDates.forEach(dateStr => { const dayData = schedule[dateStr]; %>
-                            <div class="bg-white rounded-[2.5rem] border border-gray-50 p-6 flex flex-col md:flex-row gap-6 items-stretch shadow-sm">
-                                <div class="md:w-32 flex md:flex-col items-center justify-center bg-gray-50 rounded-3xl p-4 text-center border border-gray-100">
-                                    <p class="text-[10px] text-gray-400 font-black uppercase"><%= dayData.dayName %></p>
-                                    <p class="text-4xl font-black text-gray-900 mt-1"><%= dayData.dayNumber %></p>
-                                </div>
-                                <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div id="nav-controls" class="d-none align-items-center gap-3 bg-white px-4 py-2 rounded-3 shadow-sm">
+                <button onclick="changeMonth(-1)" class="btn btn-light btn-sm rounded-circle">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <h5 id="currentMonthLabel" class="mb-0 fw-bold text-dark" style="min-width: 150px; text-align: center;">---</h5>
+                <button onclick="changeMonth(1)" class="btn btn-light btn-sm rounded-circle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Weekly View -->
+        <div id="weeklyView">
+            <% const now = new Date(); const sortedDates = Object.keys(schedule).sort(); %>
+            <% if (sortedDates.length === 0) { %>
+                <div class="bg-white rounded-4 p-5 text-center border">
+                    <i class="fas fa-calendar-times fa-3x text-muted opacity-25 mb-3"></i>
+                    <h5 class="text-muted">لا توجد حصص مجدولة</h5>
+                    <p class="small text-muted mb-0">ستظهر هنا الحصص القادمة عند جدولتها</p>
+                </div>
+            <% } else { %>
+                <% sortedDates.forEach(dateStr => { const dayData = schedule[dateStr]; %>
+                    <div class="day-card">
+                        <div class="d-flex flex-column flex-md-row gap-4">
+                            <!-- Day Header -->
+                            <div class="day-header d-flex flex-column align-items-center justify-content-center">
+                                <span class="small opacity-75 text-uppercase fw-bold"><%= dayData.dayName %></span>
+                                <span class="display-6 fw-bold"><%= dayData.dayNumber %></span>
+                            </div>
+                            
+                            <!-- Sessions Grid -->
+                            <div class="flex-grow-1">
+                                <div class="row g-3">
                                     <% dayData.sessions.forEach(session => { 
-                                        // ندمج التاريخ والوقت في صيغة UTC Z لضمان التحويل الصحيح في المتصفح
-                                      
                                         const isCompleted = session.status === 'completed' || session.isSendReport === true;
                                     %>
-                                        <div class="session-card p-5 rounded-3xl bg-white flex flex-col justify-between relative overflow-hidden <%= isCompleted ? 'opacity-60' : '' %>"
-                                          
-                                             data-booking-id="<%= session.bookingId %>"
-                                             data-index="<%= session.sessionIndex %>"
-                                             data-completed="<%= isCompleted %>"
-                                             onclick="handleWeeklyClick(this)">
-                                            
-                                            <div class="status-indicator absolute top-0 right-0 w-1.5 h-full bg-gray-200"></div>
-                                            
-                                            <div>
-                                                <h4 class="font-black text-lg mb-1 text-gray-900"><%= session.studentName %></h4>
-                                                <p class="text-xs text-gray-400"><%= session.courseTitle %></p>
-                                            </div>
-                                            
-                                            <div class="flex items-center justify-between mt-4">
-                                                <span class="text-xs font-bold text-indigo-600 local-time-text"><%= session.time %></span>
-                                                <span class="status-text text-[10px] font-black italic">...</span>
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="session-card h-100 <%= isCompleted ? 'opacity-60' : '' %>"
+                                                 data-booking-id="<%= session.bookingId %>"
+                                                 data-index="<%= session.sessionIndex %>"
+                                                 data-completed="<%= isCompleted %>"
+                                                 data-utc="<%= session.fullUTC %>"
+                                                 onclick="handleWeeklyClick(this)"
+                                                 style="cursor: pointer;">
+                                                
+                                                <div class="status-indicator bg-secondary"></div>
+                                                
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div>
+                                                        <h6 class="fw-bold text-dark mb-1"><%= session.studentName %></h6>
+                                                        <p class="small text-muted mb-0"><%= session.courseTitle %></p>
+                                                    </div>
+                                                    <% if (session.meetingLink) { %>
+                                                        <a href="<%= session.meetingLink %>" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3" onclick="event.stopPropagation()">
+                                                            <i class="fas fa-video"></i>
+                                                        </a>
+                                                    <% } %>
+                                                </div>
+                                                
+                                                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                                    <span class="fw-bold text-primary local-time-text"><%= session.time %></span>
+                                                    <span class="status-text badge rounded-pill px-3 py-2">...</span>
+                                                </div>
                                             </div>
                                         </div>
                                     <% }) %>
                                 </div>
                             </div>
-                        <% }) %>
-                    </div>
-
-                    <div id="monthlyView" class="hidden animate-in">
-                        <div class="bg-white rounded-[3rem] border border-gray-100 p-6 shadow-sm overflow-hidden">
-                            <div class="grid grid-cols-7 mb-4 bg-gray-50/50 rounded-2xl py-3">
-                                <% ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].forEach(day => { %>
-                                    <div class="text-center text-xs font-black text-gray-400"><%= day %></div>
-                                <% }) %>
-                            </div>
-                            <div id="calendarGrid" class="calendar-grid"></div>
                         </div>
                     </div>
-
-                </div>
-            </main>
+                <% }) %>
+            <% } %>
         </div>
+
+        <!-- Monthly View -->
+        <div id="monthlyView" class="d-none">
+            <div class="bg-white rounded-4 p-4 shadow-sm border">
+                <!-- Calendar Day Headers -->
+                <div class="calendar-day-header mb-3">
+                    <% ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].forEach(day => { %>
+                        <div><%= day %></div>
+                    <% }) %>
+                </div>
+                
+                <!-- Calendar Grid -->
+                <div id="calendarGrid" class="calendar-grid"></div>
+            </div>
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; <%= settings.academyName %> <%= new Date().getFullYear() %> - <%= settings.footerText %></small>
+        </footer>
     </div>
 
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        feather.replace();
         let currentNavDate = new Date();
         let allEvents = [];
 
-        // تحديث المنطقة الزمنية في الهيدر
+        // Update timezone label
         const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        document.querySelector('.local-tz-label').innerText = `توقيتك المحلي: ${userTZ}`;
+        document.querySelector('.local-tz-label').innerHTML = `<i class="fas fa-globe me-1"></i> ${userTZ}`;
 
-        // تحويل توقيت العرض الأسبوعي محلياً فور التحميل
+        // Localize weekly view
         function localizeWeeklyView() {
+            const now = new Date();
+            
             document.querySelectorAll('.session-card').forEach(card => {
                 const isCompleted = card.getAttribute('data-completed') === 'true';
+                const sessionUtc = card.getAttribute('data-utc');
+                const sessionTime = new Date(sessionUtc);
                 
-             
-
-                // عرض الوقت بالتنسيق المحلي (مثلاً 10:30 م)
-                card.querySelector('.local-time-text').innerText = dateObj.toLocaleTimeString('ar-EG', { 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    hour12: true 
-                });
-
                 const indicator = card.querySelector('.status-indicator');
                 const statusText = card.querySelector('.status-text');
 
                 if (isCompleted) {
-                    indicator.className = "status-indicator absolute top-0 right-0 w-1.5 h-full bg-emerald-500";
-                    statusText.innerText = "✓ مكتمل";
-                    statusText.className = "status-text text-[10px] font-black text-emerald-600";
-                } else if (now > dateObj) {
-                    indicator.className = "status-indicator absolute top-0 right-0 w-1.5 h-full bg-amber-400 animate-pulse";
-                    statusText.innerText = "إرسال التقرير";
-                    statusText.className = "status-text text-[10px] font-black text-amber-600";
+                    indicator.className = "status-indicator bg-success";
+                    statusText.innerHTML = '<i class="fas fa-check me-1"></i> مكتمل';
+                    statusText.className = "status-text badge bg-success text-white rounded-pill px-3 py-2";
+                } else if (now < sessionTime) {
+                    indicator.className = "status-indicator bg-secondary";
+                    statusText.innerHTML = '<i class="fas fa-clock me-1"></i> قادمة';
+                    statusText.className = "status-text badge bg-secondary text-white rounded-pill px-3 py-2";
                 } else {
-                    indicator.className = "status-indicator absolute top-0 right-0 w-1.5 h-full bg-indigo-500";
-                    statusText.innerText = "قادمة";
-                    statusText.className = "status-text text-[10px] font-black text-indigo-600";
+                    indicator.className = "status-indicator bg-primary";
+                    statusText.innerHTML = '<i class="fas fa-file-signature me-1"></i> بانتظار التقرير';
+                    statusText.className = "status-text badge bg-primary text-white rounded-pill px-3 py-2";
                 }
             });
         }
 
         function handleWeeklyClick(el) {
             const isCompleted = el.getAttribute('data-completed') === 'true';
-            const startTimeStr = el.getAttribute('data-utc-start');
-            if (isCompleted) return;
+            const sessionUtc = el.getAttribute('data-utc');
+            const sessionTime = new Date(sessionUtc);
+            const now = new Date();
             
-            if (new Date() > new Date(startTimeStr)) {
-                window.location.href = `/teacher/session/${el.dataset.bookingId}/${el.dataset.index}`;
-            } else {
-                alert('هذه الحصة لم تنتهِ بعد');
+            if (now < sessionTime && !isCompleted) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'حصة قادمة',
+                    text: 'لا يمكن رفع تقرير لحصة لم تبدأ بعد. يرجى الانتظار حتى موعد الحصة.',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#FE5D37'
+                });
+                return;
             }
+            window.location.href = `/teacher/session/${el.dataset.bookingId}/${el.dataset.index}`;
         }
 
         async function fetchEvents() {
@@ -180,38 +381,54 @@
                 const res = await fetch('/teacher/events/<%= user._id %>');
                 allEvents = await res.json();
                 renderCustomCalendar();
-            } catch (err) { console.error("Error fetching events:", err); }
+            } catch (err) { 
+                console.error("Error fetching events:", err); 
+            }
         }
 
         function switchView(view) {
             const weekly = document.getElementById('weeklyView');
             const monthly = document.getElementById('monthlyView');
             const ctrl = document.getElementById('nav-controls');
+            
             if (view === 'weekly') {
-                weekly.classList.remove('hidden'); monthly.classList.add('hidden'); ctrl.classList.add('invisible');
-                document.getElementById('btn-weekly').classList.add('active'); document.getElementById('btn-monthly').classList.remove('active');
+                weekly.classList.remove('d-none');
+                monthly.classList.add('d-none');
+                ctrl.classList.add('d-none');
+                ctrl.classList.remove('d-flex');
+                document.getElementById('btn-weekly').classList.add('active');
+                document.getElementById('btn-monthly').classList.remove('active');
             } else {
-                weekly.classList.add('hidden'); monthly.classList.remove('hidden'); ctrl.classList.remove('invisible');
-                document.getElementById('btn-monthly').classList.add('active'); document.getElementById('btn-weekly').classList.remove('active');
+                weekly.classList.add('d-none');
+                monthly.classList.remove('d-none');
+                ctrl.classList.remove('d-none');
+                ctrl.classList.add('d-flex');
+                document.getElementById('btn-monthly').classList.add('active');
+                document.getElementById('btn-weekly').classList.remove('active');
                 fetchEvents();
             }
         }
 
         function renderCustomCalendar() {
-            const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
-            const year = currentNavDate.getFullYear(); const month = currentNavDate.getMonth();
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            const year = currentNavDate.getFullYear();
+            const month = currentNavDate.getMonth();
             const monthNames = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+            
             document.getElementById('currentMonthLabel').innerText = `${monthNames[month]} ${year}`;
             
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="calendar-day opacity-20 bg-gray-50/50"></div>`;
+            for (let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div class="calendar-day" style="opacity: 0.3; background: #f8f9fa;"></div>`;
+            }
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
                 
-                // تصفية الحصص لهذا اليوم مع تحويلها للتوقيت المحلي أولاً
                 const dayEvents = allEvents.filter(e => {
                     const localDate = new Date(e.start);
                     return localDate.getFullYear() === year && localDate.getMonth() === month && localDate.getDate() === day;
@@ -220,44 +437,55 @@
                 let eventsHtml = dayEvents.map(e => {
                     const localTime = new Date(e.start);
                     const isCompleted = e.isSendReport === true;
-                    const isPast = new Date() > localTime;
+                    const now = new Date();
+                    const isFuture = now < localTime;
                     
-                    let styleClass = 'bg-indigo-50 text-indigo-700 border-indigo-500';
-                    if (isCompleted) styleClass = 'bg-emerald-50 text-emerald-600 border-emerald-500 completed';
-                    else if (isPast) styleClass = 'bg-amber-50 text-amber-700 border-amber-500 animate-pulse';
+                    let styleClass = 'bg-primary text-white border-primary';
+                    if (isCompleted) styleClass = 'bg-success text-white border-success completed';
+                    else if (isFuture) styleClass = 'bg-secondary text-white border-secondary upcoming';
 
                     const timeStr = localTime.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true });
 
                     return `
-                        <div onclick="${isCompleted ? '' : `handleEventClick('${e.bookingId}', '${e.sessionIndex}', '${e.start}')`}" 
-                             class="event-bar border-r-4 ${styleClass}">
-                             <div class="flex justify-between items-center w-full">
-                                <span class="truncate font-black">${e.title}</span>
-                                <span class="text-[8px] opacity-70">${timeStr}</span>
+                        <div onclick="handleEventClick('${e.bookingId}', '${e.sessionIndex}', '${e.start}', ${isCompleted})" 
+                             class="event-bar ${styleClass}">
+                             <div class="d-flex justify-content-between align-items-center text-white">
+                                <span class="text-truncate fw-bold">${e.title}</span>
+                                <small class="opacity-75">${timeStr}</small>
                              </div>
-                             ${isCompleted ? '<span class="text-[8px] font-bold text-emerald-600">تم الإرسال ✓</span>' : ''}
                         </div>`;
                 }).join('');
 
                 grid.innerHTML += `
-                    <div class="calendar-day ${isToday ? 'today shadow-inner' : ''} border-b border-l border-gray-50">
-                        <span class="text-sm font-black ${isToday ? 'text-indigo-600' : 'text-gray-300'}">${day}</span>
-                        <div class="mt-1 flex flex-col gap-1">${eventsHtml}</div>
+                    <div class="calendar-day ${isToday ? 'today' : ''}">
+                        <span class="fw-bold ${isToday ? 'text-primary' : 'text-muted'}" style="font-size: 0.85rem;">${day}</span>
+                        <div class="mt-1">${eventsHtml}</div>
                     </div>`;
             }
         }
 
-        function handleEventClick(bId, sIndex, startTimeStr) {
-            if (new Date() > new Date(startTimeStr)) {
-                window.location.href = `/teacher/session/${bId}/${sIndex}`;
-            } else {
-                alert("هذه الحصة لم تنتهِ بعد");
+        function handleEventClick(bId, sIndex, startTimeStr, isCompleted) {
+            const sessionTime = new Date(startTimeStr);
+            const now = new Date();
+            
+            if (now < sessionTime && !isCompleted) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'حصة قادمة',
+                    text: 'لا يمكن رفع تقرير لحصة لم تبدأ بعد. يرجى الانتظار حتى موعد الحصة.',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#FE5D37'
+                });
+                return;
             }
+            window.location.href = `/teacher/session/${bId}/${sIndex}`;
         }
 
-        function changeMonth(step) { currentNavDate.setMonth(currentNavDate.getMonth() + step); renderCustomCalendar(); }
+        function changeMonth(step) {
+            currentNavDate.setMonth(currentNavDate.getMonth() + step);
+            renderCustomCalendar();
+        }
 
-        // تشغيل التحويل المحلي فور التحميل
         window.onload = localizeWeeklyView;
     </script>
 </body>

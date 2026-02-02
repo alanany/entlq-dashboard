@@ -3,6 +3,7 @@ const Subscription = require("../../models/subscription_model");
 const { DateTime } = require("luxon");
 const Course = require("../../models/course_model");
 const User = require("../../models/user_model");
+const mongoose = require("mongoose");
 const getapicourses = async (req, res) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
@@ -150,6 +151,162 @@ const getStudentSessionsPage = async (req, res) => {
 
 const { sendPushNotification } = require("../../utility/notificationService");
 
+// --- Student Dashboard API Logic ---
+
+async function getNearestSession(studentId, userTimeZone) {
+  const subscriptions = await Subscription.find({
+    studentId: studentId,
+    status: "confirmed",
+  }).populate("courseId");
+
+  let upcoming = [];
+  const now = new Date();
+  const tz = userTimeZone || "UTC";
+
+  subscriptions.forEach((sub) => {
+    (sub.sessions || []).forEach((session) => {
+      const sessionStart = new Date(session.utcDateAndTime);
+      const sessionEnd = new Date(sessionStart.getTime() + 60 * 60 * 1000);
+
+      if (sessionEnd > now && session.status !== "completed") {
+        const dt = DateTime.fromJSDate(sessionStart, { zone: "utc" })
+          .setZone(tz)
+          .setLocale('ar');
+
+        upcoming.push({
+          bookingId: sub._id,
+          courseTitle: sub.courseId?.title,
+          sessionDetails: {
+            ...session,
+            displayDate: dt.toFormat("yyyy-MM-dd"),
+            displayTime: dt.toFormat("hh:mm a"),
+            displayDay: dt.toFormat("cccc")
+          },
+          sessionId: session._id,
+          sessionEnd: sessionEnd,
+          startTime: sessionStart
+        });
+      }
+    });
+  });
+
+  upcoming.sort((a, b) => a.startTime - b.startTime);
+  return upcoming[0] || null;
+}
+
+async function getStudentCourseDetails(studentId) {
+  try {
+    const id = new mongoose.Types.ObjectId(studentId);
+    const result = await Subscription.aggregate([
+      { $match: { studentId: id, status: "confirmed" } },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "courseId",
+          foreignField: "_id",
+          as: "courseInfo"
+        }
+      },
+      { $unwind: "$courseInfo" },
+      {
+        $project: {
+          _id: 0,
+          courseName: "$courseInfo.title",
+          numberOfSessionsPerMonth: 1,
+          pricePerSession: { $toDouble: "$selectedPriceOption" },
+          totalCalculatedPrice: {
+            $multiply: [
+              { $toDouble: "$selectedPriceOption" },
+              "$numberOfSessionsPerMonth"
+            ]
+          },
+          startDate: 1,
+          status: 1
+        }
+      }
+    ]);
+    return result[0];
+  } catch (error) {
+    console.error("Error calculating total for API:", error);
+    return null;
+  }
+}
+
+async function getStudentStats(studentId) {
+  try {
+    const id = new mongoose.Types.ObjectId(studentId);
+    const stats = await Subscription.aggregate([
+      { $match: { studentId: id, status: "confirmed" } },
+      { $unwind: "$sessions" },
+      {
+        $group: {
+          _id: "$studentId",
+          completedSessions: {
+            $sum: { $cond: [{ $eq: ["$sessions.status", "completed"] }, 1, 0] },
+          },
+          avgRating: {
+            $avg: {
+              $switch: {
+                branches: [
+                  { case: { $eq: ["$sessions.report.level", "A"] }, then: 5 },
+                  { case: { $eq: ["$sessions.report.level", "B"] }, then: 4 },
+                  { case: { $eq: ["$sessions.report.level", "C"] }, then: 3 }
+                ],
+                default: null 
+              }
+            }
+          },
+          totalMinutes: {
+            $sum: { $cond: [{ $eq: ["$sessions.status", "completed"] }, 60, 0] }
+          },
+          totalPlan: { $sum: 1 }
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          completedSessions: 1,
+          rating: { $ifNull: [{ $round: ["$avgRating", 1] }, 0] },
+          learningMinutes: 1,
+          totalPlan: 1,
+          learningHours: { $divide: ["$totalMinutes", 60] }
+        },
+      },
+    ]);
+    return stats.length > 0 ? stats[0] : { completedSessions: 0, rating: 0, learningMinutes: 0, totalPlan: 0 };
+  } catch (error) {
+    console.error("API Dashboard Stats Error:", error);
+    return null;
+  }
+}
+
+const getStudentApiDashboard = async (req, res) => {
+  try {
+    const studentId = req.user._id;
+    const nearestSession = await getNearestSession(studentId, req.user.timezone);
+    const studentStats = await getStudentStats(studentId);
+    const courseBookingDetails = await getStudentCourseDetails(studentId);
+
+    res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: {
+        nearestSession,
+        studentStats,
+        courseBookingDetails,
+        user: req.user
+      }
+    });
+  } catch (error) {
+    console.error("Error loading student API dashboard:", error);
+    res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "حدث خطأ أثناء تحميل بيانات لوحة التحكم الطالب."
+    });
+  }
+};
+
 // الدالة اللي كتبتها أنت بتهندل جلب التوكنات من الـ DB
 async function notifyUser(userId, content) {
   console.log(userId,'user id');
@@ -170,5 +327,6 @@ module.exports = {
   getapicourses,
   getapiCourseDetails,
   getStudentSessionsPage,
+  getStudentApiDashboard,
   notifyUser
 };

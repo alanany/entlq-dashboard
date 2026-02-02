@@ -1,204 +1,300 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تفاصيل المعلم | <%= teacher.name %></title>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - تفاصيل المعلم | <%= teacher.name %></title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
     
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+    
+    <!-- XLSX Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .card-stats {
+            background: #fff;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            border: 1px solid #f1f1f1;
+            transition: all 0.3s;
+        }
+
+        .card-stats:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 1rem 2rem rgba(0,0,0,0.08); 
+        }
+
+        .table-custom thead th {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            color: #6c757d;
+            font-weight: 700;
+            padding: 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-custom tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: rgba(254, 93, 55, 0.03);
+        }
+
+        .teacher-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), #ff8a6c);
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 0.5rem 1.5rem rgba(254, 93, 55, 0.3);
+        }
+    </style>
 </head>
-<body class="bg-gray-50 text-right">
+<body class="bg-light">
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'teachers', user: user }) %>
 
-   <header class="bg-white border-b p-6 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-        <div class="flex items-center gap-4">
-            <button onclick="history.back()" class="p-2 bg-gray-100 rounded-full hover:bg-indigo-100 text-indigo-600 transition">
-                <i data-feather="arrow-right"></i>
-            </button>
-            <div>
-             
-                <h1 class="text-xl font-black text-gray-800"><%= teacher.name %></h1>
-                <button onclick="window.location.href='/teacher/schedule/<%= teacher._id %>'" 
-                        class="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition mt-1">
-                    <i data-feather="calendar" class="w-3 h-3"></i>
-                    عرض جدول الحصص الأسبوعي
+    <div class="main-content">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-2" id="sidebarCollapse">
+                    <i class="fas fa-bars"></i>
                 </button>
-            </div>
-        </div>
-        <p class="text-sm font-bold text-gray-400"><%= currentDate %></p>
-    </header>
-
-    <main class="p-6 max-w-7xl mx-auto space-y-6">
-        
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
-            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                <p class="text-gray-400 text-xs font-bold mb-1 uppercase">إجمالي الطلاب</p>
-                <h2 class="text-2xl font-black text-gray-900"><%= stats.totalStudents %></h2>
-            </div>
-         <div class="relative overflow-hidden bg-indigo-600 p-6 rounded-[2.5rem] shadow-xl shadow-indigo-100 group transition-all duration-300 hover:shadow-indigo-200">
-    
-    <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500 rounded-full opacity-20 transition-transform group-hover:scale-150"></div>
-
-    <div class="relative z-10">
-        <div class="flex justify-between items-start mb-5">
-            <div>
-                <p class="text-indigo-100 text-[10px] font-black uppercase tracking-widest mb-1">المحفظة المالية</p>
-                <h2 class="text-3xl font-black text-white italic">
-                    <%= stats.totalEarnings %> <span class="text-xs font-medium not-italic opacity-80">ر.س</span>
-                </h2>
-            </div>
-            
-            <button onclick="window.location.href='/admin/teacher/<%= teacher.id %>/financial'"
-                class="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-md text-white rounded-2xl hover:bg-white hover:text-indigo-600 transition-all duration-300 shadow-lg border border-white/10"
-                title="عرض التفاصيل المالية">
-                <i data-feather="dollar-sign" class="w-6 h-6"></i>
-            </button>
-        </div>
-
-        <div class="flex items-center gap-2">
-            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-            <p class="text-[10px] text-indigo-100 font-bold">جاهز للمراجعة والتصدير</p>
-        </div>
-    </div>
-</div>
-<div onclick="window.location.href='/teacher/schedule/<%= teacher._id %>'" 
-     class="cursor-pointer bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all group">
-    <div class="flex justify-between items-start">
-        <div>
-            <p class="text-gray-400 text-xs font-bold mb-1 uppercase">  الجدول الاسبوعى والشهرى</p>
-            <h2 class="text-xl font-black text-gray-900 group-hover:text-indigo-600 transition">جدول الحصص  </h2>
-        </div>
-        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-            <i data-feather="calendar" class="w-5 h-5"></i>
-        </div>
-    </div>
-    <p class="text-[10px] text-gray-400 mt-4 font-bold">عرض  مواعيد الحصص</p>
-</div>
-            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                <p class="text-gray-400 text-xs font-bold mb-1 uppercase">حصص منجزة</p>
-                <h2 class="text-2xl font-black text-gray-900"><%= stats.completedSessionsCount %></h2>
-            </div>
-            <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                <p class="text-gray-400 text-xs font-bold mb-1 uppercase">حصص متبقية</p>
-                <h2 class="text-2xl font-black text-orange-500"><%= stats.totalRemainingSessions %></h2>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
-            <div class="p-6 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
-                <h3 class="font-black text-gray-800 italic">سجل  الطلاب </h3>
-                
-                <button onclick="exportToExcel()" class="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-2xl text-xs font-black hover:bg-green-700 transition shadow-lg shadow-green-100">
-                    <i data-feather="file-text" class="w-4 h-4"></i>
-                    تصدير Excel
-                </button>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table id="studentsTable" class="w-full text-right">
-                   <thead class="bg-gray-50 border-b border-gray-100 text-[11px] font-black uppercase text-gray-400">
-    <tr>
-        <th class="p-5 text-right flex items-center gap-2 italic">
-            <i data-feather="users" class="w-3 h-3"></i>
-            اسم الطالب
-        </th>
-      
-        <th class="p-5 text-center">إجمالي الحصص</th>
-        <th class="p-5 text-center">الحصص المنجزة</th>
-        
-        <th class="p-5 text-center text-indigo-600 bg-indigo-50/30">
-            المتبقي للطالب
-        </th>
-        
-        <th class="p-5 text-center">حالة الحساب</th>
-    </tr>
-</thead>
-                    <tbody class="divide-y divide-gray-50 text-sm">
-                     <% students.forEach(s => { %>
-    <tr class="hover:bg-indigo-50/50 transition cursor-pointer group" 
-        onclick="window.location.href='/admin/student/profile/<%= s.id %>'">
-        
-        <td class="p-5">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-black text-sm border border-indigo-100 uppercase">
-                    <%= s.name.charAt(0) %>
+                <a href="/admin/teachers" class="btn btn-light rounded-circle p-2">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div class="teacher-avatar">
+                    <%= teacher.name.charAt(0).toUpperCase() %>
                 </div>
                 <div>
-                    <p class="font-bold text-gray-800 group-hover:text-indigo-600 transition-colors"><%= s.name %></p>
-                    <p class="text-[10px] text-gray-400 font-medium tracking-tight">
-                        <%= s.courses.join(' + ') %> </p>
+                    <h4 class="mb-0 fw-bold text-dark"><%= teacher.name %></h4>
+                    <p class="mb-0 small text-muted"><%= teacher.email %></p>
+                    <span class="badge bg-primary text-white rounded-pill mt-1 px-3 py-2">
+                        <i class="fas fa-money-bill me-1"></i> سعر الساعة: <%= teacher.hour_rate || 0 %> ر.س
+                    </span>
                 </div>
             </div>
-        </td>
+            <div class="d-flex gap-2">
+                <a href="/teacher/schedule/<%= teacher._id %>" class="btn btn-light rounded-3 px-3">
+                    <i class="fas fa-calendar-alt me-2 text-primary"></i> جدول الحصص
+                </a>
+                <a href="/admin/teacher/<%= teacher._id %>/financial" class="btn btn-primary rounded-3 px-4">
+                    <i class="fas fa-wallet me-2"></i> التقرير المالي
+                </a>
+            </div>
+        </div>
 
-        <td class="p-5 text-center font-black text-indigo-600">
-            <span class="text-lg"><%= s.totalSessions %></span>
-            <span class="text-[9px] text-gray-400 block uppercase tracking-tighter">إجمالي</span>
-        </td>
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card-stats">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <p class="small text-muted mb-0">إجمالي الطلاب</p>
+                            <h3 class="fw-bold mb-0 outfit-font"><%= stats.totalStudents %></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card-stats" style="background: linear-gradient(135deg, var(--primary), #ff8a6c); border: none;">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="bg-white bg-opacity-25 text-white rounded-3 p-3">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div>
+                            <p class="small text-white opacity-75 mb-0">المستحقات المعلقة</p>
+                            <h3 class="fw-bold mb-0 text-white outfit-font"><%= stats.totalEarnings %> <small class="fw-normal">ر.س</small></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <td class="p-5 text-center font-black text-emerald-600">
-            <span class="text-lg"><%= s.completedSessions %></span>
-            <span class="text-[9px] text-gray-400 block uppercase tracking-tighter">منتهية</span>
-        </td>
+            <div class="col-md-3">
+                <div class="card-stats">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="bg-success bg-opacity-10 text-success rounded-3 p-3">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <p class="small text-muted mb-0">حصص منجزة</p>
+                            <h3 class="fw-bold mb-0 outfit-font text-success"><%= stats.completedSessionsCount %></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <td class="p-5 text-center font-black text-orange-500">
-            <span class="text-lg"><%= s.remainingSessions %></span>
-            <span class="text-[9px] text-gray-400 block uppercase tracking-tighter">متبقية</span>
-        </td>
+            <div class="col-md-3">
+                <div class="card-stats">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-3">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <p class="small text-muted mb-0">حصص متبقية</p>
+                            <h3 class="fw-bold mb-0 outfit-font text-warning"><%= stats.totalRemainingSessions %></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <td class="p-5 text-center">
-            <% if(s.status !== 'completed') { %>
-                <span class="px-3 py-1 rounded-lg text-[10px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100">
-                    نشط حالياً
-                </span>
-            <% } else { %>
-                <span class="px-3 py-1 rounded-lg text-[10px] font-black bg-gray-100 text-gray-500 border border-gray-200">
-                    مكتمل
-                </span>
-            <% } %>
-        </td>
-
-        <td class="p-5 text-left">
-            <i data-feather="chevron-left" class="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-all"></i>
-        </td>
-    </tr>
-<% }) %>
+        <!-- Students Table -->
+        <div class="bg-white rounded-4 shadow-sm border border-light overflow-hidden">
+            <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">سجل الطلاب</h5>
+                    <p class="small text-muted mb-0">جميع الطلاب المشتركين مع هذا المعلم</p>
+                </div>
+                <button onclick="exportToExcel()" class="btn btn-success rounded-3 px-4">
+                    <i class="fas fa-file-excel me-2"></i> تصدير Excel
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table id="studentsTable" class="table table-custom mb-0 text-end">
+                    <thead>
+                        <tr>
+                            <th class="px-4">الطالب</th>
+                            <th class="text-center">إجمالي الحصص</th>
+                            <th class="text-center">الحصص المنجزة</th>
+                            <th class="text-center">المتبقي</th>
+                            <th class="text-center">الحالة</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (students.length === 0) { %>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="fas fa-user-slash fa-2x mb-3 d-block opacity-25"></i>
+                                    لا يوجد طلاب مسجلون بعد
+                                </td>
+                            </tr>
+                        <% } else { %>
+                            <% students.forEach(s => { %>
+                                <tr style="cursor: pointer;" onclick="window.location.href='/admin/student/profile/<%= s.id %>'">
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px;">
+                                                <%= s.name.charAt(0).toUpperCase() %>
+                                            </div>
+                                            <div>
+                                                <p class="fw-bold text-dark mb-0"><%= s.name %></p>
+                                                <p class="small text-muted mb-0"><%= s.courses.join(' + ') %></p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold text-primary fs-5"><%= s.totalSessions %></span>
+                                        <small class="d-block text-muted">إجمالي</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold text-success fs-5"><%= s.completedSessions %></span>
+                                        <small class="d-block text-muted">منتهية</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold text-warning fs-5"><%= s.remainingSessions %></span>
+                                        <small class="d-block text-muted">متبقية</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <% if(s.status !== 'completed') { %>
+                                            <span class="badge bg-success text-white rounded-pill px-3 py-2">
+                                                <i class="fas fa-circle me-1" style="font-size: 6px;"></i> نشط
+                                            </span>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary text-white rounded-pill px-3 py-2">
+                                                <i class="fas fa-check me-1"></i> مكتمل
+                                            </span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-start">
+                                        <i class="fas fa-chevron-left text-muted"></i>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
                     </tbody>
                 </table>
             </div>
         </div>
-    </main>
 
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية 2024</small>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // تشغيل أيقونات Feather
-        feather.replace();
-
-        // وظيفة التصدير لإكسيل
         function exportToExcel() {
-            // 1. الحصول على عنصر الجدول
             const table = document.getElementById("studentsTable");
-            
-            // 2. تحويل الجدول لبيانات (Worksheet)
-            // ملاحظة: قمنا بتعطيل raw لضمان قراءة الأرقام والنصوص كما تظهر في المتصفح
             const ws = XLSX.utils.table_to_sheet(table);
-
-            // 3. إنشاء "كتاب" (Workbook) جديد
             const wb = XLSX.utils.book_new();
-            
-            // 4. إضافة البيانات للكتاب وتسمية الورقة
             XLSX.utils.book_append_sheet(wb, ws, "بيانات الطلاب");
-
-            // 5. إنشاء اسم الملف (اسم المعلم + التاريخ)
+            
             const date = new Date().toISOString().split('T')[0];
             const teacherName = "<%= teacher.name %>".replace(/\s+/g, '_');
-            const fileName = `Report_${teacherName}_${date}.xlsx`;
-
-            // 6. تفعيل عملية التحميل للمستخدم
+            const fileName = `تقرير_${teacherName}_${date}.xlsx`;
+            
             XLSX.writeFile(wb, fileName);
         }
     </script>

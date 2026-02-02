@@ -106,18 +106,12 @@
                         <i class="fas fa-bars fs-5"></i>
                     </button>
                     <div>
-                        <h2 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2rem;">التحليلات المالية</h2>
+                        <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2rem;">التحليلات المالية</h4>
                         <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Financial Overview & Analytics</small>
                     </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
-                    <select class="form-select border-0 bg-light rounded-pill px-4" style="max-width: 200px; font-size: 0.8rem;">
-                        <option>هذا الشهر</option>
-                        <option>آخر 3 أشهر</option>
-                        <option>هذا العام</option>
-                    </select>
-                    
                     <div class="d-flex align-items-center gap-2 ps-3 border-start border-light">
                         <button onclick="openLogoutModal(event)" class="btn btn-light rounded-circle p-2 text-danger" title="تسجيل الخروج">
                             <i class="fas fa-sign-out-alt"></i>
@@ -129,90 +123,127 @@
 
         <!-- Stats Cards -->
         <div class="row g-4 mb-4 animate__animated animate__fadeInUp">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card-stats bg-primary text-white border-0 shadow-sm" style="background: linear-gradient(135deg, var(--primary), #ff8a6c) !important;">
-                    <p class="small opacity-75 mb-1 fw-bold">إجمالي المبيعات</p>
-                    <h3 class="fw-900 outfit-font mb-3">$124,500.00</h3>
-                    <div class="badge bg-white bg-opacity-20 rounded-pill px-3 py-2 small fw-bold">
-                        <i class="fas fa-arrow-up me-1"></i> +15% عن الشهر الماضي
+                    <p class="small opacity-75 mb-1 fw-bold">إجمالي الإيرادات</p>
+                    <h3 class="fw-900 outfit-font mb-3"><%= stats.totalIncome %> ر.س</h3>
+                    <div class=" bg-opacity-20 rounded-pill px-3 py-2 small fw-bold">
+                        <i class="fas fa-arrow-up me-1"></i> الاشتراكات المدفوعة
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card-stats shadow-sm border-0">
-                    <p class="small text-muted mb-1 fw-bold">أرباح المنصة (الصافي)</p>
-                    <h3 class="fw-900 outfit-font text-dark mb-3">$32,150.00</h3>
-                    <p class="small text-muted mb-0">بعد خصم نسبة المدربين</p>
+                    <p class="small text-muted mb-1 fw-bold">إجمالي المصروفات</p>
+                    <h3 class="fw-900 outfit-font text-danger mb-3"><%= stats.totalExpenses %> ر.س</h3>
+                    <p class="small text-muted mb-0">رواتب المعلمين المدفوعة</p>
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card-stats shadow-sm border-0">
-                    <p class="small text-muted mb-1 fw-bold">مستحقات المدربين (للدفع)</p>
-                    <h3 class="fw-900 outfit-font text-dark mb-3">$8,400.00</h3>
-                    <button class="btn btn-light btn-sm rounded-pill px-4 fw-bold text-primary">إدارة المدفوعات</button>
+                    <p class="small text-muted mb-1 fw-bold">صافي الأرباح</p>
+                    <h3 class="fw-900 outfit-font text-success mb-3"><%= stats.netProfit %> ر.س</h3>
+                    <p class="small text-muted mb-0">الإيرادات - المصروفات</p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card-stats shadow-sm border-0">
+                    <p class="small text-muted mb-1 fw-bold">مستحقات المعلمين (معلقة)</p>
+                    <h3 class="fw-900 outfit-font text-warning mb-3"><%= stats.pendingExpenses %> ر.س</h3>
+                    <a href="/admin/teachers" class="btn btn-light btn-sm rounded-pill px-4 fw-bold text-primary">إدارة المدفوعات</a>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4 mb-4">
-            <div class="col-12">
-                <div class="bg-white p-4 rounded-4 shadow-sm border border-light">
-                    <h5 class="fw-bold text-dark mb-4">نمو الإيرادات</h5>
-                    <div class="d-flex align-items-end justify-content-between gap-2 px-2 border-bottom border-light pb-2" style="height: 200px;">
-                        <div class="flex-grow-1 bg-light rounded-top hover-bg-primary transition-colors position-relative group" style="height: 40%; background-color: #f1f1f1;"></div>
-                        <div class="flex-grow-1 bg-light rounded-top hover-bg-primary transition-colors" style="height: 60%; background-color: #f1f1f1;"></div>
-                        <div class="flex-grow-1 bg-light rounded-top hover-bg-primary transition-colors" style="height: 55%; background-color: #f1f1f1;"></div>
-                        <div class="flex-grow-1 bg-light rounded-top hover-bg-primary transition-colors" style="height: 70%; background-color: #f1f1f1;"></div>
-                        <div class="flex-grow-1 bg-light rounded-top hover-bg-primary transition-colors" style="height: 45%; background-color: #f1f1f1;"></div>
-                        <div class="flex-grow-1 bg-light rounded-top hover-bg-primary transition-colors" style="height: 80%; background-color: #f1f1f1;"></div>
-                        <div class="flex-grow-1 bg-primary rounded-top shadow" style="height: 90%;"></div>
-                    </div>
-                    <div class="d-flex justify-content-between text-muted small mt-2 px-1 fw-bold">
-                        <span>السبت</span><span>الأحد</span><span>الاثنين</span><span>الثلاثاء</span><span>الأربعاء</span><span>الخميس</span><span>الجمعة</span>
-                    </div>
-                </div>
-            </div>
-        </div>
 
+        <!-- Transactions Table -->
         <div class="bg-white rounded-4 shadow-sm border border-light overflow-hidden animate__animated animate__fadeInUp">
             <div class="p-4 border-bottom">
-                <h5 class="fw-bold text-dark mb-0">أحدث المعاملات</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">سجل المعاملات</h5>
+                    <span class="badge bg-primary rounded-pill"><%= transactions.length %> معاملة</span>
+                </div>
+                
+                <!-- Filter Form -->
+                <form action="/admin/reports" method="GET" class="d-flex gap-3 flex-wrap align-items-end">
+                    <div>
+                        <label class="form-label small text-muted mb-1">الشهر</label>
+                        <input type="month" name="month" value="<%= filters.month %>" class="form-control rounded-3" style="min-width: 150px;">
+                    </div>
+                    <div>
+                        <label class="form-label small text-muted mb-1">النوع</label>
+                        <select name="type" class="form-select rounded-3" style="min-width: 130px;">
+                            <option value="">الكل</option>
+                            <option value="income" <%= filters.type === 'income' ? 'selected' : '' %>>إيرادات</option>
+                            <option value="expense" <%= filters.type === 'expense' ? 'selected' : '' %>>مصروفات</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary rounded-3 px-4">
+                            <i class="fas fa-filter me-1"></i> تصفية
+                        </button>
+                        <a href="/admin/reports" class="btn btn-outline-secondary rounded-3">
+                            <i class="fas fa-redo"></i>
+                        </a>
+                    </div>
+                </form>
             </div>
             <div class="table-responsive">
                 <table class="table table-custom mb-0 text-end">
                     <thead>
                         <tr>
                             <th class="px-4 py-3">رقم العملية</th>
-                            <th class="px-4 py-3">الطالب</th>
+                            <th class="px-4 py-3">النوع</th>
+                            <th class="px-4 py-3">الوصف</th>
                             <th class="px-4 py-3 text-center">التاريخ</th>
                             <th class="px-4 py-3">المبلغ</th>
                             <th class="px-4 py-3 text-start">الحالة</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white">
-                        <tr>
-                            <td class="px-4 py-3 outfit-font text-muted">#TRX-9812</td>
-                            <td class="px-4 py-3 fw-bold text-dark">سارة أحمد</td>
-                            <td class="px-4 py-3 text-center text-muted">05/12/2025</td>
-                            <td class="px-4 py-3 fw-bold text-success">+$49.00</td>
-                            <td class="px-4 py-3"><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2" style="font-size: 0.65rem;">ناجحة</span></td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3 outfit-font text-muted">#TRX-9811</td>
-                            <td class="px-4 py-3 fw-bold text-dark">خالد عمر</td>
-                            <td class="px-4 py-3 text-center text-muted">04/12/2025</td>
-                            <td class="px-4 py-3 fw-bold text-success">+$120.00</td>
-                            <td class="px-4 py-3"><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2" style="font-size: 0.65rem;">ناجحة</span></td>
-                        </tr>
-                        <tr>
-                            <td class="px-4 py-3 outfit-font text-muted">#TRX-9810</td>
-                            <td class="px-4 py-3 fw-bold text-dark">مدرب: سامر علي</td>
-                            <td class="px-4 py-3 text-center text-muted">03/12/2025</td>
-                            <td class="px-4 py-3 fw-bold text-danger">-$500.00</td>
-                            <td class="px-4 py-3"><span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-2" style="font-size: 0.65rem;">سحب أرباح</span></td>
-                        </tr>
+                        <% if (transactions.length === 0) { %>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">لا توجد معاملات بعد</td>
+                            </tr>
+                        <% } else { %>
+                            <% transactions.forEach((txn, index) => { %>
+                                <tr>
+                                    <td class="px-4 py-3 outfit-font text-muted">#TXN-<%= txn._id.toString().slice(-6).toUpperCase() %></td>
+                                    <td class="px-4 py-3">
+                                        <% if (txn.type === 'income') { %>
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">إيراد</span>
+                                        <% } else { %>
+                                            <span class="badge bg-danger bg-opacity-10 text-white rounded-pill px-3 py-2">مصروف</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="px-4 py-3 fw-bold text-dark">
+                                        <%= txn.description || (txn.category === 'subscription' ? 'اشتراك جديد' : (txn.category === 'salary' ? 'راتب معلم' : 'معاملة')) %>
+                                        <% if (txn.teacherId && txn.teacherId.name) { %>
+                                            <small class="text-muted d-block"><%= txn.teacherId.name %></small>
+                                        <% } %>
+                                        <% if (txn.fromUser && txn.fromUser.name) { %>
+                                            <small class="text-muted d-block">من: <%= txn.fromUser.name %></small>
+                                        <% } %>
+                                    </td>
+                                    <td class="px-4 py-3 text-center text-muted"><%= new Date(txn.createdAt).toLocaleDateString('ar-EG') %></td>
+                                    <td class="px-4 py-3 fw-bold <%= txn.type === 'income' ? 'text-success' : 'text-danger' %>">
+                                        <%= txn.type === 'income' ? '+' : '-' %><%= txn.amount.toFixed(2) %> ر.س
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <% if (txn.status === 'completed') { %>
+                                            <span class="badge bg-success bg-opacity-10 text-white rounded-pill px-3 py-2" style="font-size: 0.65rem;">مكتملة</span>
+                                        <% } else if (txn.status === 'pending') { %>
+                                            <span class="badge bg-warning bg-opacity-10 text-white rounded-pill px-3 py-2" style="font-size: 0.65rem;">معلقة</span>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary bg-opacity-10 text-white rounded-pill px-3 py-2" style="font-size: 0.65rem;"><%= txn.status %></span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
                     </tbody>
                 </table>
             </div>
