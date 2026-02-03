@@ -10,75 +10,89 @@ const generateJWT = require("../../middleware/generate_jwt");
 
 // controller actions
 
-const login = async (req, res,next) => {
-    const requestData = req.body;
 
+const login = async (req, res, next) => {
+  try {
+    const {
+      email,
+      password,
+      deviceToken,
+      platform = "andriod",
+      deviceModel,
+      timezone,
+    } = req.body;
 
-  const { email, password, role,deviceToken,timezone } = requestData; // ⬅️ استقبال البيانات من Query Parameters
-
-  // **كائن الأخطاء المخصص**
-  
-console.log('requestData',requestData);
- 
-    // 2. البحث عن المستخدم بالبريد والدور
-    const user = await User.findOne({ email: email, role: role });
+    // 1️⃣ جلب المستخدم (كلمة المرور مطلوبة)
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
-      // 3. حالة: المستخدم غير موجود (البريد غير صحيح)
-     const NativeError = "هذا البريد الإلكتروني غير صحيح";
-       return res.status(401).json({ message: NativeError,
-        statusCode: "FAILL",
-        status: 401,});
-
+      return res.status(401).json({
+        status: "fail",
+        message: "هذا البريد الإلكتروني غير صحيح",
+      });
     }
 
-    // 4. إذا تم العثور على المستخدم، مقارنة كلمة المرور
-    const auth =  bcrypt.compareSync(password, user.password);
+    // 2️⃣ مقارنة كلمة المرور
+    const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!auth) {
-      // 5. حالة: كلمة المرور غير صحيحة
-     const NativeError = "كلمة المرور المدخلة غير صحيحة";
-      return res.status(401).json({ message: NativeError,
-        statusCode: "FAILL",
-        status: 401,});
+    if (!isMatch) {
+      return res.status(401).json({
+        status: "fail",
+        message: "كلمة المرور المدخلة غير صحيحة",
+      });
     }
-const fcmToken = req.body.deviceToken;
 
-    // تحديث مصفوفة الأجهزة
-    await User.updateOne(
+    // 3️⃣ إضافة / تحديث الجهاز (بدون save)
+    if (deviceToken && platform !== "web") {
+      await User.updateOne(
         { _id: user._id },
-        { 
-            $addToSet: { 
-                devices: { 
-                    fcmToken: fcmToken, 
-                    platform: 'android',
-                    lastUsed: new Date() 
-                } 
-            }
+        {
+          $pull: {
+            devices: { fcmToken: deviceToken },
+          },
         }
+      );
+
+      await User.updateOne(
+        { _id: user._id },
+        {
+          $push: {
+            devices: {
+              fcmToken: deviceToken,
+              platform,
+              deviceModel,
+              timezone,
+              lastUsed: new Date(),
+            },
+          },
+        }
+      );
+    }
+
+    // 4️⃣ توليد JWT
+    const token = await generateJWT(user);
+
+    // 5️⃣ حفظ التوكن فقط (بدون validation)
+    await User.updateOne(
+      { _id: user._id },
+      { token }
     );
-    // 6. حالة النجاح: كلمة المرور صحيحة
-  
-    //update token in database
 
-    const token = await generateJWT(user); // ✅ افتراضياً لا تمرر next هنا
-    user.token = token;
-      await user.save();
-    // 4. تجهيز الاستجابة (حذف كلمة المرور)
-    const userObj = user.toObject();
-    delete userObj.password; 
-  
+    // 6️⃣ إرسال المستخدم بدون كلمة مرور
+    const userData = await User.findById(user._id).select("-password");
 
-
-    // إرسال استجابة النجاح
     res.status(200).json({
-      statusCode: 200,
       status: "success",
-      message: "تم تسجيل الدخول بنجاح.",
-      user: userObj,
+      message: "تم تسجيل الدخول بنجاح",
+      user: userData,
     });
-    return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
+  } catch (err) {
+    next(err);
+  }
 };
+
+
+
 
 const register = asyncWrapper(async (req, res, next) => {
     const requestData = req.body;
