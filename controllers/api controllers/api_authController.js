@@ -10,11 +10,11 @@ const generateJWT = require("../../middleware/generate_jwt");
 
 // controller actions
 
-const login =asyncWrapper( async (req, res,next) => {
+const login = async (req, res,next) => {
     const requestData = req.body;
 
 
-  const { email, password, role } = requestData; // ⬅️ استقبال البيانات من Query Parameters
+  const { email, password, role,deviceToken,timezone } = requestData; // ⬅️ استقبال البيانات من Query Parameters
 
   // **كائن الأخطاء المخصص**
   
@@ -78,7 +78,7 @@ const fcmToken = req.body.deviceToken;
       user: userObj,
     });
     return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
-});
+};
 
 const register = asyncWrapper(async (req, res, next) => {
     const requestData = req.body;
