@@ -19,6 +19,7 @@
     "mongoose": "^5.9.23",
     "multer": "^2.0.2",
     "nodemon": "^3.1.11",
+    "socket.io": "^4.8.3",
     "validator": "^13.1.1"
   },
   "scripts": {

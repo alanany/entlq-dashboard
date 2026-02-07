@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang %>" dir="<%= dir %>">
+
+<head>
+    <meta charset="utf-8">
+    <title><%= title %> - <%= settings.academyName %></title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Alexandria:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #fceae5 0%, #fff0ed 100%);
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            height: calc(100vh - 40px);
+            margin: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 2rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            display: flex;
+            overflow: hidden;
+        }
+
+        .chat-sidebar {
+            width: 350px;
+            border-left: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .chat-main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .room-item {
+            padding: 1.25rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .room-item:hover {
+            background: var(--secondary);
+            transform: scale(0.98);
+        }
+
+        .room-item.active {
+            background: var(--secondary);
+            border-right: 4px solid var(--primary);
+        }
+
+        .room-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            color: var(--primary);
+            font-size: 1.25rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .chat-header {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .messages-container {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: url("https://www.transparenttextures.com/patterns/cubes.png");
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 1rem 1.5rem;
+            border-radius: 1.5rem;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.sent {
+            align-self: flex-start;
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .message.received {
+            align-self: flex-end;
+            background: white;
+            color: var(--dark);
+            border-bottom-left-radius: 0.25rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .message-input {
+            padding: 1.5rem 2rem;
+            background: white;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .input-group {
+            background: var(--light);
+            border-radius: 1rem;
+            padding: 0.5rem 1rem;
+            display: flex;
+            flex-grow: 1;
+            align-items: center;
+        }
+
+        .input-group input {
+            border: none;
+            background: transparent;
+            padding: 0.5rem;
+            width: 100%;
+            outline: none;
+        }
+
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .send-btn:hover {
+            transform: rotate(-15deg) scale(1.1);
+            box-shadow: 0 5px 15px rgba(254, 93, 55, 0.3);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2ecc71;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <!-- Sidebar -->
+        <div class="chat-sidebar">
+            <div class="sidebar-header">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0">المحادثات</h4>
+                    <a href="/" class="btn btn-sm btn-outline-primary rounded-pill px-3">الرئيسية</a>
+                </div>
+                <div class="input-group">
+                    <i class="fa fa-search text-muted"></i>
+                    <input type="text" placeholder="بحث عن محادثة...">
+                </div>
+            </div>
+            <div id="rooms-list" class="overflow-auto flex-grow-1">
+                <!-- Rooms will be loaded here -->
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="chat-main" id="chat-welcome">
+            <div class="h-100 d-flex flex-column align-items-center justify-content-center text-center p-5">
+                <div class="mb-4">
+                    <i class="fa fa-comments text-primary" style="font-size: 5rem; opacity: 0.2;"></i>
+                </div>
+                <h3 class="fw-bold">مرحباً بك في مركز الرسائل</h3>
+                <p class="text-muted">اختر محادثة من القائمة الجانبية للبدء في التواصل</p>
+                <% if(user.role === 'student') { %>
+                    <button onclick="createSupportRoom()" class="btn btn-primary rounded-pill px-4 py-2 mt-3">
+                        <i class="fa fa-headset me-2"></i> تواصل مع الدعم الفني
+                    </button>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="chat-main d-none" id="chat-active">
+            <div class="chat-header">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="room-icon small-icon">
+                        <i id="active-room-icon" class="fa fa-user"></i>
+                    </div>
+                    <div>
+                        <h5 id="active-room-name" class="fw-bold mb-0">اسم المحادثة</h5>
+                        <small class="text-success"><span class="status-dot"></span> متصل الآن</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light rounded-circle shadow-sm"><i class="fa fa-phone"></i></button>
+                    <button class="btn btn-light rounded-circle shadow-sm"><i class="fa fa-ellipsis-v"></i></button>
+                </div>
+            </div>
+
+            <div id="messages-container" class="messages-container">
+                <!-- Messages will be loaded here -->
+            </div>
+
+            <div class="message-input">
+                <button class="btn btn-light rounded-circle"><i class="fa fa-paperclip"></i></button>
+                <div class="input-group">
+                    <input type="text" id="message-input" placeholder="اكتب رسالتك هنا...">
+                    <button class="btn"><i class="fa fa-smile text-muted"></i></button>
+                </div>
+                <button id="send-btn" class="send-btn">
+                    <i class="fa fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+        const socket = io();
+        const userId = "<%= user._id %>";
+        let currentRoomId = null;
+
+        // Load Rooms
+        async function loadRooms() {
+            try {
+                const res = await fetch('/api/chat/rooms');
+                const rooms = await res.json();
+                const list = $('#rooms-list');
+                list.empty();
+
+                rooms.forEach(room => {
+                    const otherParticipant = room.participants.find(p => p._id !== userId);
+                    const name = room.type === 'course' ? (room.course ? room.course.title : 'دورة تدريبية') : 'الدعم الفني';
+                    const icon = room.type === 'course' ? 'fa-book' : 'fa-headset';
+                    
+                    const item = $(`
+                        <div class="room-item" onclick="openRoom('${room._id}', '${name}', '${icon}')">
+                            <div class="room-icon">
+                                <i class="fa ${icon}"></i>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="fw-bold mb-0 text-truncate">${name}</h6>
+                                    <small class="text-muted" style="font-size: 0.7rem;">${room.lastMessage ? new Date(room.lastMessage.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</small>
+                                </div>
+                                <p class="text-muted mb-0 text-truncate small">${room.lastMessage ? room.lastMessage.content : 'لا توجد رسائل بعد'}</p>
+                            </div>
+                        </div>
+                    `);
+                    list.append(item);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function openRoom(roomId, name, icon) {
+            currentRoomId = roomId;
+            $('#chat-welcome').addClass('d-none');
+            $('#chat-active').removeClass('d-none');
+            $('#active-room-name').text(name);
+            $('#active-room-icon').attr('class', `fa ${icon}`);
+            
+            socket.emit('joinRoom', { roomId });
+            
+            // Load Messages
+            try {
+                const res = await fetch(`/api/chat/rooms/${roomId}/messages`);
+                const messages = await res.json();
+                const container = $('#messages-container');
+                container.empty();
+
+                messages.forEach(msg => {
+                    appendMessage(msg);
+                });
+                scrollToBottom();
+            } catch (err) {
+                console.error(err);
+            }
+
+            $('.room-item').removeClass('active');
+            $(event.currentTarget).addClass('active');
+        }
+
+        function appendMessage(msg) {
+            const isSent = msg.sender._id === userId;
+            const msgHtml = `
+                <div class="message ${isSent ? 'sent' : 'received'}">
+                    <div class="small fw-bold mb-1" style="font-size: 0.7rem; opacity: 0.8;">${msg.sender.name}</div>
+                    <div class="content">${msg.content}</div>
+                    <div class="text-end" style="font-size: 0.6rem; opacity: 0.6; margin-top: 5px;">
+                        ${new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                </div>
+            `;
+            $('#messages-container').append(msgHtml);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messages-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function createSupportRoom() {
+            try {
+                const res = await fetch('/api/chat/rooms/support', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId })
+                });
+                const room = await res.json();
+                loadRooms();
+                openRoom(room._id, 'الدعم الفني', 'fa-headset');
+            } catch (err) {
+                alert('فشل في إنشاء غرفة الدعم');
+            }
+        }
+
+        $('#send-btn').on('click', sendMessage);
+        $('#message-input').on('keypress', function(e) {
+            if(e.which === 13) sendMessage();
+        });
+
+        function sendMessage() {
+            const content = $('#message-input').val().trim();
+            if(!content || !currentRoomId) return;
+
+            socket.emit('sendMessage', {
+                roomId: currentRoomId,
+                senderId: userId,
+                content: content
+            });
+
+            $('#message-input').val('');
+        }
+
+        socket.on('message', (msg) => {
+            if(msg.chatRoom === currentRoomId) {
+                // Fetch sender info if not present (socket message might only have ID depending on implementation)
+                // For simplicity, let's assume the emit returns the populated message or we handle it locally
+                appendMessage(msg);
+            }
+            loadRooms(); // Refresh sidebar to show last message
+        });
+
+        // Initial Load
+        async function init() {
+            await loadRooms();
+            
+            // Check for roomId in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomId = urlParams.get('roomId');
+            if (roomId) {
+                // Find room details from loaded rooms or just open it
+                // For simplicity, we can fetch room info if not in list, 
+                // but usually it's in the list
+                openRoom(roomId, 'جار التحميل...', 'fa-comments');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -7,15 +7,16 @@ const app = express();
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const studentDashboardRoutes = require('./routes/studentDashboardRoutes');
 const ApiCoursesRouter = require('./routes/api routes/api_coursesRoutes ');
-const path = require('path'); 
+const path = require('path');
 const methodOverride = require('method-override');
 const ApiAuthRouter = require('./routes/api routes/api_authRoutes');
+const ApiChatRouter = require('./routes/api routes/api_chatRoutes');
 const teacherDashboardRoutes = require('./routes/teacher_dashboard_routes');
 const bodyParser = require('body-parser');
 
 // ⭐️ الإعداد الصحيح لمجلد العرض ⭐️
 // يتم تعيين مجلد 'views' كمسار افتراضي للـ EJS
-app.set("views", path.join(__dirname, 'views')); 
+app.set("views", path.join(__dirname, 'views'));
 
 app.set("view engine", "ejs");
 // 1. لتحليل البيانات القادمة بتنسيق JSON (مثل تطبيقات React/Mobile)
@@ -44,12 +45,26 @@ const multer = require('multer'); // ⭐️ استيراد Multer
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+const http = require('http');
+const socketIo = require('socket.io');
+const chatSocket = require('./utility/chat_socket');
+
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
+
+chatSocket(io);
+
 const port = process.env.PORT || 4000;
 // database connection
 (async () => {
     try {
         await connectMango();
-        app.listen(port, () => {
+        server.listen(port, () => {
             console.log(`Server is running at http://localhost:${port}`);
         });
     } catch (err) {
@@ -66,8 +81,9 @@ app.use(dashboardRoutes);
 app.use(studentDashboardRoutes);
 app.use(teacherDashboardRoutes);
 // api routes
-app.use( ApiAuthRouter);
+app.use(ApiAuthRouter);
 app.use(ApiCoursesRouter);
+app.use(ApiChatRouter);
 
-
-
+const chatRoutes = require('./routes/chatRoutes');
+app.use(chatRoutes);

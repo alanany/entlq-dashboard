@@ -229,7 +229,11 @@
                         const sessionEnd = new Date(sessionStart.getTime() + 60 * 60 * 1000);
                         
                         const item = { 
-                            session, courseTitle, studentTZ,
+                            session, 
+                            courseTitle, 
+                            studentTZ,
+                            courseId: booking.courseId._id,
+                            teacherId: booking.teacherId?._id,
                             displayDate: session.displayDate,
                             zoomLink: session.zoomLink, 
                             displayTime: session.displayTime, 
@@ -273,9 +277,15 @@
                                     <div class="small fw-bold text-primary px-2 py-1 bg-secondary rounded"><i class="fa fa-clock me-1"></i> <%= item.displayTime %></div>
                                 </div>
                                 <% if (item.isToday) { %>
-                                    <a href="<%=item.zoomLink %>" target="_blank" class="btn btn-join w-100">دخول الحصة</a>
+                                    <div class="d-flex gap-2">
+                                        <a href="<%=item.zoomLink %>" target="_blank" class="btn btn-join flex-grow-1">دخول الحصة</a>
+                                        <button onclick="chatWithTeacher('<%= item.courseId %>', '<%= item.teacherId %>')" class="btn btn-secondary rounded-pill"><i class="fa fa-comment"></i></button>
+                                    </div>
                                 <% } else { %>
-                                    <button class="btn btn-wait w-100 fs-7" disabled>رابط الحصة سيظهر قريباً</button>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-wait flex-grow-1 fs-7" disabled>رابط الحصة سيظهر قريباً</button>
+                                        <button onclick="chatWithTeacher('<%= item.courseId %>', '<%= item.teacherId %>')" class="btn btn-secondary rounded-pill"><i class="fa fa-comment"></i></button>
+                                    </div>
                                 <% } %>
                             </div>
                         </div>
@@ -294,15 +304,20 @@
                     <% past.forEach((item, index) => { %>
                         <div class="accordion-item shadow-sm">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed py-4 px-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>">
-                                    <div class="stats-icon bg-light text-primary me-3" style="width: 40px; height: 40px;">
-                                        <i class="fa fa-check-circle"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <span class="fw-bold text-dark d-block mb-1"><%= item.courseTitle %></span>
-                                        <small class="text-muted"><%= item.displayDate %> - <%= item.displayTime %></small>
-                                    </div>
-                                </button>
+                                <div class="d-flex align-items-center bg-white">
+                                    <button class="accordion-button collapsed py-4 px-4 flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>">
+                                        <div class="stats-icon bg-light text-primary me-3" style="width: 40px; height: 40px;">
+                                            <i class="fa fa-check-circle"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <span class="fw-bold text-dark d-block mb-1"><%= item.courseTitle %></span>
+                                            <small class="text-muted"><%= item.displayDate %> - <%= item.displayTime %></small>
+                                        </div>
+                                    </button>
+                                    <button onclick="chatWithTeacher('<%= item.courseId %>', '<%= item.teacherId %>')" class="btn btn-outline-primary rounded-pill me-3" title="تحدث مع المعلم">
+                                        <i class="fa fa-comment"></i>
+                                    </button>
+                                </div>
                             </h2>
                             <div id="collapse<%= index %>" class="accordion-collapse collapse" data-bs-parent="#reportAccordion">
                                 <div class="accordion-body bg-light p-4">
@@ -380,6 +395,23 @@
                 $('#past-content').removeClass('d-none');
                 $('#btn-up').removeClass('active');
                 $('#btn-past').addClass('active');
+            }
+        }
+
+        async function chatWithTeacher(courseId, teacherId) {
+            try {
+                const response = await fetch('/api/chat/rooms/course', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courseId, teacherId })
+                });
+                const room = await response.json();
+                if (room._id) {
+                    window.location.href = `/chat?roomId=${room._id}`;
+                }
+            } catch (err) {
+                console.error('Error creating chat room:', err);
+                alert('فشل في فتح المحادثة مع المعلم');
             }
         }
     </script>
