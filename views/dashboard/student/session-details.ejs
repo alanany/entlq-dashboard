@@ -9,275 +9,473 @@
     // 💡 افتراض مدة الحصة بـ 60 دقيقة في حال لم تكن متاحة في البيانات
     const sessionDurationMinutes = sessionDetails.duration || 60; 
 
-    if (sessionDetails && sessionDetails.date && sessionDetails.time) {
-        
+    if (sessionDetails && sessionDetails.utcDateAndTime) {
         isSessionValid = true;
-        const rawDate = sessionDetails.date; 
-        const sessionTime = sessionDetails.time; 
         
-        // 1. استخلاص أجزاء التاريخ من التوقيت UTC
-        const dateObj = new Date(rawDate);
+        // 1. استخدام التوقيت UTC المباشر
+        const dateObj = new Date(sessionDetails.utcDateAndTime);
+        finalISODateTime = dateObj.toISOString();
+
+        // 2. التنسيق العربي للعرض
+        displayDateTime = sessionDetails.displayDate + ' | ' + sessionDetails.displayTime;
+    } else if (sessionDetails && sessionDetails.date && sessionDetails.time) {
+        // دعم الصيغة القديمة إن وجدت
+        isSessionValid = true;
+        const dateObj = new Date(sessionDetails.date);
         const year = dateObj.getUTCFullYear();
         const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getUTCDate()).padStart(2, '0');
-        
-        // 2. دمج التاريخ والوقت في سلسلة ISO لتمثل وقت بدء محلي
-        finalISODateTime = `${year}-${month}-${day}T${sessionTime}:00`; 
-        const displayDateObj = new Date(finalISODateTime);
-
-        // 3. التنسيق العربي للعرض في بطاقة التفاصيل
-        const formattedDate = displayDateObj.toLocaleDateString('ar-SA', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric'
-        });
-        const formattedTime = displayDateObj.toLocaleTimeString('ar-SA', { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            hour12: true 
-        });
-        
-        displayDateTime = `${formattedDate} | ${formattedTime}`;
+        finalISODateTime = `${year}-${month}-${day}T${sessionDetails.time}:00`; 
+        displayDateTime = sessionDetails.displayDate || (sessionDetails.date + ' ' + sessionDetails.time);
     }
 %>
 
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>غرفة انتظار الحصة المباشرة</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <meta charset="utf-8">
+    <title>غرفة الانتظار - <%= sessionDetails.courseTitle %></title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
-        body { font-family: 'Tajawal', sans-serif; }
-        .countdown-segment {
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.4);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #fceae5 0%, #fff0ed 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            background: #fff;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.05);
+            z-index: 1000;
             transition: all 0.3s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar { margin-right: -260px; }
+            .sidebar.active { margin-right: 0; }
+            .main-content { margin-right: 0; }
+        }
+
+        .nav-link {
+            color: #6c757d;
+            padding: 0.8rem 1.25rem;
+            border-radius: 0.75rem;
+            margin: 0.2rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+
+        .nav-link i { margin-left: 1rem; font-size: 1.2rem; }
+        .nav-link:hover, .nav-link.active { color: var(--primary); background-color: var(--secondary); }
+        
+        .waiting-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 2.5rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 15px 35px rgba(254, 93, 55, 0.1);
+            padding: 3rem;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .countdown-container {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 2.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .countdown-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            min-width: 110px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            border: 1px solid var(--secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .countdown-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .countdown-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--primary);
+            display: block;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .countdown-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .session-header {
+            background: var(--primary);
+            color: white;
+            padding: 2rem;
+            border-radius: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px rgba(254, 93, 55, 0.2);
+        }
+
+        .btn-join {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            border-radius: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(254, 93, 55, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+        }
+
+        .btn-join:hover:not(:disabled) {
+            transform: scale(1.05);
+            background: #e44d2d;
+            color: white;
+        }
+
+        .btn-join:disabled {
+            background: #adb5bd;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .info-card i {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-upcoming { background: var(--secondary); color: var(--primary); }
+        .status-live { background: #e8f5e9; color: #2ecc71; animation: pulse 2s infinite; }
+        .status-ended { background: #feebeb; color: #e74c3c; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="flex h-screen overflow-hidden">
-        
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-                <h2 class="text-xl font-semibold text-gray-800">غرفة انتظار الحصة المباشرة</h2>
-                <a href="" onclick="history.back(); return false;" class="text-sm text-indigo-600 hover:underline flex items-center font-medium">
-                    </i> العودة للتفاصيل 
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-4 text-center border-bottom">
+            <h1 class="m-0 text-primary lobster-font" style="font-size: 2rem;">
+                <i class="fa fa-book-reader me-2"></i><%= settings.academyName || 'Kider' %>
+            </h1>
+        </div>
+        <div class="py-4">
+            <a href="/" class="nav-link">
+                <i class="fa fa-home"></i> الرئيسية
+            </a>
+            <a href="/student/my-sessions" class="nav-link active">
+                <i class="fa fa-calendar-alt"></i> جدول الحصص
+            </a>
+            <a href="/student/courses_list" class="nav-link text-dark">
+                <i class="fa fa-book"></i> استعراض الكورسات
+            </a>
+            <a href="/student/enrolled_subscription" class="nav-link text-dark">
+                <i class="fa fa-file-invoice"></i> طلبات الانضمام
+            </a>
+            <a href="/student/billing" class="nav-link text-dark">
+                <i class="fa fa-wallet"></i> الرصيد والدفع
+            </a>
+            <a href="/chat" class="nav-link text-dark">
+                <i class="fa fa-comments"></i> الدردشة
+            </a>
+            <div class="mt-4 pt-4 border-top mx-3">
+                <a href="/student/profile" class="nav-link text-dark">
+                    <i class="fa fa-user-cog"></i> الإعدادات
                 </a>
-            </header>
-
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-indigo-50 p-8 flex items-center justify-center">
-                <div class="max-w-3xl w-full space-y-8 text-center">
-
-                    <div class="bg-indigo-600 text-white p-8 rounded-2xl shadow-xl">
-                        <i data-feather="monitor" class="w-12 h-12 mx-auto mb-4 text-indigo-200"></i>
-                        <h1 class="text-3xl font-extrabold mb-1" id="sessionTopic"> <%= sessionDetails.topic || sessionDetails.courseTitle %> </h1>
-                        <p class="text-indigo-200 text-lg">حصتك في كورس **<span id="sessionCourse"> <%= sessionDetails.courseTitle %></span>** ستبدأ قريباً.</p>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
-                   
-                        <h3 id="timerHeader" class="text-xl font-bold text-gray-700 mb-6 flex items-center justify-center">
-                            <i data-feather="clock" class="ml-2 w-6 h-6 text-indigo-600"></i>
-                            الوقت المتبقي لبدء الحصة:
-                        </h3>
-                       
-                        <div id="countdownTimer" class="flex justify-center gap-4 flex-wrap">
-                           
-                          
-                           
-                            <div class="countdown-segment bg-indigo-50 p-4 rounded-xl min-w-[90px] shadow-sm">
-                                <span id="seconds" class="text-5xl font-extrabold text-indigo-700 block">00</span>
-                                <span class="text-sm text-gray-600">ثانية</span>
-                            </div>
-                             <div class="countdown-segment bg-indigo-50 p-4 rounded-xl min-w-[90px] shadow-sm">
-                                <span id="minutes" class="text-5xl font-extrabold text-indigo-700 block">00</span>
-                                <span class="text-sm text-gray-600">دقيقة</span>
-                            </div>
-                              <div class="countdown-segment bg-indigo-50 p-4 rounded-xl min-w-[90px] shadow-sm">
-                                <span id="hours" class="text-5xl font-extrabold text-indigo-700 block">00</span>
-                                <span class="text-sm text-gray-600">ساعة</span>
-                            </div>
- <div class="countdown-segment bg-indigo-50 p-4 rounded-xl min-w-[90px] shadow-sm">
-                                <span id="days" class="text-5xl font-extrabold text-indigo-700 block">00</span>
-                                <span class="text-sm text-gray-600">يوم</span>
-                            </div>
-
-                        </div>
-                        
-                        <p id="timerMessage" class="text-sm font-medium text-red-600 mt-4 hidden">الزر سينشط قبل 10 دقائق من موعد الحصة.</p>
-                    </div>
-                    
-                    <a href="<%= sessionDetails.sessionLink%>" id="joinSessionButton" 
-                       class="w-full inline-flex items-center justify-center px-8 py-4 bg-gray-400 text-white text-xl font-bold rounded-xl shadow-lg transition duration-300 pointer-events-none disabled:opacity-50">
-                        <i data-feather="log-in" class="ml-3 w-6 h-6"></i>
-                        انضم إلى الحصة الآن (غير متاح)
-                    </a>
-                    
-                    <div class="grid grid-cols-2 gap-4 text-center">
-                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                            <p class="text-sm font-medium text-gray-500 flex items-center justify-center"><i data-feather="calendar" class="ml-2 w-4 h-4"></i> الموعد والتوقيت</p>
-                            <p class="font-bold text-gray-800 mt-1" id="sessionDateTime"> 
-                                <%= displayDateTime %>
-                            </p>
-                        </div>
-                        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-100">
-                            <p class="text-sm font-medium text-gray-500 flex items-center justify-center"><i data-feather="user" class="ml-2 w-4 h-4"></i> المعلم</p>
-                            <p class="font-bold text-gray-800 mt-1" id="sessionTutor"><%= sessionDetails.teacherName || 'المعلم غير محدد' %></p>
-                        </div>
-                    </div>
-                </div>
-            </main>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal" class="nav-link text-danger mt-2">
+                    <i class="fa fa-sign-out-alt"></i> تسجيل الخروج
+                </a>
+            </div>
         </div>
     </div>
-    
+
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="top-nav">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-3" id="sidebarCollapse">
+                    <i class="fa fa-bars fs-5"></i>
+                </button>
+                <div class="d-none d-sm-block">
+                    <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2rem;">غرفة الانتظار</h4>
+                    <p class="text-muted small mb-0">استعد لبدء رحلة تعلم جديدة</p>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <a href="/student/my-sessions" class="btn btn-light rounded-pill px-4 text-primary fw-bold">
+                    <i class="fa fa-arrow-right me-2"></i> العودة للجدول
+                </a>
+            </div>
+        </div>
+
+        <!-- Waiting Card -->
+        <div class="waiting-card animate__animated animate__zoomIn">
+            <% if (isSessionValid) { %>
+                <div class="session-header">
+                   
+                    <h1 class="fw-900 mb-2"><%= sessionDetails.topic || sessionDetails.courseTitle %></h1>
+                    <p class="mb-0 opacity-75 fs-5">موعد الحصة المباشرة مع المعلم</p>
+                </div>
+
+                <div id="statusBadge" class="status-badge status-upcoming">
+                    <i class="fa fa-clock me-2"></i> <span id="statusText">الحصة ستبدأ قريباً</span>
+                </div>
+
+                <h3 class="fw-bold text-dark mb-4">الوقت المتبقي:</h3>
+                
+                <div id="countdownTimer" class="countdown-container">
+                    <div class="countdown-box">
+                        <span id="days" class="countdown-value">00</span>
+                        <span class="countdown-label">يوم</span>
+                    </div>
+                    <div class="countdown-box">
+                        <span id="hours" class="countdown-value">00</span>
+                        <span class="countdown-label">ساعة</span>
+                    </div>
+                    <div class="countdown-box">
+                        <span id="minutes" class="countdown-value">00</span>
+                        <span class="countdown-label">دقيقة</span>
+                    </div>
+                    <div class="countdown-box">
+                        <span id="seconds" class="countdown-value">00</span>
+                        <span class="countdown-label">ثانية</span>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                        <a href="<%= sessionDetails.zoomLink || sessionDetails.sessionLink %>" id="joinButton" class="btn btn-join disabled flex-grow-1" target="_blank">
+                            <i class="fa fa-video"></i>
+                            <span id="btnText">انضم للحصة المباشرة</span>
+                        </a>
+                        <button onclick="chatWithTeacher('<%= sessionDetails.courseId %>', '<%= sessionDetails.teacherId %>')" class="btn btn-outline-primary rounded-pill px-4 py-3 border-2 fw-bold">
+                            <i class="fa fa-comment-dots fs-4"></i>
+                            <span class="d-block d-sm-none mt-1">دردشة</span>
+                        </button>
+                    </div>
+                    <p id="timerMessage" class="text-danger mt-3 small fw-bold">الزر سيتفعل قبل الحصة بـ 10 دقائق</p>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-card">
+                        <i class="fa fa-calendar-check"></i>
+                        <h6 class="text-muted mb-1">الموعد</h6>
+                        <p class="fw-bold mb-0"><%= displayDateTime %></p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fa fa-user-tie"></i>
+                        <h6 class="text-muted mb-1">المعلم</h6>
+                        <p class="fw-bold mb-0"><%= sessionDetails.teacherName || 'المعلم المخصص' %></p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fa fa-book-open"></i>
+                        <h6 class="text-muted mb-1">الدورة</h6>
+                        <p class="fw-bold mb-0 text-truncate"><%= sessionDetails.courseTitle %></p>
+                    </div>
+                </div>
+
+            <% } else { %>
+                <div class="p-5">
+                    <i class="fa fa-exclamation-triangle display-1 text-warning mb-4"></i>
+                    <h2 class="fw-bold">عذراً، لم يتم العثور على بيانات الحصة</h2>
+                    <p class="text-muted mb-4">يرجى التأكد من الموعد أو المحاولة لاحقاً</p>
+                    <a href="/student/my-sessions" class="btn btn-primary rounded-pill px-5 py-3">العودة للجدول</a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        feather.replace();
+        $('#sidebarCollapse').on('click', () => $('#sidebar').toggleClass('active'));
 
         <% if (isSessionValid) { %>
-            
-            // 1. تحديد الوقت المستهدف بالمللي ثانية (من EJS المُعالَج)
-            const sessionTargetDate = new Date('<%= finalISODateTime %>').getTime();
-            const joinBeforeMinutes = 10; 
-            const durationMinutes = <%= sessionDurationMinutes %>; 
-            
-            const joinButton = document.getElementById('joinSessionButton');
-            const timerMessage = document.getElementById('timerMessage');
-            const countdownTimer = document.getElementById('countdownTimer');
-            const timerHeader = document.getElementById('timerHeader');
-            
-            // 💡 متغير المؤقت (تم إزالة const لتفادي خطأ النطاق)
-            let countdownInterval; 
+            const targetDate = new Date('<%= finalISODateTime %>').getTime();
+            const duration = <%= sessionDurationMinutes %> * 60 * 1000;
+            const endDate = targetDate + duration;
+            const joinBefore = 10 * 60 * 1000;
 
-            function updateCountdown() {
+            const updateTimer = () => {
                 const now = new Date().getTime();
-                const distanceToStart = sessionTargetDate - now; // المسافة إلى البداية
-                
-                // حساب نهاية الحصة بالمللي ثانية
-                const sessionEndTime = sessionTargetDate + (durationMinutes * 60 * 1000);
-                const distanceToEnd = sessionEndTime - now; // المسافة إلى النهاية
-                
-                // حساب الوقت المتبقي بالدقائق (نستخدمه في منطق تفعيل الزر)
-                const remainingMinutesToStart = distanceToStart / (1000 * 60);
+                const distToStart = targetDate - now;
+                const distToEnd = endDate - now;
 
-                // ===============================================
-                // منطق تحديد حالة الحصة
-                // ===============================================
-                
-                if (distanceToEnd < 0) {
-                    // ❌ الحالة 1: انتهت الحصة
-                    clearInterval(countdownInterval);
-                    countdownTimer.innerHTML = '<span class="text-2xl font-extrabold text-red-600">انتهت الحصة!</span>';
-                    timerHeader.innerHTML = '<i data-feather="x-circle" class="ml-2 w-6 h-6 text-red-600"></i> انتهت الحصة';
-                    
-                    joinButton.textContent = 'انتهت الحصة';
-                    joinButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'pointer-events-auto', 'animate-pulse');
-                    joinButton.classList.add('bg-red-400', 'pointer-events-none');
-                    timerMessage.classList.add('hidden');
+                const joinBtn = document.getElementById('joinButton');
+                const btnText = document.getElementById('btnText');
+                const timerMsg = document.getElementById('timerMessage');
+                const statusBadge = document.getElementById('statusBadge');
+                const statusText = document.getElementById('statusText');
+
+                if (distToEnd < 0) {
+                    // Session Ended
+                    document.getElementById('countdownTimer').innerHTML = '<h2 class="text-danger fw-bold">هذه الحصة انتهت</h2>';
+                    joinBtn.classList.add('disabled');
+                    joinBtn.style.background = '#adb5bd';
+                    btnText.innerText = 'الحصة انتهت';
+                    statusBadge.className = 'status-badge status-ended';
+                    statusText.innerText = 'حصة سابقة';
+                    timerMsg.style.display = 'none';
                     return;
-                    
-                } else if (distanceToStart < 0) {
-                    // 🟢 الحالة 2: الحصة جارية الآن
-                    
-                    const runningDistance = distanceToEnd;
-                    
-                    const oneSecond = 1000;
-                    const oneMinute = oneSecond * 60;
-                    const oneHour = oneMinute * 60;
-                    const oneDay = oneHour * 24;
-
-                    const days = Math.floor(runningDistance / oneDay);
-                    const hours = Math.floor((runningDistance % oneDay) / oneHour);
-                    const minutes = Math.floor((runningDistance % oneHour) / oneMinute);
-                    const seconds = Math.floor((runningDistance % oneMinute) / oneSecond);
-
-                    const formatNumber = (num) => String(num).padStart(2, '0');
-
-                    // تحديث العداد
-                    if (document.getElementById('days')) {
-                        document.getElementById('days').textContent = formatNumber(days);
-                        document.getElementById('hours').textContent = formatNumber(hours);
-                        document.getElementById('minutes').textContent = formatNumber(minutes);
-                        document.getElementById('seconds').textContent = formatNumber(seconds);
-                    }
-                    
-                    // تعديل العنوان ليناسب الحصة الجارية
-                    timerHeader.innerHTML = '<i data-feather="activity" class="ml-2 w-6 h-6 text-green-600"></i> الوقت المتبقي لانتهاء الحصة:';
-                    feather.replace(); 
-
-                    // تفعيل زر الانضمام بشكل كامل وتغيير لونه
-                    joinButton.textContent = 'انضم إلى الحصة الآن (جارية)';
-                    joinButton.classList.remove('bg-gray-400', 'hover:bg-gray-500', 'pointer-events-none');
-                    joinButton.classList.add('bg-green-600', 'hover:bg-green-700', 'pointer-events-auto', 'animate-pulse');
-                    timerMessage.classList.add('hidden');
-                    
-                    return; // إنهاء الدالة لأننا في حالة جارية
                 }
 
-                // 🟡 الحالة 3: الحصة قادمة (الوقت لا يزال قبل البداية)
-                
-                const distance = distanceToStart; // نعود لاستخدام المسافة إلى البداية
-
-                const oneSecond = 1000;
-                const oneMinute = oneSecond * 60;
-                const oneHour = oneMinute * 60;
-                const oneDay = oneHour * 24;
-                
-                const days = Math.floor(distance / oneDay);
-                const hours = Math.floor((distance % oneDay) / oneHour);
-                const minutes = Math.floor((distance % oneHour) / oneMinute);
-                const seconds = Math.floor((distance % oneMinute) / oneSecond);
-                
-                const formatNumber = (num) => String(num).padStart(2, '0');
-
-                // تحديث العداد (للعد التنازلي إلى البداية)
-                if (document.getElementById('days')) {
-                    document.getElementById('days').textContent = formatNumber(days);
-                    document.getElementById('hours').textContent = formatNumber(hours);
-                    document.getElementById('minutes').textContent = formatNumber(minutes);
-                    document.getElementById('seconds').textContent = formatNumber(seconds);
-                }
-                
-                // منطق تفعيل/تعطيل زر الانضمام
-                if (remainingMinutesToStart <= joinBeforeMinutes) {
-                    // تفعيل الزر (10 دقائق أو أقل متبقية)
-                    joinButton.classList.remove('bg-gray-400', 'hover:bg-gray-500', 'pointer-events-none');
-                    joinButton.classList.add('bg-green-600', 'hover:bg-green-700', 'pointer-events-auto');
-                    joinButton.textContent = 'انضم إلى الحصة الآن';
-                    timerMessage.classList.add('hidden');
-                    
-                    if (remainingMinutesToStart <= 5) {
-                         joinButton.classList.add('animate-pulse');
-                    } else {
-                         joinButton.classList.remove('animate-pulse');
-                    }
-                    
+                if (distToStart < 0) {
+                    // Session Live
+                    renderCountdown(distToEnd);
+                    joinBtn.classList.remove('disabled');
+                    btnText.innerText = 'انضم الآن (الحصة جارية)';
+                    statusBadge.className = 'status-badge status-live';
+                    statusText.innerText = 'الحصة مباشرة الآن';
+                    timerMsg.style.display = 'none';
                 } else {
-                    // تعطيل الزر (الوقت لا يزال بعيداً)
-                    joinButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'pointer-events-auto', 'animate-pulse');
-                    joinButton.classList.add('bg-gray-400', 'hover:bg-gray-500', 'pointer-events-none');
-                    joinButton.textContent = 'انضم إلى الحصة الآن (غير متاح)';
-                    timerMessage.classList.remove('hidden');
+                    // Session Upcoming
+                    renderCountdown(distToStart);
+                    if (distToStart <= joinBefore) {
+                        joinBtn.classList.remove('disabled');
+                        timerMsg.style.display = 'none';
+                    } else {
+                        joinBtn.classList.add('disabled');
+                        timerMsg.style.display = 'block';
+                    }
                 }
-            }
+            };
 
-            // بدء المؤقت التنازلي وتحديثه كل ثانية
-            countdownInterval = setInterval(updateCountdown, 1000);
-            
-            // تشغيل التحديث الأول فوراً
-            updateCountdown();
+            const renderCountdown = (dist) => {
+                const d = Math.floor(dist / (1000 * 60 * 60 * 24));
+                const h = Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((dist % (1000 * 60)) / 1000);
 
-        <% } else { %>
-            // إذا لم يتم العثور على بيانات الحصة
-             const countdownTimer = document.getElementById('countdownTimer');
-             if(countdownTimer) {
-                 countdownTimer.innerHTML = '<span class="text-xl text-gray-500 font-medium">لم يتم العثور على بيانات الحصة.</span>';
-             }
+                document.getElementById('days').innerText = String(d).padStart(2, '0');
+                document.getElementById('hours').innerText = String(h).padStart(2, '0');
+                document.getElementById('minutes').innerText = String(m).padStart(2, '0');
+                document.getElementById('seconds').innerText = String(s).padStart(2, '0');
+            };
+
+            setInterval(updateTimer, 1000);
+            updateTimer();
         <% } %>
+
+        async function chatWithTeacher(courseId, teacherId) {
+            try {
+                const response = await fetch('/api/chat/rooms/course', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courseId, teacherId })
+                });
+                const room = await response.json();
+                if (room.data?._id || room._id) {
+                    const roomId = room.data?._id || room._id;
+                    window.location.href = `/chat?roomId=${roomId}`;
+                }
+            } catch (err) {
+                console.error('Error creating chat room:', err);
+                alert('فشل في فتح المحادثة مع المعلم');
+            }
+        }
     </script>
 </body>
 </html>

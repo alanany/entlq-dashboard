@@ -114,6 +114,7 @@
         }
     </style>
 </head>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <body>
     <div class="container-xxl bg-white p-0">
@@ -257,23 +258,19 @@
             };
 
             startLoading();
-            try {
-                const response = await fetch('/student/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(userData)
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw errorData; 
-                }
-                showToast("Login Successful!", 'success'); 
-                setTimeout(() => window.location.href = '/', 1000);
-            } catch (error) {
-                stopLoading();
-                const msg = error?.errors?.email || error?.errors?.password || error?.message || "Login Failed";
-                showToast("Error: " + msg, 'error');
-            }
+    
+                 const response = await axios.post('/student/login', userData)
+                 .then((response)=>{
+
+                    showToast("Login Successful!", 'success'); 
+                    setTimeout(() => window.location.href = '/', 1000);
+                })
+                .catch((error)=>{
+                    stopLoading();
+                    const msg = error.response.data.error || "Login Failed";
+                    showToast(msg, 'error');
+                })  
+
         }
     </script>
 </body>

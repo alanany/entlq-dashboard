@@ -270,31 +270,24 @@ res.status(200).json({ message: "تم تحديث الملف الشخصي بنج�
     }
 };
 const login_student = async (req, res) => {
-  // 1. استخراج البيانات المطلوبة
+
   const { email, password, role,timezone} = req.body;
-console.log(timezone,'timezone');
-  // **كائن الأخطاء المخصص**
-  let errors = {};
+console.log(req.body,'req.body');
+
 
   try {
     // 2. البحث عن المستخدم بالبريد والدور
     const user = await User.findOne({ email: email, role: role });
 
     if (!user) {
-      // 3. حالة: المستخدم غير موجود (البريد غير صحيح)
-      errors.email = "هذا البريد الإلكتروني غير صحيح";
-      res.status(400).json({ errors });
-      return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
+      return res.status(400).json({ error:"هذا البريد الإلكتروني غير صحيح" }); // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
     }
 
     // 4. إذا تم العثور على المستخدم، مقارنة كلمة المرور
     const auth = await bcrypt.compare(password, user.password);
 
     if (!auth) {
-      // 5. حالة: كلمة المرور غير صحيحة
-      errors.password = "كلمة المرور المدخلة غير صحيحة";
-      res.status(400).json({ errors });
-      return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
+       return res.status(400).json({ error:"كلمة المرور المدخلة غير صحيحة" });
     }
 
  if (timezone && user.timezone !== timezone) {
@@ -500,15 +493,24 @@ console.log(booking, "booking details");
         .render("404", { message: "الحجز أو تفاصيل الجلسة غير موجودة." });
     }
 
-    // 3. استخراج كائن الجلسة الفعلي
+    // 3. استخراج كائن الجلسة الفعلي وتنسيقه لموافقته مع العرض
+    const userTimeZone = req.user?.timezone || "Asia/Riyadh";
+    const session = booking.sessions[0];
+    const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
+               .setZone(userTimeZone)
+               .setLocale('ar');
+
     const sessionDetails = {
-      ...booking.sessions[0], // الجلسة المطلوبة هي العنصر الأول (والوحيد) في المصفوفة
+      ...session,
       courseTitle: booking.courseId.title,
-      sessionLink: booking.teacherId.zoom_link,
-      teacherName: booking.teacherId.name
-      
-  
-      // instructorName: booking.courseId.instructor.name, // إذا قمت بتعبئة المدرب
+      courseId: booking.courseId._id,
+      teacherId: booking.teacherId?._id,
+      sessionLink: booking.teacherId?.zoom_link,
+      teacherName: booking.teacherId?.name,
+      displayDate: dt.toFormat("yyyy-MM-dd"),
+      displayTime: dt.toFormat("hh:mm a"),
+      displayDay: dt.toFormat("cccc"),
+      utcDateAndTime: session.utcDateAndTime
     };
     console.log(sessionDetails.sessionDetails, "sessionDetails");
     // 4. تمرير البيانات
