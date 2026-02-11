@@ -1406,13 +1406,14 @@
     </div>
 
     <!-- Website Builder Toolbar -->
+       <% if (user && user.role === 'admin') { %>
     <div class="website-builder-toolbar">
         <button class="builder-toggle-btn" id="builderToggle" onclick="toggleBuilderMode()">
             <i class="fas fa-magic"></i>
             <span>وضع التحرير</span>
         </button>
     </div>
-
+  <%  } %>
     <!-- Modal Backdrop -->
     <div class="modal-backdrop-inline" id="buttonEditBackdrop" onclick="closeButtonEdit()"></div>
 
