@@ -399,16 +399,51 @@ const getEnrolledSubscription = async (req, res) => {
     status: "confirmed",
   });
 
-  // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
-  res.render("../views/dashboard/student/student_enrollment_requests.ejs", {
-    title: "طلباتى ",
-    allRequests: subscription,
-    stats: {
-      totalRequests,
-      pendingRequests, // ⬅️ هذا هو الحقل المطلوب
-      acceptedRequests,
-    },
-  });
+    // 2. معالجة البيانات وإضافة خاصية التجديد
+    const subscriptionsWithRenewal = subscription.map(sub => {
+        const subObj = sub.toObject();
+        
+        // حساب ما إذا كان قابل للتجديد
+        let isRenewable = false;
+        if (subObj.status === 'confirmed' || subObj.status === 'paid') {
+            const startDate = new Date(subObj.startDate || subObj.createdAt);
+            const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000); // اشتراك شهري
+            const now = new Date();
+            const diffTime = endDate - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // قد يكون سالب إذا انتهى
+
+            let remainingSessions = 0;
+            if (subObj.sessions && subObj.sessions.length > 0) {
+                remainingSessions = subObj.sessions.filter(s => s.status === 'pending').length;
+            }
+
+            // الشرط: أقل من 5 أيام أو أقل من حصتين
+            console.log(`Sub ID: ${subObj._id}`);
+            console.log(`Status: ${subObj.status}`);
+            console.log(`Start Date: ${startDate}`);
+            console.log(`End Date: ${endDate}`);
+            console.log(`Diff Days: ${diffDays}`);
+            console.log(`Remaining Sessions: ${remainingSessions}`);
+            
+            if (diffDays < 5 || remainingSessions < 2) {
+                isRenewable = true;
+            }
+            console.log(`Is Renewable: ${isRenewable}`);
+        }
+        subObj.isRenewable = isRenewable;
+        return subObj;
+    });
+
+    // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
+    res.render("../views/dashboard/student/student_enrollment_requests.ejs", {
+        title: "طلباتى ",
+        allRequests: subscriptionsWithRenewal, // نمرر القائمة المعدلة
+        stats: {
+            totalRequests,
+            pendingRequests, // ⬅️ هذا هو الحقل المطلوب
+            acceptedRequests,
+        },
+    });
 };
 const getRequestDetails = async (req, res, next) => {
   const requestId = req.params.requestId;
@@ -440,10 +475,30 @@ const getRequestDetails = async (req, res, next) => {
       sessions = request.sessions || [];
     }
 
+    // حساب قابلية التجديد للطلب الفردي
+    let isRenewable = false;
+    if (request.status === 'confirmed' || request.status === 'paid') {
+        const startDate = new Date(request.startDate || request.createdAt);
+        const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+        const now = new Date();
+        const diffTime = endDate - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        let remainingSessions = 0;
+        if (request.sessions && request.sessions.length > 0) {
+            remainingSessions = request.sessions.filter(s => s.status === 'pending').length;
+        }
+
+        if (diffDays < 5 || remainingSessions < 2) {
+            isRenewable = true;
+        }
+    }
+
     // 3. دمج البيانات وإرسالها إلى ملف EJS
     const requestDetails = {
       ...request,
       sessions: sessions,
+      isRenewable: isRenewable // إضافة الخاصية
     };
 
     res.render("../views/dashboard/student/subscription_details.ejs", {
@@ -989,5 +1044,31 @@ module.exports = {
   toggleStatus,
   deleteStudent,
   getAllCoursesForAdminAutoSubscription,
-  getAutoAdminBookPlan
+  getAutoAdminBookPlan,
+  // Temporary Debug Function
+  debugExpireSubscription: async (req, res) => {
+      try {
+          const sub = await Subscription.findOne({ studentId: req.user._id, status: 'confirmed' }).sort({ createdAt: -1 });
+          if (sub) {
+              // Set start date to 28 days ago (2 days left)
+              const oldDate = new Date();
+              oldDate.setDate(oldDate.getDate() - 28);
+              sub.startDate = oldDate;
+              
+              // Mark most sessions as completed
+              if (sub.sessions && sub.sessions.length > 2) {
+                  for(let i=0; i<sub.sessions.length-1; i++) {
+                      sub.sessions[i].status = 'completed';
+                  }
+              }
+              await sub.save();
+              res.redirect('/student/enrolled_subscription');
+          } else {
+              res.send('No confirmed subscription found to expire.');
+          }
+      } catch (err) {
+          console.error(err);
+          res.send('Error expiring subscription');
+      }
+  }
 };

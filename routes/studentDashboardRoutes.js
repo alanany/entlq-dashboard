@@ -36,6 +36,8 @@ studentdashboardRoutes.post('/student/register', studentController.addStudent);
 // تغيير حالة الطالب (أرشفة / تنشيط)
 studentdashboardRoutes.post('/student/update-status', studentController.toggleStatus);
 
+studentdashboardRoutes.get('/student/debug-expire', requireAuth, checkUser, studentController.debugExpireSubscription);
+
 // حذف الطالب نهائياً
 studentdashboardRoutes.get('/admin/student/profile/:id',checkUser,requireAuth, studentController.getStudentProfilePage);
 

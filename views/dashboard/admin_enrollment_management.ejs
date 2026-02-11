@@ -255,10 +255,11 @@
                     </div>
                 </div>
                 <p class="text-danger small mb-4 fw-bold">⚠️ سيتم نسخ أيام ومواعيد الحصص القديمة تلقائياً.</p>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-light rounded-pill flex-grow-1" data-bs-dismiss="modal">إلغاء</button>
-                    <button onclick="confirmRenewal()" id="mdlConfirmBtn" class="btn btn-primary rounded-pill flex-grow-1 fw-bold">تأكيد التجديد</button>
-                </div>
+            <div class="d-flex flex-column gap-2">
+                    <button onclick="confirmRenewal()" id="mdlConfirmBtn" class="btn btn-primary rounded-3 py-2 fw-bold"> <i class="fas fa-check-circle me-1"></i> تجديد بنفس الإعدادات الحالية</button>
+                    <a href="#" id="mdlChangeBtn" class="btn btn-outline-secondary rounded-3 py-2 fw-bold"> <i class="fas fa-cog me-1"></i> تغيير الإعدادات وتجديد</a>
+                    <button class="btn btn-light rounded-3 py-2 text-muted" data-bs-dismiss="modal">إلغاء الأمر</button>
+            </div>
             </div>
         </div>
     </div>
@@ -361,27 +362,59 @@
     function filterByCard(s) { document.getElementById('statusFilter').value = s; renderTable(); }
 
     function openRenewModal(id) {
-        currentRenewId = id;
-        const b = allBookings.find(x => x._id === id);
-        if(b) {
-            document.getElementById('mdlName').textContent = b.studentId?.name;
-            document.getElementById('mdlCourse').textContent = b.courseId?.title;
-            renewModal.show();
+            // Fetch booking details
+            const b = allBookings.find(x => x._id === id);
+            if(b) {
+                document.getElementById('mdlName').textContent = b.studentId?.name;
+                document.getElementById('mdlCourse').textContent = b.courseId?.title;
+                
+                // Set data for renewal
+                window.renewParams = {
+                    studentId: b.studentId._id,
+                    courseId: b.courseId._id,
+                    selectedPriceOption: b.selectedPriceOption || "",
+                    numberOfSessionsPerMonth: b.numberOfSessionsPerMonth || 0,
+                    totalAmount: b.totalAmount || 0,
+                    renewFromId: b._id // 🔴 إضافة ID الاشتراك للنسخ
+                };
+                
+                // Set change settings link
+                const changeLink = `/student/book_plan/${b.courseId._id}/${b.studentId._id}`;
+                document.getElementById('mdlChangeBtn').setAttribute('href', changeLink);
+                
+                renewModal.show();
+            }
         }
-    }
-
-    function closeRenewModal() { renewModal.hide(); }
-
-    async function confirmRenewal() {
-        const btn = document.getElementById('mdlConfirmBtn');
-        btn.disabled = true; btn.innerHTML = '<span class="animate-spin inline-block ml-2">⏳</span> جاري...';
-        try {
-            const res = await fetch(`/api/subscriptions/renew/${currentRenewId}`, { method: 'POST' });
-            if(res.ok) { alert('تم إنشاء طلب تجديد جديد بنجاح بنسخ نفس أيام الحصص'); window.location.reload(); }
-            else alert('فشل التجديد، يرجى المحاولة لاحقاً');
-        } catch (e) { alert('حدث خطأ في الاتصال'); }
-        finally { btn.disabled = false; btn.textContent = 'تأكيد التجديد'; closeRenewModal(); }
-    }
+    
+        function closeRenewModal() { renewModal.hide(); }
+    
+        async function confirmRenewal() {
+            const btn = document.getElementById('mdlConfirmBtn');
+            btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm ms-2"></span> جاري...';
+            try {
+                const res = await fetch('/student/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(window.renewParams)
+                });
+                const data = await res.json();
+                
+                if(res.ok && (data.success || data.data)) { 
+                    alert('تم إنشاء طلب تجديد جديد بنجاح'); 
+                    window.location.reload(); 
+                }
+                else {
+                    alert('فشل التجديد: ' + (data.message || 'Error'));
+                }
+            } catch (e) { 
+                console.error(e);
+                alert('حدث خطأ في الاتصال'); 
+            }
+            finally { 
+                btn.disabled = false; btn.textContent = 'تجديد بنفس الإعدادات'; 
+                closeRenewModal(); 
+            }
+        }
 
     document.getElementById('searchInput').addEventListener('input', renderTable);
     document.getElementById('statusFilter').addEventListener('change', renderTable);

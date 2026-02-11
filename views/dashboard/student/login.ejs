@@ -1,20 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<%= currentLang %>" dir="<%= dir %>">
 
 <head>
     <meta charset="utf-8">
-    <title><%= t('brand_name') %> - Professional Login</title>
+    <title><%= t('brand_name') %> - <%= t('login') %></title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="" name="keywords">
-    <meta content="" name="description">
-
+    
     <!-- Favicon -->
     <link href="/img/favicon.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Inter:wght@600&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Cairo:wght@400;600;700&family=Inter:wght@600&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
     
     <!-- Icon Font Stylesheet -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
@@ -40,6 +38,7 @@
         body {
             background-color: var(--secondary);
             overflow-x: hidden;
+            font-family: '<%= currentLang === "ar" ? "Cairo" : "Heebo" %>', sans-serif;
         }
 
         .login-card {
@@ -130,8 +129,11 @@
                 <h1 class="m-0 text-primary"><i class="fa fa-book-reader me-3"></i><%= t('brand_name') %></h1>
             </a>
             <div class="ms-auto d-flex align-items-center">
-                <a href="/student/login" class="btn btn-outline-primary rounded-pill px-3 me-2">Login</a>
-                <a href="/student/register" class="btn btn-primary rounded-pill px-3">Register</a>
+                <a href="/lang/<%= currentLang === 'ar' ? 'en' : 'ar' %>" class="btn btn-outline-primary rounded-pill px-3 me-2">
+                    <%= currentLang === 'ar' ? 'English' : 'العربية' %>
+                </a>
+                <a href="/student/login" class="btn btn-outline-primary rounded-pill px-3 me-2"><%= t('login') %></a>
+                <a href="/student/register" class="btn btn-primary rounded-pill px-3"><%= t('register') %></a>
             </div>
         </nav>
       
@@ -142,25 +144,25 @@
                         <div class="card login-card animate__animated animate__fadeIn">
                             <div class="row g-0">
                                 <div class="col-md-5 login-img d-none d-md-flex">
-                                    <h2 class="lobster-font display-4 mb-4">Welcome Back!</h2>
-                                    <p class="fs-5 mb-5">"Education is the most powerful weapon which you can use to change the world."</p>
+                                    <h2 class="lobster-font display-4 mb-4"><%= t('login_welcome') %></h2>
+                                    <p class="fs-5 mb-5">"<%= t('login_quote') %>"</p>
                                     <div class="mt-auto">
-                                        <p class="small mb-0 opacity-75">&copy; 2024 <%= t('brand_name') %> Preschool</p>
+                                        <p class="small mb-0 opacity-75">&copy; 2024 <%= t('brand_name') %></p>
                                     </div>
                                 </div>
                                 <div class="col-md-7 login-form-container">
                                     <div class="mb-5 text-center text-md-start">
-                                        <h2 class="fw-bold mb-2">Student Login</h2>
-                                        <p class="text-muted">Enter your credentials to access your dashboard</p>
+                                        <h2 class="fw-bold mb-2"><%= t('login_student_title') %></h2>
+                                        <p class="text-muted"><%= t('login_subtitle') %></p>
                                     </div>
                                     <form onsubmit="handleSubmit(event)">
                                         <div class="form-floating mb-3">
                                             <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
-                                            <label for="email">Email address</label>
+                                            <label for="email"><%= t('email_label') %></label>
                                         </div>
                                         <div class="form-floating mb-4">
                                             <input type="password" class="form-control" id="password" placeholder="Password" required>
-                                            <label for="password">Password</label>
+                                            <label for="password"><%= t('password_label') %></label>
                                         </div>
                                         
                                         <input type="hidden" name="timezone" id="timezoneHiddenInput">
@@ -168,23 +170,23 @@
                                         <div class="d-flex justify-content-between align-items-center mb-4">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="remember-me">
-                                                <label class="form-check-label" for="remember-me">Remember Me</label>
+                                                <label class="form-check-label" for="remember-me"><%= t('remember_me') %></label>
                                             </div>
-                                            <a href="#" class="text-primary small">Forgot Password?</a>
+                                            <a href="#" class="text-primary small"><%= t('forgot_password') %></a>
                                         </div>
 
                                         <button id="saveBtn" type="submit" class="btn btn-login w-100 mb-4">
-                                            SIGN IN
+                                            <%= t('sign_in_btn') %>
                                         </button>
 
                                         <div class="text-center">
-                                            <p class="text-muted">Or login with</p>
+                                            <p class="text-muted"><%= t('login_with_social') %></p>
                                             <div class="social-login">
                                                 <a href="#" class="social-btn"><i class="fab fa-google"></i></a>
                                                 <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
                                                 <a href="#" class="social-btn"><i class="fab fa-apple"></i></a>
                                             </div>
-                                            <p class="mt-5 mb-0">Don't have an account? <a href="/student/register" class="text-primary fw-bold">Register here</a></p>
+                                            <p class="mt-5 mb-0"><%= t('no_account') %> <a href="/student/register" class="text-primary fw-bold"><%= t('register_here') %></a></p>
                                         </div>
                                     </form>
                                 </div>
@@ -208,70 +210,14 @@
     <script src="/js/main.js"></script>
 
     <script>
-        // Timezone Logic
-        const hiddenInput = document.getElementById('timezoneHiddenInput');
-        const userDefault = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        hiddenInput.value = userDefault;
-
-        const saveBtn = document.getElementById("saveBtn");
-        const originalButtonText = "SIGN IN"; 
-
-        function startLoading() {
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> SIGNING IN...';
-        }
-
-        function stopLoading() {
-            saveBtn.disabled = false;
-            saveBtn.textContent = originalButtonText; 
-        }
-
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            let bgClass = 'bg-primary';
-            if (type === 'success') bgClass = 'bg-success';
-            if (type === 'error') bgClass = 'bg-danger';
-
-            const toastElem = document.createElement('div');
-            toastElem.className = `toast align-items-center text-white ${bgClass} border-0 mb-2`;
-            toastElem.setAttribute('role', 'alert');
-            toastElem.setAttribute('aria-live', 'assertive');
-            toastElem.setAttribute('aria-atomic', 'true');
-            toastElem.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">${message}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>`;
-            container.appendChild(toastElem);
-            const bsToast = new bootstrap.Toast(toastElem);
-            bsToast.show();
-            toastElem.addEventListener('hidden.bs.toast', () => toastElem.remove());
-        }
-
-        async function handleSubmit(event) {
-            event.preventDefault(); 
-            const userData = {
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value,
-                role: 'student',
-                timezone: userDefault
-            };
-
-            startLoading();
-    
-                 const response = await axios.post('/student/login', userData)
-                 .then((response)=>{
-
-                    showToast("Login Successful!", 'success'); 
-                    setTimeout(() => window.location.href = '/', 1000);
-                })
-                .catch((error)=>{
-                    stopLoading();
-                    const msg = error.response.data.error || "Login Failed";
-                    showToast(msg, 'error');
-                })  
-
-        }
+        // Pass translations to the external JS file
+        window.loginTranslations = {
+            signing_in: "<%= t('signing_in') %>",
+            sign_in_btn: "<%= t('sign_in_btn') %>",
+            login_success: "<%= t('login_success') %>",
+            login_failed: "<%= t('login_failed') %>"
+        };
     </script>
+    <script src="/js/student-login.js"></script>
 </body>
 </html>

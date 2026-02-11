@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title><%= settings.academyName %> - إدارة المدونة</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Alexandria:wght@300;400;500;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+        
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .blog-card {
+            background: white;
+            border-radius: 1.25rem;
+            border: 1px solid #f1f1f1;
+            box-shadow: 0 0.25rem 1rem rgba(0,0,0,0.03);
+            overflow: hidden;
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .blog-card:hover {
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+            transform: translateY(-3px);
+        }
+
+        .blog-card-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: linear-gradient(135deg, var(--secondary), #ffd9cc);
+        }
+
+        .blog-card-body {
+            padding: 1.25rem;
+        }
+
+        .blog-card-title {
+            font-weight: 800;
+            color: var(--dark);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .blog-card-summary {
+            font-size: 0.85rem;
+            color: #6c757d;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .blog-card-date {
+            font-size: 0.75rem;
+            color: #adb5bd;
+        }
+
+        .btn-add-blog {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 2rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-add-blog:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(254, 93, 55, 0.3);
+            color: white;
+        }
+
+        .form-label-custom {
+            font-weight: 700;
+            color: #64748b;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control-custom {
+            background: #f8fafc;
+            border: 1px solid #eef0f2;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .form-control-custom:focus {
+            background: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(254, 93, 55, 0.1);
+            outline: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 1.5rem;
+            border: 2px dashed #eee;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'website-blog', user: user }) %>
+
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2">
+                    <i class="fas fa-newspaper fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0 fw-bold">إدارة المدونة</h4>
+                    <p class="mb-0 small text-muted">إضافة وتعديل مقالات المدونة</p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn-add-blog" data-bs-toggle="modal" data-bs-target="#addBlogModal">
+                    <i class="fas fa-plus-circle me-2"></i>إضافة مقال جديد
+                </button>
+                <a href="/admin" class="btn btn-light rounded-pill px-4">
+                    <i class="fas fa-arrow-left me-2"></i> رجوع
+                </a>
+            </div>
+        </div>
+
+        <% if (posts && posts.length > 0) { %>
+            <div class="row g-4">
+                <% posts.forEach(post => { %>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="blog-card">
+                            <% if (post.image) { %>
+                                <img src="<%= getImageUrl(post.image) %>" alt="<%= post.title %>" class="blog-card-img">
+                            <% } else { %>
+                                <div class="blog-card-img d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-newspaper text-white opacity-50" style="font-size: 3rem;"></i>
+                                </div>
+                            <% } %>
+                            <div class="blog-card-body">
+                                <h5 class="blog-card-title"><%= post.title %></h5>
+                                <p class="blog-card-summary"><%= post.summary || post.content.substring(0, 100) %>...</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="blog-card-date">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        <%= new Date(post.createdAt).toLocaleDateString('ar-SA') %>
+                                    </span>
+                                    <button onclick="deletePost('<%= post._id %>')" class="btn btn-sm btn-outline-danger rounded-pill">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% } else { %>
+            <div class="empty-state">
+                <i class="fas fa-newspaper"></i>
+                <h4 class="fw-bold mb-2">لا توجد مقالات حالياً</h4>
+                <p class="text-muted mb-4">ابدأ بإضافة أول مقال في المدونة</p>
+                <button class="btn-add-blog" data-bs-toggle="modal" data-bs-target="#addBlogModal">
+                    <i class="fas fa-plus-circle me-2"></i>إضافة مقال جديد
+                </button>
+            </div>
+        <% } %>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; <%= settings.academyName %> - جميع الحقوق محفوظة</small>
+        </footer>
+    </div>
+
+    <!-- Add Blog Modal -->
+    <div class="modal fade" id="addBlogModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 1.5rem;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-plus-circle text-primary me-2"></i>
+                        إضافة مقال جديد
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="addBlogForm" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label-custom">عنوان المقال *</label>
+                                <input type="text" name="title" class="form-control form-control-custom" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-custom">ملخص المقال</label>
+                                <input type="text" name="summary" class="form-control form-control-custom" placeholder="وصف مختصر للمقال...">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-custom">محتوى المقال *</label>
+                                <textarea name="content" rows="6" class="form-control form-control-custom" required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-custom">صورة المقال</label>
+                                <input type="file" name="image" accept="image/*" class="form-control form-control-custom">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" onclick="submitBlog()" class="btn btn-primary rounded-pill px-4" id="submitBlogBtn">
+                        <i class="fas fa-save me-2"></i>نشر المقال
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        async function submitBlog() {
+            const form = document.getElementById('addBlogForm');
+            const formData = new FormData(form);
+
+            const btn = document.getElementById('submitBlogBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>جاري النشر...';
+
+            try {
+                const response = await fetch('/admin/website/blog/add', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم النشر!',
+                        text: 'تم إضافة المقال بنجاح.',
+                        confirmButtonColor: '#FE5D37'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    throw new Error('فشل إضافة المقال');
+                }
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: 'حدث خطأ غير متوقع.',
+                    confirmButtonColor: '#FE5D37'
+                });
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        async function deletePost(id) {
+            const result = await Swal.fire({
+                title: 'تأكيد الحذف',
+                text: 'هل أنت متأكد من حذف هذا المقال؟',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'نعم، احذف',
+                cancelButtonText: 'إلغاء'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/website/blog/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'تم الحذف!',
+                            text: 'تم حذف المقال بنجاح.',
+                            confirmButtonColor: '#FE5D37'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        throw new Error('فشل الحذف');
+                    }
+                } catch (err) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطأ',
+                        text: 'حدث خطأ أثناء الحذف.',
+                        confirmButtonColor: '#FE5D37'
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>

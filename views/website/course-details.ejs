@@ -561,14 +561,7 @@
                 <div class="col-lg-8">
                     <!-- Course Image -->
                     <div class="course-image-wrapper animate__animated animate__fadeInUp">
-                        <% if (hasImage) { %>
-                            <img src="<%= course.coverImage %>" alt="<%= course.title %>" onerror="this.parentElement.innerHTML='<div class=\'placeholder-image\'><i class=\'fas fa-book-open\'></i><div class=\'course-title\'><%= course.title %></div></div>'">
-                        <% } else { %>
-                            <div class="placeholder-image">
-                                <i class="fas fa-book-open"></i>
-                                <div class="course-title"><%= course.title %></div>
-                            </div>
-                        <% } %>
+                        <img src="<%= getImageUrl(course.coverImage) %>" alt="<%= course.title %>" onerror="this.parentElement.innerHTML='<div class=\'placeholder-image\'><i class=\'fas fa-book-open\'></i><div class=\'course-title\'><%= course.title %></div></div>'">
                     </div>
 
                     <!-- About Course -->
@@ -685,16 +678,10 @@
                         <div class="courses-scroll-container">
                             <% relatedCourses.forEach((relatedCourse) => { %>
                                 <a href="/website-course/<%= relatedCourse._id %>" class="course-card-mini">
-                                    <% if (relatedCourse.coverImage && relatedCourse.coverImage.trim() !== '') { %>
-                                        <img src="<%= relatedCourse.coverImage %>" alt="<%= relatedCourse.title %>" class="course-card-mini-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="course-card-mini-placeholder" style="display: none;">
-                                            <i class="fas fa-book-open"></i>
-                                        </div>
-                                    <% } else { %>
-                                        <div class="course-card-mini-placeholder">
-                                            <i class="fas fa-book-open"></i>
-                                        </div>
-                                    <% } %>
+                                    <img src="<%= getImageUrl(relatedCourse.coverImage) %>" alt="<%= relatedCourse.title %>" class="course-card-mini-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="course-card-mini-placeholder" style="display: none;">
+                                        <i class="fas fa-book-open"></i>
+                                    </div>
                                     
                                     <div class="course-card-mini-body">
                                         <span class="course-card-mini-category">

@@ -264,7 +264,7 @@
                             <h6 class="fw-bold text-dark mb-3">صورة الغلاف</h6>
                             <div class="image-edit-wrapper group">
                                 <% if (course.coverImage) { %>
-                                    <img id="previewImg" src="<%= course.coverImage %>" class="img-preview">
+                                    <img id="previewImg" src="<%= getImageUrl(course.coverImage) %>" class="img-preview">
                                 <% } else { %>
                                     <div id="placeholder" class="py-5"><i class="fas fa-image fs-1 text-light mb-2"></i></div>
                                 <% } %>

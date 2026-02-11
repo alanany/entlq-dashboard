@@ -343,6 +343,29 @@
                     </a>
                 </div>
             <% } %>
+
+            <% if (requestDetails.isRenewable) { %>
+                <div class="alert alert-success mt-4 rounded-4 shadow-sm border-0" style="background: #d1e7dd;">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div>
+                             <h6 class="fw-bold mb-1 text-success">
+                                <i class="fas fa-history me-2"></i>
+                                اشتراكك قارب على الانتهاء
+                            </h6>
+                            <p class="mb-0 small text-muted">تبقى أقل من 5 أيام أو حصتين. يمكنك تجديد الاشتراك الآن لضمان استمرارية الدروس.</p>
+                        </div>
+                        <button class="btn btn-success rounded-pill fw-bold px-4 btn-renew shadow-sm custom-renew-btn"
+                            data-id="<%= requestDetails._id %>"
+                            data-course-id="<%= requestDetails.courseId._id %>"
+                            data-price-option="<%= requestDetails.selectedPriceOption %>" 
+                            data-sessions-count="<%= requestDetails.numberOfSessionsPerMonth %>"
+                            data-total-amount="<%= requestDetails.totalAmount %>"
+                        >
+                            <i class="fas fa-sync me-2"></i>تجديد الاشتراك
+                        </button>
+                    </div>
+                </div>
+            <% } %>
         </div>
 
         <!-- Sessions Schedule -->
@@ -436,8 +459,100 @@
         <% } %>
     </div>
 
+    <!-- Renew Modal -->
+    <div class="modal fade" id="renewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 1.5rem;">
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-4 text-success animate__animated animate__bounceIn">
+                        <i class="fas fa-sync-alt fa-3x"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">تجديد الاشتراك</h3>
+                    <p class="text-muted mb-4">هل ترغب بتجديد الاشتراك بنفس الإعدادات السابقة أم تريد تغييرها؟</p>
+                    
+                    <input type="hidden" id="renewCourseId">
+                    <input type="hidden" id="renewPriceOption">
+                    <input type="hidden" id="renewSessionsCount">
+                    <input type="hidden" id="renewTotalAmount">
+                    <input type="hidden" id="renewId">
+
+                    <div class="d-grid gap-3">
+                        <button onclick="renewSameSettings()" id="renewConfirmBtn" class="btn btn-success btn-lg rounded-pill fw-bold">
+                            <i class="fas fa-check-circle me-2"></i>تجديد بنفس الإعدادات
+                        </button>
+                        <div class="text-muted small my-1">أو</div>
+                        <a href="#" id="changeSettingsBtn" class="btn btn-outline-primary btn-lg rounded-pill fw-bold">
+                            <i class="fas fa-cog me-2"></i>تغيير الإعدادات
+                        </a>
+                        <button class="btn btn-light rounded-pill mt-2" data-bs-dismiss="modal">إلغاء</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Renewal Modal Logic
+        $('.btn-renew').on('click', function() {
+            const btn = $(this);
+            const data = {
+                id: btn.data('id'),
+                courseId: btn.data('course-id'),
+                priceOption: btn.data('price-option'),
+                sessionsCount: btn.data('sessions-count'),
+                totalAmount: btn.data('total-amount')
+            };
+
+            $('#renewCourseId').val(data.courseId);
+            $('#renewPriceOption').val(data.priceOption);
+            $('#renewSessionsCount').val(data.sessionsCount);
+            $('#renewTotalAmount').val(data.totalAmount);
+            $('#renewId').val(data.id); // 🔴
+            
+            // Set Change Settings Link
+            $('#changeSettingsBtn').attr('href', `/student/book_plan/${data.courseId}`);
+            
+            $('#renewModal').modal('show');
+        });
+
+        function renewSameSettings() {
+             const btn = $('#renewConfirmBtn');
+             btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> جاري التنفيذ...');
+
+             const startRenew = {
+                studentId: '<%= user._id %>',
+                courseId: $('#renewCourseId').val(),
+                selectedPriceOption: $('#renewPriceOption').val(),
+                numberOfSessionsPerMonth: $('#renewSessionsCount').val(),
+                totalAmount: $('#renewTotalAmount').val(),
+                renewFromId: $('#renewId').val() // 🔴
+             };
+
+             fetch('/student/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(startRenew)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success || data.message) {
+                     alert('تم تجديد الاشتراك بنجاح!');
+                     window.location.reload();
+                } else {
+                     alert('حدث خطأ أثناء التجديد: ' + (data.error || 'Unknown error'));
+                     btn.prop('disabled', false).html('تأكيد التجديد');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('فشل الاتصال بالخادم');
+                btn.prop('disabled', false).html('تأكيد التجديد');
+            });
+        }
+    </script>
 </body>
 </html>

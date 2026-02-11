@@ -264,7 +264,7 @@
                          data-category="<%= course.category_slug || '' %>"
                          data-level="<%= course.level || '' %>">
                         <div class="course-card">
-                            <img src="<%= course.coverImage || '/img/classes-1.jpg' %>" class="course-img" alt="<%= course.name %>">
+                            <img src="<%= getImageUrl(course.coverImage) %>" class="course-img" alt="<%= course.name %>">
                             <div class="p-4 flex-grow-1 d-flex flex-column">
                                 <div class="mb-2">
                                     <% if (course.category_name) { %>

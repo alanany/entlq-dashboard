@@ -404,7 +404,7 @@
             </h3>
 
             <div class="course-card" data-course-id="MATH" data-course-name="<%= course.title %>" data-course-description="<%= course.description %>">
-                <img src="<%= course.coverImage || 'https://via.placeholder.com/400x200/FE5D37/ffffff?text=Course' %>" alt="<%= course.title %>" class="course-image">
+                <img src="<%= getImageUrl(course.coverImage) %>" alt="<%= course.title %>" class="course-image">
                 <div class="course-body">
                     <% if (course.category && course.category.name) { %>
                         <span class="course-category">
@@ -568,7 +568,7 @@
           const CURRENT = {
     id: "<%= user._id %>",
     role: "<%= user.role %>",
-    studentId: "<%=studentId %>"
+    studentId: "<%= locals.studentId || '' %>"
   };
           console.log(CURRENT.studentId,'studentId');
         // Toast notification function

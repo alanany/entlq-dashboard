@@ -44,6 +44,16 @@ const checkUser = (req, res, next) => {
                 }
                 res.locals.settings = settings;
 
+                // Helper to format image URLs
+                res.locals.getImageUrl = (imagePath, fallback = '/img/classes-1.jpg') => {
+                    if (!imagePath || imagePath.trim() === '') return fallback;
+                    if (imagePath.startsWith('http')) return imagePath;
+                    // Prepend domain if it's an upload path (useful for local dev or when files are moved)
+                    // The user explicitly requested to use entlqsa.com
+                    const domain = 'https://entlqsa.com';
+                    return imagePath.startsWith('/') ? `${domain}${imagePath}` : `${domain}/${imagePath}`;
+                };
+
                 console.log(res.locals.user);
                 req.user = res.locals.user;
                 next();
@@ -57,6 +67,15 @@ const checkUser = (req, res, next) => {
             return settings;
         }).then(settings => {
             res.locals.settings = settings;
+            
+            // Helper to format image URLs
+            res.locals.getImageUrl = (imagePath, fallback = '/img/classes-1.jpg') => {
+                if (!imagePath || imagePath.trim() === '') return fallback;
+                if (imagePath.startsWith('http')) return imagePath;
+                const domain = 'https://entlqsa.com';
+                return imagePath.startsWith('/') ? `${domain}${imagePath}` : `${domain}/${imagePath}`;
+            };
+
             next();
         }).catch(err => {
             res.locals.settings = {};

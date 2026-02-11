@@ -241,7 +241,7 @@
                                     <span class="badge rounded-pill bg-secondary status-badge fw-800 px-3 py-2" style="font-size: 0.65rem;">مسودة</span>
                                 <% } %>
                                 
-                                <img src="<%= course.coverImage %>" alt="Course Cover">
+                                <img src="<%= getImageUrl(course.coverImage) %>" alt="Course Cover">
                                 <div class="card-price outfit-font">$<%= course.price ? course.price.toFixed(2) : '0.00' %></div>
                             </div>
 

@@ -181,8 +181,23 @@ const deleteCourse = async (req, res) => {
 };
 
  const home_website_get = async(req, res) => {
-  const courses = await Course.find();  console.log(courses);
-  res.render('../views/website/home', { title: 'كورسات الموقع', courses: courses});
+    const WebsiteSection = require('../models/WebsiteSection');
+    const BlogPost = require('../models/BlogPost');
+    
+    const courses = await Course.find();
+    const sections = await WebsiteSection.find();
+    const blogPosts = await BlogPost.find({ isPublished: true }).sort({ createdAt: -1 }).limit(3);
+    
+    // Convert sections array to object for easier access in template
+    const sectionsMap = {};
+    sections.forEach(s => { sectionsMap[s.key] = s; });
+    
+    res.render('../views/website/home', { 
+        title: 'كورسات الموقع', 
+        courses: courses,
+        sections: sectionsMap,
+        blogPosts: blogPosts
+    });
 }
 const allCourses_website_get = async(req, res) => {
   const courses = await Course.find();  console.log(courses);
@@ -222,36 +237,120 @@ const courses=await Course.find().lean().populate('category');
 
 const checkout = async (req, res) => {
     // 1. استخراج البيانات من جسم الطلب
- 
-console.log(req.body);
- const { 
+    console.log(req.body);
+    const { 
         courseId, 
         numberOfSessionsPerMonth, 
         selectedPriceOption, 
         studentId,
-        totalAmount, // تم استقبالها بشكل صحيح من الواجهة الأمامية المصححة
-       
+        totalAmount, 
+        renewFromId // 🟢 ID الاشتراك القديم (إن وجد)
     } = req.body; 
-    console.log(req.body);
+
     try {
+        let additionalFields = {};
+
+        // 🟢 منطق التجديد (نقل المعلم والجدول)
+        if (renewFromId) {
+            const oldSub = await Subscription.findById(renewFromId).populate('sessions');
+            if (oldSub) {
+                    // 1. نقل المعلم
+                additionalFields.teacherId = oldSub.teacherId;
+                additionalFields.teacherHourlyRate = oldSub.teacherHourlyRate;
+
+                // تحسين: جلب رابط الزووم للمعلم مرة واحدة فقط
+                let teacherZoomLink = '';
+                if (oldSub.teacherId) {
+                    const teacher = await User.findById(oldSub.teacherId).select('zoom_link');
+                    teacherZoomLink = teacher?.zoom_link || '';
+                }
+
+                // حساب تاريخ البداية الجديد (نفس تاريخ انتهاء الاشتراك القديم)
+                // الافتراضي: غداً إذا لم يكن هناك تاريخ قديم
+                let newStartDate = DateTime.now().plus({ days: 1 }).startOf('day');
+                
+                if (oldSub.startDate) {
+                    // نفترض أن الاشتراك مدته شهر واحد
+                    const oldStart = DateTime.fromJSDate(oldSub.startDate);
+                    newStartDate = oldStart.plus({ months: 1 });
+                    
+                    // إضافة تاريخ البداية المقترح للحقول الإضافية
+                    additionalFields.startDate = newStartDate.toJSDate();
+                }
+
+                // 2. توليد الجدول الجديد بناءً على أيام ومواعيد القديم
+                if (oldSub.sessions && oldSub.sessions.length > 0) {
+                    // استخراج الأنماط الفريدة (يوم الأسبوع + الوقت)
+                    // Luxon weekday: 1 (Mon) - 7 (Sun)
+                    const patterns = [];
+                    const seen = new Set();
+
+                    oldSub.sessions.forEach(s => {
+                        const dt = DateTime.fromJSDate(new Date(s.date)).setZone('utc'); // نفترض التواريخ مخزنة UTC
+                        const weekday = dt.weekday;
+                        const time = s.time;
+                        const key = `${weekday}-${time}`;
+
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            patterns.push({ weekday, time, duration: s.durationMinutes });
+                        }
+                    });
+
+                    // ترتيب الأنماط خلال الأسبوع
+                    patterns.sort((a, b) => a.weekday - b.weekday);
+
+                    if (patterns.length > 0) {
+                        const newSessions = [];
+                        let sessionsGenerated = 0;
+                        const targetCount = parseInt(numberOfSessionsPerMonth) || 0;
+                        
+                        const generatedSessionsFull = [];
+                        let count = 0;
+                        
+                        // 🟢 نبدأ توليد الجلسات من تاريخ البداية الجديد
+                        let ptrDate = newStartDate; 
+
+                        while (count < targetCount) {
+                            // check if ptrDate weekday matches any pattern
+                            const matchingPattern = patterns.find(p => p.weekday === ptrDate.weekday);
+                            if (matchingPattern) {
+                                generatedSessionsFull.push({
+                                    date: ptrDate.toJSDate(),
+                                    time: matchingPattern.time,
+                                    durationMinutes: matchingPattern.duration || parseInt(selectedPriceOption),
+                                    status: 'pending',
+                                    utcDateAndTime: convertToUTC(ptrDate.toISODate(), matchingPattern.time, req.user?.timezone || 'UTC'),
+                                    link: teacherZoomLink // استخدام الرابط المحفوظ
+                                });
+                                count++;
+                            }
+                            ptrDate = ptrDate.plus({ days: 1 });
+                             // Safety break to prevent infinite loops
+                            if (count > 100) break;
+                        }
+                        additionalFields.sessions = generatedSessionsFull;
+                    }
+                }
+            }
+        }
+
         const request = await Subscription.create({ 
             courseId,
             numberOfSessionsPerMonth,
             selectedPriceOption,
             studentId,
-            totalAmount
-                // يتم إدراج هيكل المنهج الدراسي مباشرة
-            // creator: req.user._id // (إذا كنت تستخدم مصادقة)
+            totalAmount,
+            ...additionalFields
         });
-console.log(request);
-        // 4. إرسال استجابة النجاح (عادةً ما يتم إرسال كائن الدورة الجديدة)
-        res.status(200).json({data: request});
+
+        console.log(request);
+        res.status(200).json({data: request, success: true, message: 'تم إنشاء الطلب بنجاح'});
 
     } catch (err) {
         console.error(err);
-        // 5. معالجة أخطاء التحقق أو أخطاء قاعدة البيانات
         res.status(400).json({ 
-            message: err
+            message: err.message || "حدث خطأ أثناء المعالجة"
         });
     }
 };
@@ -290,13 +389,21 @@ const enhancedSubscriptions = subscriptions.map(sub => {
 
         subObj.daysRemaining = diffInDays;
         
-        // المعيار الأول: هل الأيام المتبقية 2 أو أقل؟
-        const timeCritical = diffInDays <= 25 && diffInDays >= 0;
+        // المعيار الأول: هل الأيام المتبقية 5 أو أقل؟
+        const timeCritical = diffInDays <= 5 && diffInDays >= -30; // السماح بالتجديد حتى بعد الانتهاء بفترة
 
+        // المعيار الثاني: عدد الحصص المتبقية أقل من 2
+        let sessionsCritical = false;
+        if (sub.sessions && sub.sessions.length > 0) {
+            const remainingSessions = sub.sessions.filter(s => s.status === 'pending').length;
+            if (remainingSessions < 2) {
+                sessionsCritical = true;
+            }
+        }
     
-        // دمج المعيارين: إذا تحقق أحدهما وكان الاشتراك مؤكداً
-        subObj.isCritical = (sub.status === 'confirmed') && (timeCritical );
-        console.log(subObj.isCritical,'subObj.isCritical');
+        // دمج المعيارين: إذا تحقق أحدهما وكان الاشتراك مؤكداً أو مدفوعاً
+        subObj.isCritical = (sub.status === 'confirmed' || sub.status === 'paid') && (timeCritical || sessionsCritical);
+        console.log(`Sub ${sub._id}: TimeCritical=${timeCritical} (${diffInDays} days), SessionsCritical=${sessionsCritical} -> IsCritical=${subObj.isCritical}`);
     } else {
         subObj.isCritical = false;
     }

@@ -52,9 +52,9 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <div class="navbar-nav mx-auto">
-                    <a href="index.html" class="nav-item nav-link active"><%= t('home') %></a>
-                    <a href="about.html" class="nav-item nav-link"><%= t('about') %></a>
-                    <a href="classes.html" class="nav-item nav-link"><%= t('classes') %></a>
+                    <a href="/" class="nav-item nav-link active"><%= t('home') %></a>
+                    <a href="/about" class="nav-item nav-link"><%= t('about') %></a>
+                    <a href="/website-courses" class="nav-item nav-link"><%= t('classes') %></a>
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><%= t('pages') %></a>
                         <div class="dropdown-menu rounded-0 rounded-bottom border-0 shadow-sm m-0">
@@ -86,19 +86,60 @@
 
 
         <!-- Carousel Start -->
-        <div class="container-fluid p-0 mb-5">
+        <div class="container-fluid p-0 mb-5 section-edit-wrapper">
             <div class="owl-carousel header-carousel position-relative">
                 <div class="owl-carousel-item position-relative">
                     <img class="img-fluid" src="img/carousel-1.jpg" alt="">
+
                     <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center" >
                         <div class="container">
                             <div class="row justify-content-start">
                                 <div class="col-10 col-lg-8">
-                                    <h3 class="display-2 text-white animated slideInDown mb-4"><%= t('hero_1_title') %></h3>
-                                    <p class="fs-5 fw-medium text-white mb-4 pb-2"><%= t('hero_1_text') %></p>
+                                    <% if (user && user.role === 'admin') { %>
+                                    <!-- العنوان قابل للتعديل مباشرة -->
+                                    <h3 
+                                        class="display-2 text-white animated slideInDown mb-4 editable-inline" 
+                                        data-section="hero" 
+                                        data-field="title"
+                                        contenteditable="false"
+                                        onclick="enableInlineEdit(this)"
+
+                                        onkeydown="handleInlineKeydown(event, this)">
+                                        <%= (sections && sections.hero && sections.hero.title) || t('hero_1_title') %>
+                                    </h3>
+                                    <% } else { %>
+                                    <h3 class="display-2 text-white animated slideInDown mb-4"><%= (sections && sections.hero && sections.hero.title) || t('hero_1_title') %></h3>
+                                    <% } %>
+                                    
+                                    <% if (user && user.role === 'admin') { %>
+                                    <!-- المحتوى قابل للتعديل مباشرة -->
+                                    <p 
+                                        class="fs-5 fw-medium text-white mb-4 pb-2 editable-inline" 
+                                        data-section="hero" 
+                                        data-field="content"
+                                        contenteditable="false"
+                                        onclick="enableInlineEdit(this)"
+
+                                        onkeydown="handleInlineKeydown(event, this)">
+                                        <%= (sections && sections.hero && sections.hero.content) || t('hero_1_text') %>
+                                    </p>
+                                    <% } else { %>
+                                    <p class="fs-5 fw-medium text-white mb-4 pb-2"><%= (sections && sections.hero && sections.hero.content) || t('hero_1_text') %></p>
+                                    <% } %>
                                    
-                                    <a href="" class="btn btn-primary rounded-pill py-sm-3 px-sm-5 me-3 mb-2 animated slideInLeft"><%= t('learn_more') %></a>
-                                    <a href="" class="btn btn-dark rounded-pill py-sm-3 px-sm-5 mb-2 animated slideInRight"><%= t('our_classes') %></a>
+                                    <% if (user && user.role === 'admin') { %>
+                                    <!-- الزر قابل للتعديل -->
+                                    <a href="<%= (sections && sections.hero && sections.hero.buttonLink) || '/about' %>" 
+                                       class="btn btn-primary rounded-pill py-sm-3 px-sm-5 me-3 mb-2 animated slideInLeft editable-button"
+                                       data-section="hero"
+                                       onclick="editButton(event, this)">
+                                        <span class="button-text"><%= (sections && sections.hero && sections.hero.buttonText) || t('learn_more') %></span>
+                                    </a>
+                                    <% } else { %>
+                                    <a href="<%= (sections && sections.hero && sections.hero.buttonLink) || '/about' %>" class="btn btn-primary rounded-pill py-sm-3 px-sm-5 me-3 mb-2 animated slideInLeft"><%= (sections && sections.hero && sections.hero.buttonText) || t('learn_more') %></a>
+                                    <% } %>
+                                    
+                                    <a href="/website-courses" class="btn btn-dark rounded-pill py-sm-3 px-sm-5 mb-2 animated slideInRight"><%= t('our_classes') %></a>
                                 </div>
                             </div>
                         </div>
@@ -112,8 +153,8 @@
                                 <div class="col-10 col-lg-8">
                                     <h3 class="display-2 text-white animated slideInDown mb-4"><%= t('hero_2_title') %></h3>
                                     <p class="fs-5 fw-medium text-white mb-4 pb-2"><%= t('hero_2_text') %></p>
-                                    <a href="" class="btn btn-primary rounded-pill py-sm-3 px-sm-5 me-3 animated slideInLeft"><%= t('learn_more') %></a>
-                                    <a href="" class="btn btn-dark rounded-pill py-sm-3 px-sm-5 animated slideInRight"><%= t('our_classes') %></a>
+                                    <a href="/about" class="btn btn-primary rounded-pill py-sm-3 px-sm-5 me-3 animated slideInLeft"><%= t('learn_more') %></a>
+                                    <a href="/website-courses" class="btn btn-dark rounded-pill py-sm-3 px-sm-5 animated slideInRight"><%= t('our_classes') %></a>
                                 </div>
                             </div>
                         </div>
@@ -125,11 +166,38 @@
 
 
         <!-- Facilities Start -->
-        <div class="container-fluid py-5">
+        <div class="container-fluid py-5 section-edit-wrapper">
+            <% if (user && user.role === 'admin') { %>
+            <button class="section-edit-btn" onclick="openEditModal('facilities', 'المميزات')" title="تعديل قسم المميزات">
+                <i class="fas fa-edit"></i>
+            </button>
+            <div class="edit-indicator"></div>
+            <% } %>
             <div class="container">
                 <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                    <h3 class="mb-3"><%= t('facilities_title') %></h3>
-                    <p><%= t('facilities_text') %></p>
+                    <% if (user && user.role === 'admin') { %>
+                    <h3 class="mb-3 editable-inline"
+                        data-section="facilities"
+                        data-field="title"
+                        contenteditable="false"
+                        onclick="enableInlineEdit(this)"
+                        onblur="saveInlineEdit(this)"
+                        onkeydown="handleInlineKeydown(event, this)">
+                        <%= (sections && sections.facilities && sections.facilities.title) || t('facilities_title') %>
+                    </h3>
+                    <p class="editable-inline"
+                        data-section="facilities"
+                        data-field="content"
+                        contenteditable="false"
+                        onclick="enableInlineEdit(this)"
+                        onblur="saveInlineEdit(this)"
+                        onkeydown="handleInlineKeydown(event, this)">
+                        <%= (sections && sections.facilities && sections.facilities.content) || t('facilities_text') %>
+                    </p>
+                    <% } else { %>
+                    <h3 class="mb-3"><%= (sections && sections.facilities && sections.facilities.title) || t('facilities_title') %></h3>
+                    <p><%= (sections && sections.facilities && sections.facilities.content) || t('facilities_text') %></p>
+                    <% } %>
                 </div>
                 <div class="row g-4">
                     <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
@@ -140,8 +208,13 @@
                                 <span class="bg-primary"></span>
                             </div>
                             <div class="facility-text bg-primary">
-                                <h3 class="text-primary mb-3"><%= t('facility_1_title') %></h3>
-                                <p class="mb-0"><%= t('facility_1_text') %></p>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="text-primary mb-3 editable-inline" data-section="facilities" data-field="facility_1_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.facilities && sections.facilities.facility_1_title) || 'قاعات بث تفاعلية' %></h3>
+                                <p class="mb-0 editable-inline" data-section="facilities" data-field="facility_1_text" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.facilities && sections.facilities.facility_1_text) || 'حصص فيديو عالية الجودة مع أدوات تعاون في الوقت الفعلي ودعم للسبورات الذكية.' %></p>
+                                <% } else { %>
+                                <h3 class="text-primary mb-3"><%= (sections && sections.facilities && sections.facilities.facility_1_title) || 'قاعات بث تفاعلية' %></h3>
+                                <p class="mb-0"><%= (sections && sections.facilities && sections.facilities.facility_1_text) || 'حصص فيديو عالية الجودة مع أدوات تعاون في الوقت الفعلي ودعم للسبورات الذكية.' %></p>
+                                <% } %>
                             </div>
                         </div>
                     </div>
@@ -153,8 +226,13 @@
                                 <span class="bg-success"></span>
                             </div>
                             <div class="facility-text bg-success">
-                                <h3 class="text-success mb-3"><%= t('facility_2_title') %></h3>
-                                <p class="mb-0"><%= t('facility_2_text') %></p>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="text-success mb-3 editable-inline" data-section="facilities" data-field="facility_2_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.facilities && sections.facilities.facility_2_title) || 'مكتبة المحتوى المسجل' %></h3>
+                                <p class="mb-0 editable-inline" data-section="facilities" data-field="facility_2_text" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.facilities && sections.facilities.facility_2_text) || 'وصول غير محدود للمحاضرات المسجلة والمواد التعليمية والأبحاث المتخصصة.' %></p>
+                                <% } else { %>
+                                <h3 class="text-success mb-3"><%= (sections && sections.facilities && sections.facilities.facility_2_title) || 'مكتبة المحتوى المسجل' %></h3>
+                                <p class="mb-0"><%= (sections && sections.facilities && sections.facilities.facility_2_text) || 'وصول غير محدود للمحاضرات المسجلة والمواد التعليمية والأبحاث المتخصصة.' %></p>
+                                <% } %>
                             </div>
                         </div>
                     </div>
@@ -166,8 +244,13 @@
                                 <span class="bg-warning"></span>
                             </div>
                             <div class="facility-text bg-warning">
-                                <h3 class="text-warning mb-3"><%= t('facility_3_title') %></h3>
-                                <p class="mb-0"><%= t('facility_3_text') %></p>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="text-warning mb-3 editable-inline" data-section="facilities" data-field="facility_3_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.facilities && sections.facilities.facility_3_title) || 'برنامج الإرشاد المهني' %></h3>
+                                <p class="mb-0 editable-inline" data-section="facilities" data-field="facility_3_text" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.facilities && sections.facilities.facility_3_text) || 'تواصل مباشر مع خبراء الصناعة وتوجيه مهني شخصي 1 لـ 1 لتطوير مسارك.' %></p>
+                                <% } else { %>
+                                <h3 class="text-warning mb-3"><%= (sections && sections.facilities && sections.facilities.facility_3_title) || 'برنامج الإرشاد المهني' %></h3>
+                                <p class="mb-0"><%= (sections && sections.facilities && sections.facilities.facility_3_text) || 'تواصل مباشر مع خبراء الصناعة وتوجيه مهني شخصي 1 لـ 1 لتطوير مسارك.' %></p>
+                                <% } %>
                             </div>
                         </div>
                     </div>
@@ -179,8 +262,13 @@
                                 <span class="bg-info"></span>
                             </div>
                             <div class="facility-text bg-info">
-                                <h3 class="text-info mb-3"><%= t('facility_4_title') %></h3>
-                                <p class="mb-0"><%= t('facility_4_text') %></p>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="text-info mb-3 editable-inline" data-section="facilities" data-field="facility_4_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.facilities && sections.facilities.facility_4_title) || 'تعلم عبر الجوال' %></h3>
+                                <p class="mb-0 editable-inline" data-section="facilities" data-field="facility_4_text" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.facilities && sections.facilities.facility_4_text) || 'تعلم أثناء التنقل من خلال منصتنا المتجاوبة بالكامل والمحسنة لجميع أجهزتك الرقمية.' %></p>
+                                <% } else { %>
+                                <h3 class="text-info mb-3"><%= (sections && sections.facilities && sections.facilities.facility_4_title) || 'تعلم عبر الجوال' %></h3>
+                                <p class="mb-0"><%= (sections && sections.facilities && sections.facilities.facility_4_text) || 'تعلم أثناء التنقل من خلال منصتنا المتجاوبة بالكامل والمحسنة لجميع أجهزتك الرقمية.' %></p>
+                                <% } %>
                             </div>
                         </div>
                     </div>
@@ -191,13 +279,49 @@
 
 
         <!-- About Start -->
-        <div class="container-fluid py-5">
+        <div class="container-fluid py-5 section-edit-wrapper">
+            <% if (user && user.role === 'admin') { %>
+            <button class="section-edit-btn" onclick="openEditModal('about', 'من نحن')" title="تعديل قسم من نحن">
+                <i class="fas fa-edit"></i>
+            </button>
+            <div class="edit-indicator"></div>
+            <% } %>
             <div class="container">
                 <div class="row g-5 align-items-center">
                     <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.1s">
-                        <h3 class="mb-4"><%= t('about_title') %></h3>
-                        <p><%= t('about_text_1') %></p>
-                        <p class="mb-4"><%= t('about_text_2') %></p>
+                        <% if (user && user.role === 'admin') { %>
+                        <h3 class="mb-4 editable-inline"
+                            data-section="about"
+                            data-field="title"
+                            contenteditable="false"
+                            onclick="enableInlineEdit(this)"
+                            onblur="saveInlineEdit(this)"
+                            onkeydown="handleInlineKeydown(event, this)">
+                            <%= (sections && sections.about && sections.about.title) || t('about_title') %>
+                        </h3>
+                        <p class="editable-inline"
+                           data-section="about"
+                           data-field="content"
+                           contenteditable="false"
+                           onclick="enableInlineEdit(this)"
+                           onblur="saveInlineEdit(this)"
+                           onkeydown="handleInlineKeydown(event, this)">
+                           <%= (sections && sections.about && sections.about.content) || t('about_text_1') %>
+                        </p>
+                        <p class="mb-4 editable-inline"
+                           data-section="about"
+                           data-field="subtitle"
+                           contenteditable="false"
+                           onclick="enableInlineEdit(this)"
+                           onblur="saveInlineEdit(this)"
+                           onkeydown="handleInlineKeydown(event, this)">
+                           <%= (sections && sections.about && sections.about.subtitle) || t('about_text_2') %>
+                        </p>
+                        <% } else { %>
+                        <h3 class="mb-4"><%= (sections && sections.about && sections.about.title) || t('about_title') %></h3>
+                        <p><%= (sections && sections.about && sections.about.content) || t('about_text_1') %></p>
+                        <p class="mb-4"><%= (sections && sections.about && sections.about.subtitle) || t('about_text_2') %></p>
+                        <% } %>
                         <div class="row g-4 align-items-center">
                             <div class="col-sm-6">
                                 <a class="btn btn-primary rounded-pill py-3 px-5" href=""><%= t('read_more') %></a>
@@ -206,8 +330,13 @@
                                 <div class="d-flex align-items-center">
                                     <img class="rounded-circle flex-shrink-0" src="img/user.jpg" alt="" style="width: 45px; height: 45px;">
                                     <div class="ms-3">
-                                        <h6 class="text-primary mb-1"><%= t('ceo_name') %></h6>
-                                        <small><%= t('ceo_title') %></small>
+                                        <% if (user && user.role === 'admin') { %>
+                                        <h6 class="text-primary mb-1 editable-inline" data-section="about" data-field="ceo_name" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.about && sections.about.ceo_name) || t('ceo_name') %></h6>
+                                        <small class="editable-inline" data-section="about" data-field="ceo_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.about && sections.about.ceo_title) || t('ceo_title') %></small>
+                                        <% } else { %>
+                                        <h6 class="text-primary mb-1"><%= (sections && sections.about && sections.about.ceo_name) || t('ceo_name') %></h6>
+                                        <small><%= (sections && sections.about && sections.about.ceo_title) || t('ceo_title') %></small>
+                                        <% } %>
                                     </div>
                                 </div>
                             </div>
@@ -238,23 +367,43 @@
                 <div class="row g-5">
                     <div class="col-lg-3 col-md-6 text-center wow fadeIn" data-wow-delay="0.1s">
                         <i class="fa fa-users fa-3x text-primary mb-3"></i>
-                        <h3 class="display-1 text-primary mb-0" data-toggle="counter-up">1234</h3>
-                        <span class="fs-5 text-primary"><%= t('admin') %></span>
+                        <% if (user && user.role === 'admin') { %>
+                        <h3 class="display-1 text-primary mb-0 editable-inline" data-section="stats" data-field="stat_1_count" contenteditable="false" onclick="enableInlineEdit(this)" data-toggle="counter-up"><%= (sections && sections.stats && sections.stats.stat_1_count) || '1234' %></h3>
+                        <span class="fs-5 text-primary editable-inline" data-section="stats" data-field="stat_1_label" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.stats && sections.stats.stat_1_label) || t('admin') %></span>
+                        <% } else { %>
+                        <h3 class="display-1 text-primary mb-0" data-toggle="counter-up"><%= (sections && sections.stats && sections.stats.stat_1_count) || '1234' %></h3>
+                        <span class="fs-5 text-primary"><%= (sections && sections.stats && sections.stats.stat_1_label) || t('admin') %></span>
+                        <% } %>
                     </div>
                     <div class="col-lg-3 col-md-6 text-center wow fadeIn" data-wow-delay="0.3s">
                         <i class="fa fa-chalkboard-teacher fa-3x text-success mb-3"></i>
-                        <h3 class="display-1 text-success mb-0" data-toggle="counter-up">123</h3>
-                        <span class="fs-5 text-success">Teachers</span>
+                        <% if (user && user.role === 'admin') { %>
+                        <h3 class="display-1 text-success mb-0 editable-inline" data-section="stats" data-field="stat_2_count" contenteditable="false" onclick="enableInlineEdit(this)" data-toggle="counter-up"><%= (sections && sections.stats && sections.stats.stat_2_count) || '123' %></h3>
+                        <span class="fs-5 text-success editable-inline" data-section="stats" data-field="stat_2_label" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.stats && sections.stats.stat_2_label) || 'Teachers' %></span>
+                        <% } else { %>
+                        <h3 class="display-1 text-success mb-0" data-toggle="counter-up"><%= (sections && sections.stats && sections.stats.stat_2_count) || '123' %></h3>
+                        <span class="fs-5 text-success"><%= (sections && sections.stats && sections.stats.stat_2_label) || 'Teachers' %></span>
+                        <% } %>
                     </div>
                     <div class="col-lg-3 col-md-6 text-center wow fadeIn" data-wow-delay="0.5s">
                         <i class="fa fa-book-reader fa-3x text-warning mb-3"></i>
-                        <h3 class="display-1 text-warning mb-0" data-toggle="counter-up">50</h3>
-                        <span class="fs-5 text-warning"><%= t('classes') %></span>
+                        <% if (user && user.role === 'admin') { %>
+                        <h3 class="display-1 text-warning mb-0 editable-inline" data-section="stats" data-field="stat_3_count" contenteditable="false" onclick="enableInlineEdit(this)" data-toggle="counter-up"><%= (sections && sections.stats && sections.stats.stat_3_count) || '50' %></h3>
+                        <span class="fs-5 text-warning editable-inline" data-section="stats" data-field="stat_3_label" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.stats && sections.stats.stat_3_label) || t('classes') %></span>
+                        <% } else { %>
+                        <h3 class="display-1 text-warning mb-0" data-toggle="counter-up"><%= (sections && sections.stats && sections.stats.stat_3_count) || '50' %></h3>
+                        <span class="fs-5 text-warning"><%= (sections && sections.stats && sections.stats.stat_3_label) || t('classes') %></span>
+                        <% } %>
                     </div>
                     <div class="col-lg-3 col-md-6 text-center wow fadeIn" data-wow-delay="0.7s">
                         <i class="fa fa-smile fa-3x text-info mb-3"></i>
-                        <h3 class="display-1 text-info mb-0" data-toggle="counter-up">100</h3>
-                        <span class="fs-5 text-info">Educational Activities</span>
+                        <% if (user && user.role === 'admin') { %>
+                        <h3 class="display-1 text-info mb-0 editable-inline" data-section="stats" data-field="stat_4_count" contenteditable="false" onclick="enableInlineEdit(this)" data-toggle="counter-up"><%= (sections && sections.stats && sections.stats.stat_4_count) || '100' %></h3>
+                        <span class="fs-5 text-info editable-inline" data-section="stats" data-field="stat_4_label" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.stats && sections.stats.stat_4_label) || 'Educational Activities' %></span>
+                        <% } else { %>
+                        <h3 class="display-1 text-info mb-0" data-toggle="counter-up"><%= (sections && sections.stats && sections.stats.stat_4_count) || '100' %></h3>
+                        <span class="fs-5 text-info"><%= (sections && sections.stats && sections.stats.stat_4_label) || 'Educational Activities' %></span>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -263,7 +412,13 @@
 
 
         <!-- Call To Action Start -->
-        <div class="container-fluid py-5">
+        <div class="container-fluid py-5 section-edit-wrapper">
+            <% if (user && user.role === 'admin') { %>
+            <button class="section-edit-btn" onclick="openEditModal('cta', 'انضم كمعلم')" title="تعديل قسم انضم كمعلم">
+                <i class="fas fa-edit"></i>
+            </button>
+            <div class="edit-indicator"></div>
+            <% } %>
             <div class="container">
                 <div class="bg-light rounded">
                     <div class="row g-0">
@@ -274,9 +429,37 @@
                         </div>
                         <div class="col-lg-6 wow fadeIn" data-wow-delay="0.5s">
                             <div class="h-100 d-flex flex-column justify-content-center p-5">
-                                <h3 class="mb-4"><%= t('become_teacher_title') %></h3>
-                                <p class="mb-4"><%= t('become_teacher_text') %></p>
-                                <a class="btn btn-primary py-3 px-5" href=""><%= t('get_started_now') %><i class="fa fa-arrow-right ms-2"></i></a>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="mb-4 editable-inline"
+                                    data-section="cta"
+                                    data-field="title"
+                                    contenteditable="false"
+                                    onclick="enableInlineEdit(this)"
+                                    onblur="saveInlineEdit(this)"
+                                    onkeydown="handleInlineKeydown(event, this)">
+                                    <%= (sections && sections.cta && sections.cta.title) || t('become_teacher_title') %>
+                                </h3>
+                                <p class="mb-4 editable-inline"
+                                    data-section="cta"
+                                    data-field="content"
+                                    contenteditable="false"
+                                    onclick="enableInlineEdit(this)"
+                                    onblur="saveInlineEdit(this)"
+                                    onkeydown="handleInlineKeydown(event, this)">
+                                    <%= (sections && sections.cta && sections.cta.content) || t('become_teacher_text') %>
+                                </p>
+                                <a class="btn btn-primary py-3 px-5 editable-button" 
+                                   href="<%= (sections && sections.cta && sections.cta.buttonLink) || '' %>"
+                                   data-section="cta"
+                                   onclick="editButton(event, this)">
+                                    <span class="button-text"><%= (sections && sections.cta && sections.cta.buttonText) || t('get_started_now') %></span>
+                                    <i class="fa fa-arrow-right ms-2"></i>
+                                </a>
+                                <% } else { %>
+                                <h3 class="mb-4"><%= (sections && sections.cta && sections.cta.title) || t('become_teacher_title') %></h3>
+                                <p class="mb-4"><%= (sections && sections.cta && sections.cta.content) || t('become_teacher_text') %></p>
+                                <a class="btn btn-primary py-3 px-5" href="<%= (sections && sections.cta && sections.cta.buttonLink) || '' %>"><%= (sections && sections.cta && sections.cta.buttonText) || t('get_started_now') %><i class="fa fa-arrow-right ms-2"></i></a>
+                                <% } %>
                             </div>
                         </div>
                     </div>
@@ -287,253 +470,94 @@
 
 
         <!-- Classes Start -->
-        <div class="container-fluid py-5">
+        <div class="container-fluid py-5 section-edit-wrapper">
+            <% if (user && user.role === 'admin') { %>
+            <button class="section-edit-btn" onclick="openEditModal('classes', 'الدورات')" title="تعديل قسم الدورات">
+                <i class="fas fa-edit"></i>
+            </button>
+            <div class="edit-indicator"></div>
+            <% } %>
             <div class="container">
                 <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                    <h3 class="mb-3"><%= t('classes_view_title') %></h3>
-                    <p><%= t('classes_view_text') %></p>
+                    <% if (user && user.role === 'admin') { %>
+                    <h3 class="mb-3 editable-inline"
+                        data-section="classes"
+                        data-field="title"
+                        contenteditable="false"
+                        onclick="enableInlineEdit(this)"
+                        onblur="saveInlineEdit(this)"
+                        onkeydown="handleInlineKeydown(event, this)">
+                        <%= (sections && sections.classes && sections.classes.title) || t('classes_view_title') %>
+                    </h3>
+                    <p class="editable-inline"
+                        data-section="classes"
+                        data-field="content"
+                        contenteditable="false"
+                        onclick="enableInlineEdit(this)"
+                        onblur="saveInlineEdit(this)"
+                        onkeydown="handleInlineKeydown(event, this)">
+                        <%= (sections && sections.classes && sections.classes.content) || t('classes_view_text') %>
+                    </p>
+                    <% } else { %>
+                    <h3 class="mb-3"><%= (sections && sections.classes && sections.classes.title) || t('classes_view_title') %></h3>
+                    <p><%= (sections && sections.classes && sections.classes.content) || t('classes_view_text') %></p>
+                    <% } %>
                 </div>
                 <div class="row g-4">
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-                        <div class="classes-item">
-                            <div class="bg-light rounded-circle w-75 mx-auto p-3">
-                                <img class="img-fluid rounded-circle" src="img/classes-1.jpg" alt="">
-                            </div>
-                            <div class="bg-light rounded p-4 pt-5 mt-n5">
-                                <a class="d-block text-center h3 mt-3 mb-4" href="">Art & Drawing</a>
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center">
-                                        <img class="rounded-circle flex-shrink-0" src="img/user.jpg" alt="" style="width: 45px; height: 45px;">
-                                        <div class="ms-3">
-                                            <h6 class="text-primary mb-1">Jhon Doe</h6>
-                                            <small><%= t('teacher') %></small>
+                    <% if (courses && courses.length > 0) { %>
+                        <% courses.forEach((course, index) => { %>
+                            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="<%= 0.1 + (index % 3) * 0.2 %>s">
+                                <div class="classes-item">
+                                    <div class="bg-light rounded-circle w-75 mx-auto p-3">
+                                        <img class="img-fluid rounded-circle" src="<%= getImageUrl(course.coverImage) %>" alt="<%= course.title %>" style="width: 100%; height: 250px; object-fit: cover;">
+                                    </div>
+                                    <div class="bg-light rounded p-4 pt-5 mt-n5">
+                                        <a class="d-block text-center h3 mt-3 mb-4" href="/website-course/<%= course._id %>"><%= course.title %></a>
+                                        <div class="d-flex align-items-center justify-content-between mb-4">
+                                            <div class="d-flex align-items-center">
+                                                <img class="rounded-circle flex-shrink-0" src="img/user.jpg" alt="" style="width: 45px; height: 45px;">
+                                                <div class="ms-3">
+                                                    <h6 class="text-primary mb-1"><%= t('brand_name') %></h6>
+                                                    <small><%= t('teacher') %></small>
+                                                </div>
+                                            </div>
+                                            <% if (course.pricingOptions && course.pricingOptions.length > 0) { %>
+                                                <span class="bg-primary text-white rounded-pill py-2 px-3">$<%= course.pricingOptions[0].price %></span>
+                                            <% } %>
+                                        </div>
+                                        <div class="row g-1">
+                                            <div class="col-4">
+                                                <div class="border-top border-3 border-primary pt-2">
+                                                    <h6 class="text-primary mb-1"><%= t('course_level') %>:</h6>
+                                                    <small><%= course.level %></small>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="border-top border-3 border-success pt-2">
+                                                    <h6 class="text-success mb-1"><%= t('course_duration') %>:</h6>
+                                                    <% if (course.pricingOptions && course.pricingOptions.length > 0) { %>
+                                                        <small><%= course.pricingOptions[0].duration %> <%= t('course_minutes') %></small>
+                                                    <% } else { %>
+                                                        <small>-</small>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="border-top border-3 border-warning pt-2">
+                                                    <h6 class="text-warning mb-1"><%= t('course_sessions') %>:</h6>
+                                                    <small><%= t('live_sessions') %></small>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <span class="bg-primary text-white rounded-pill py-2 px-3" href="">$99</span>
                                 </div>
-                                <div class="row g-1">
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-primary pt-2">
-                                            <h6 class="text-primary mb-1"><%= t('class_age') %>:</h6>
-                                            <small>3-5 <%= t('years') %></small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-success pt-2">
-                                            <h6 class="text-success mb-1"><%= t('class_time') %>:</h6>
-                                            <small>9-10 AM</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-warning pt-2">
-                                            <h6 class="text-warning mb-1"><%= t('class_capacity') %>:</h6>
-                                            <small>30 <%= t('kids') %></small>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="col-12 text-center">
+                            <p><%= t('no_courses') %></p>
                         </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
-                        <div class="classes-item">
-                            <div class="bg-light rounded-circle w-75 mx-auto p-3">
-                                <img class="img-fluid rounded-circle" src="img/classes-2.jpg" alt="">
-                            </div>
-                            <div class="bg-light rounded p-4 pt-5 mt-n5">
-                                <a class="d-block text-center h3 mt-3 mb-4" href="">Color Management</a>
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center">
-                                        <img class="rounded-circle flex-shrink-0" src="img/user.jpg" alt="" style="width: 45px; height: 45px;">
-                                        <div class="ms-3">
-                                            <h6 class="text-primary mb-1">Jhon Doe</h6>
-                                            <small><%= t('teacher') %></small>
-                                        </div>
-                                    </div>
-                                    <span class="bg-primary text-white rounded-pill py-2 px-3" href="">$99</span>
-                                </div>
-                                <div class="row g-1">
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-primary pt-2">
-                                            <h6 class="text-primary mb-1"><%= t('class_age') %>:</h6>
-                                            <small>3-5 <%= t('years') %></small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-success pt-2">
-                                            <h6 class="text-success mb-1"><%= t('class_time') %>:</h6>
-                                            <small>9-10 AM</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-warning pt-2">
-                                            <h6 class="text-warning mb-1"><%= t('class_capacity') %>:</h6>
-                                            <small>30 <%= t('kids') %></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
-                        <div class="classes-item">
-                            <div class="bg-light rounded-circle w-75 mx-auto p-3">
-                                <img class="img-fluid rounded-circle" src="img/classes-3.jpg" alt="">
-                            </div>
-                            <div class="bg-light rounded p-4 pt-5 mt-n5">
-                                <a class="d-block text-center h3 mt-3 mb-4" href="">Athletic & Dance</a>
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center">
-                                        <img class="rounded-circle flex-shrink-0" src="img/user.jpg" alt="" style="width: 45px; height: 45px;">
-                                        <div class="ms-3">
-                                            <h6 class="text-primary mb-1">Jhon Doe</h6>
-                                            <small><%= t('teacher') %></small>
-                                        </div>
-                                    </div>
-                                    <span class="bg-primary text-white rounded-pill py-2 px-3" href="">$99</span>
-                                </div>
-                                <div class="row g-1">
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-primary pt-2">
-                                            <h6 class="text-primary mb-1"><%= t('class_age') %>:</h6>
-                                            <small>3-5 <%= t('years') %></small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-success pt-2">
-                                            <h6 class="text-success mb-1"><%= t('class_time') %>:</h6>
-                                            <small>9-10 AM</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-warning pt-2">
-                                            <h6 class="text-warning mb-1"><%= t('class_capacity') %>:</h6>
-                                            <small>30 <%= t('kids') %></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-                        <div class="classes-item">
-                            <div class="bg-light rounded-circle w-75 mx-auto p-3">
-                                <img class="img-fluid rounded-circle" src="img/classes-4.jpg" alt="">
-                            </div>
-                            <div class="bg-light rounded p-4 pt-5 mt-n5">
-                                <a class="d-block text-center h3 mt-3 mb-4" href="">Language & Speaking</a>
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center">
-                                        <img class="rounded-circle flex-shrink-0" src="img/user.jpg" alt="" style="width: 45px; height: 45px;">
-                                        <div class="ms-3">
-                                            <h6 class="text-primary mb-1">Jhon Doe</h6>
-                                            <small><%= t('teacher') %></small>
-                                        </div>
-                                    </div>
-                                    <span class="bg-primary text-white rounded-pill py-2 px-3" href="">$99</span>
-                                </div>
-                                <div class="row g-1">
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-primary pt-2">
-                                            <h6 class="text-primary mb-1"><%= t('class_age') %>:</h6>
-                                            <small>3-5 <%= t('years') %></small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-success pt-2">
-                                            <h6 class="text-success mb-1"><%= t('class_time') %>:</h6>
-                                            <small>9-10 AM</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-warning pt-2">
-                                            <h6 class="text-warning mb-1"><%= t('class_capacity') %>:</h6>
-                                            <small>30 <%= t('kids') %></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
-                        <div class="classes-item">
-                            <div class="bg-light rounded-circle w-75 mx-auto p-3">
-                                <img class="img-fluid rounded-circle" src="img/classes-5.jpg" alt="">
-                            </div>
-                            <div class="bg-light rounded p-4 pt-5 mt-n5">
-                                <a class="d-block text-center h3 mt-3 mb-4" href="">Religion & History</a>
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center">
-                                        <img class="rounded-circle flex-shrink-0" src="img/user.jpg" alt="" style="width: 45px; height: 45px;">
-                                        <div class="ms-3">
-                                            <h6 class="text-primary mb-1">Jhon Doe</h6>
-                                            <small><%= t('teacher') %></small>
-                                        </div>
-                                    </div>
-                                    <span class="bg-primary text-white rounded-pill py-2 px-3" href="">$99</span>
-                                </div>
-                                <div class="row g-1">
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-primary pt-2">
-                                            <h6 class="text-primary mb-1"><%= t('class_age') %>:</h6>
-                                            <small>3-5 <%= t('years') %></small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-success pt-2">
-                                            <h6 class="text-success mb-1"><%= t('class_time') %>:</h6>
-                                            <small>9-10 AM</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-warning pt-2">
-                                            <h6 class="text-warning mb-1"><%= t('class_capacity') %>:</h6>
-                                            <small>30 <%= t('kids') %></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
-                        <div class="classes-item">
-                            <div class="bg-light rounded-circle w-75 mx-auto p-3">
-                                <img class="img-fluid rounded-circle" src="img/classes-6.jpg" alt="">
-                            </div>
-                            <div class="bg-light rounded p-4 pt-5 mt-n5">
-                                <a class="d-block text-center h3 mt-3 mb-4" href="">General Knowledge</a>
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center">
-                                        <img class="rounded-circle flex-shrink-0" src="img/user.jpg" alt="" style="width: 45px; height: 45px;">
-                                        <div class="ms-3">
-                                            <h6 class="text-primary mb-1">Jhon Doe</h6>
-                                            <small><%= t('teacher') %></small>
-                                        </div>
-                                    </div>
-                                    <span class="bg-primary text-white rounded-pill py-2 px-3" href="">$99</span>
-                                </div>
-                                <div class="row g-1">
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-primary pt-2">
-                                            <h6 class="text-primary mb-1"><%= t('class_age') %>:</h6>
-                                            <small>3-5 <%= t('years') %></small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-success pt-2">
-                                            <h6 class="text-success mb-1"><%= t('class_time') %>:</h6>
-                                            <small>9-10 AM</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="border-top border-3 border-warning pt-2">
-                                            <h6 class="text-warning mb-1"><%= t('class_capacity') %>:</h6>
-                                            <small>30 <%= t('kids') %></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <% } %>
                 </div>
             </div>
         </div>
@@ -544,42 +568,80 @@
         <div class="container-fluid py-5">
             <div class="container">
                 <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                    <h3 class="mb-3"><%= t('pricing_title') %></h3>
-                    <p><%= t('pricing_text') %></p>
+                    <% if (user && user.role === 'admin') { %>
+                    <h3 class="mb-3 editable-inline" data-section="pricing" data-field="title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.title) || t('pricing_title') %></h3>
+                    <p class="editable-inline" data-section="pricing" data-field="content" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.content) || t('pricing_text') %></p>
+                    <% } else { %>
+                    <h3 class="mb-3"><%= (sections && sections.pricing && sections.pricing.title) || t('pricing_title') %></h3>
+                    <p><%= (sections && sections.pricing && sections.pricing.content) || t('pricing_text') %></p>
+                    <% } %>
                 </div>
                 <div class="row g-4">
                     <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
                         <div class="bg-light rounded p-4 text-center">
-                            <h3 class="mb-3"><%= t('pricing_basic') %></h3>
-                            <h3 class="display-4 mb-3">$49<small class="align-top fw-normal" style="font-size: 22px; line-height: 45px;"><%= t('per_month') %></small></h3>
+                            <% if (user && user.role === 'admin') { %>
+                            <h3 class="mb-3 editable-inline" data-section="pricing" data-field="basic_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.basic_title) || t('pricing_basic') %></h3>
+                            <h3 class="display-4 mb-3">$<span class="editable-inline" data-section="pricing" data-field="basic_price" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.basic_price) || '49' %></span><small class="align-top fw-normal" style="font-size: 22px; line-height: 45px;"><%= t('per_month') %></small></h3>
+                            <% } else { %>
+                            <h3 class="mb-3"><%= (sections && sections.pricing && sections.pricing.basic_title) || t('pricing_basic') %></h3>
+                            <h3 class="display-4 mb-3">$<%= (sections && sections.pricing && sections.pricing.basic_price) || '49' %><small class="align-top fw-normal" style="font-size: 22px; line-height: 45px;"><%= t('per_month') %></small></h3>
+                            <% } %>
                             <ul class="list-unstyled mb-4">
-                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= t('daily_care') %></li>
-                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= t('basic_learning') %></li>
-                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= t('outdoor_games') %></li>
+                                <% if (user && user.role === 'admin') { %>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><span class="editable-inline" data-section="pricing" data-field="basic_feat_1" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.basic_feat_1) || t('daily_care') %></span></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><span class="editable-inline" data-section="pricing" data-field="basic_feat_2" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.basic_feat_2) || t('basic_learning') %></span></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><span class="editable-inline" data-section="pricing" data-field="basic_feat_3" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.basic_feat_3) || t('outdoor_games') %></span></li>
+                                <% } else { %>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= (sections && sections.pricing && sections.pricing.basic_feat_1) || t('daily_care') %></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= (sections && sections.pricing && sections.pricing.basic_feat_2) || t('basic_learning') %></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= (sections && sections.pricing && sections.pricing.basic_feat_3) || t('outdoor_games') %></li>
+                                <% } %>
                             </ul>
                             <a href="" class="btn btn-primary rounded-pill py-2 px-4"><%= t('enroll_now') %></a>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
                         <div class="bg-light rounded p-4 text-center">
-                            <h3 class="mb-3"><%= t('pricing_standard') %></h3>
-                            <h3 class="display-4 mb-3">$99<small class="align-top fw-normal" style="font-size: 22px; line-height: 45px;"><%= t('per_month') %></small></h3>
+                            <% if (user && user.role === 'admin') { %>
+                            <h3 class="mb-3 editable-inline" data-section="pricing" data-field="standard_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.standard_title) || t('pricing_standard') %></h3>
+                            <h3 class="display-4 mb-3">$<span class="editable-inline" data-section="pricing" data-field="standard_price" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.standard_price) || '99' %></span><small class="align-top fw-normal" style="font-size: 22px; line-height: 45px;"><%= t('per_month') %></small></h3>
+                            <% } else { %>
+                            <h3 class="mb-3"><%= (sections && sections.pricing && sections.pricing.standard_title) || t('pricing_standard') %></h3>
+                            <h3 class="display-4 mb-3">$<%= (sections && sections.pricing && sections.pricing.standard_price) || '99' %><small class="align-top fw-normal" style="font-size: 22px; line-height: 45px;"><%= t('per_month') %></small></h3>
+                            <% } %>
                             <ul class="list-unstyled mb-4">
-                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= t('daily_care') %></li>
-                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= t('advanced_learning') %></li>
-                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= t('art_music') %></li>
+                                <% if (user && user.role === 'admin') { %>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><span class="editable-inline" data-section="pricing" data-field="standard_feat_1" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.standard_feat_1) || t('daily_care') %></span></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><span class="editable-inline" data-section="pricing" data-field="standard_feat_2" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.standard_feat_2) || t('advanced_learning') %></span></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><span class="editable-inline" data-section="pricing" data-field="standard_feat_3" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.standard_feat_3) || t('art_music') %></span></li>
+                                <% } else { %>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= (sections && sections.pricing && sections.pricing.standard_feat_1) || t('daily_care') %></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= (sections && sections.pricing && sections.pricing.standard_feat_2) || t('advanced_learning') %></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= (sections && sections.pricing && sections.pricing.standard_feat_3) || t('art_music') %></li>
+                                <% } %>
                             </ul>
                             <a href="" class="btn btn-primary rounded-pill py-2 px-4"><%= t('enroll_now') %></a>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
                         <div class="bg-light rounded p-4 text-center">
-                            <h3 class="mb-3"><%= t('pricing_premium') %></h3>
-                            <h3 class="display-4 mb-3">$149<small class="align-top fw-normal" style="font-size: 22px; line-height: 45px;"><%= t('per_month') %></small></h3>
+                            <% if (user && user.role === 'admin') { %>
+                            <h3 class="mb-3 editable-inline" data-section="pricing" data-field="premium_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.premium_title) || t('pricing_premium') %></h3>
+                            <h3 class="display-4 mb-3">$<span class="editable-inline" data-section="pricing" data-field="premium_price" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.premium_price) || '149' %></span><small class="align-top fw-normal" style="font-size: 22px; line-height: 45px;"><%= t('per_month') %></small></h3>
+                            <% } else { %>
+                            <h3 class="mb-3"><%= (sections && sections.pricing && sections.pricing.premium_title) || t('pricing_premium') %></h3>
+                            <h3 class="display-4 mb-3">$<%= (sections && sections.pricing && sections.pricing.premium_price) || '149' %><small class="align-top fw-normal" style="font-size: 22px; line-height: 45px;"><%= t('per_month') %></small></h3>
+                            <% } %>
                             <ul class="list-unstyled mb-4">
-                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= t('extended_hours') %></li>
-                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= t('personal_tutor') %></li>
-                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= t('all_activities') %></li>
+                                <% if (user && user.role === 'admin') { %>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><span class="editable-inline" data-section="pricing" data-field="premium_feat_1" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.premium_feat_1) || t('extended_hours') %></span></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><span class="editable-inline" data-section="pricing" data-field="premium_feat_2" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.premium_feat_2) || t('personal_tutor') %></span></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><span class="editable-inline" data-section="pricing" data-field="premium_feat_3" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.pricing && sections.pricing.premium_feat_3) || t('all_activities') %></span></li>
+                                <% } else { %>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= (sections && sections.pricing && sections.pricing.premium_feat_1) || t('extended_hours') %></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= (sections && sections.pricing && sections.pricing.premium_feat_2) || t('personal_tutor') %></li>
+                                <li class="py-2"><i class="fa fa-check text-primary me-3"></i><%= (sections && sections.pricing && sections.pricing.premium_feat_3) || t('all_activities') %></li>
+                                <% } %>
                             </ul>
                             <a href="" class="btn btn-primary rounded-pill py-2 px-4"><%= t('enroll_now') %></a>
                         </div>
@@ -597,7 +659,11 @@
                     <div class="row g-0">
                         <div class="col-lg-6 wow fadeIn" data-wow-delay="0.1s">
                             <div class="h-100 d-flex flex-column justify-content-center p-5">
-                                <h3 class="mb-4"><%= t('appointment_title') %></h3>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="mb-4 editable-inline" data-section="appointment" data-field="title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.appointment && sections.appointment.title) || t('appointment_title') %></h3>
+                                <% } else { %>
+                                <h3 class="mb-4"><%= (sections && sections.appointment && sections.appointment.title) || t('appointment_title') %></h3>
+                                <% } %>
                                 <form>
                                     <div class="row g-3">
                                         <div class="col-sm-6">
@@ -653,16 +719,26 @@
         <div class="container-fluid py-5">
             <div class="container">
                 <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                    <h3 class="mb-3"><%= t('team_title') %></h3>
-                    <p><%= t('team_text') %></p>
+                    <% if (user && user.role === 'admin') { %>
+                    <h3 class="mb-3 editable-inline" data-section="team" data-field="title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.team && sections.team.title) || t('team_title') %></h3>
+                    <p class="editable-inline" data-section="team" data-field="content" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.team && sections.team.content) || t('team_text') %></p>
+                    <% } else { %>
+                    <h3 class="mb-3"><%= (sections && sections.team && sections.team.title) || t('team_title') %></h3>
+                    <p><%= (sections && sections.team && sections.team.content) || t('team_text') %></p>
+                    <% } %>
                 </div>
                 <div class="row g-4">
                     <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
                         <div class="team-item position-relative">
                             <img class="img-fluid rounded-circle w-75" src="img/team-1.jpg" alt="">
                             <div class="team-text">
-                                <h3><%= t('teacher_1_name') %></h3>
-                                <p><%= t('teacher_1_title') %></p>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="editable-inline" data-section="team" data-field="member1_name" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.team && sections.team.member1_name) || t('teacher_1_name') %></h3>
+                                <p class="editable-inline" data-section="team" data-field="member1_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.team && sections.team.member1_title) || t('teacher_1_title') %></p>
+                                <% } else { %>
+                                <h3><%= (sections && sections.team && sections.team.member1_name) || t('teacher_1_name') %></h3>
+                                <p><%= (sections && sections.team && sections.team.member1_title) || t('teacher_1_title') %></p>
+                                <% } %>
                                 <div class="d-flex align-items-center">
                                     <a class="btn btn-square btn-primary mx-1" href=""><i class="fab fa-facebook-f"></i></a>
                                     <a class="btn btn-square btn-primary  mx-1" href=""><i class="fab fa-twitter"></i></a>
@@ -675,8 +751,13 @@
                         <div class="team-item position-relative">
                             <img class="img-fluid rounded-circle w-75" src="img/team-2.jpg" alt="">
                             <div class="team-text">
-                                <h3><%= t('teacher_2_name') %></h3>
-                                <p><%= t('teacher_2_title') %></p>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="editable-inline" data-section="team" data-field="member2_name" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.team && sections.team.member2_name) || t('teacher_2_name') %></h3>
+                                <p class="editable-inline" data-section="team" data-field="member2_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.team && sections.team.member2_title) || t('teacher_2_title') %></p>
+                                <% } else { %>
+                                <h3><%= (sections && sections.team && sections.team.member2_name) || t('teacher_2_name') %></h3>
+                                <p><%= (sections && sections.team && sections.team.member2_title) || t('teacher_2_title') %></p>
+                                <% } %>
                                 <div class="d-flex align-items-center">
                                     <a class="btn btn-square btn-primary mx-1" href=""><i class="fab fa-facebook-f"></i></a>
                                     <a class="btn btn-square btn-primary  mx-1" href=""><i class="fab fa-twitter"></i></a>
@@ -689,8 +770,13 @@
                         <div class="team-item position-relative">
                             <img class="img-fluid rounded-circle w-75" src="img/team-3.jpg" alt="">
                             <div class="team-text">
-                                <h3><%= t('teacher_3_name') %></h3>
-                                <p><%= t('teacher_3_title') %></p>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="editable-inline" data-section="team" data-field="member3_name" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.team && sections.team.member3_name) || t('teacher_3_name') %></h3>
+                                <p class="editable-inline" data-section="team" data-field="member3_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.team && sections.team.member3_title) || t('teacher_3_title') %></p>
+                                <% } else { %>
+                                <h3><%= (sections && sections.team && sections.team.member3_name) || t('teacher_3_name') %></h3>
+                                <p><%= (sections && sections.team && sections.team.member3_title) || t('teacher_3_title') %></p>
+                                <% } %>
                                 <div class="d-flex align-items-center">
                                     <a class="btn btn-square btn-primary mx-1" href=""><i class="fab fa-facebook-f"></i></a>
                                     <a class="btn btn-square btn-primary  mx-1" href=""><i class="fab fa-twitter"></i></a>
@@ -709,8 +795,13 @@
         <div class="container-fluid py-5">
             <div class="container">
                 <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                    <h3 class="mb-3"><%= t('gallery_title') %></h3>
-                    <p><%= t('gallery_text') %></p>
+                    <% if (user && user.role === 'admin') { %>
+                    <h3 class="mb-3 editable-inline" data-section="gallery" data-field="title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.gallery && sections.gallery.title) || t('gallery_title') %></h3>
+                    <p class="editable-inline" data-section="gallery" data-field="content" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.gallery && sections.gallery.content) || t('gallery_text') %></p>
+                    <% } else { %>
+                    <h3 class="mb-3"><%= (sections && sections.gallery && sections.gallery.title) || t('gallery_title') %></h3>
+                    <p><%= (sections && sections.gallery && sections.gallery.content) || t('gallery_text') %></p>
+                    <% } %>
                 </div>
                 <div class="row g-2">
                     <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
@@ -742,39 +833,71 @@
         <div class="container-fluid py-5">
             <div class="container">
                 <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                    <h3 class="mb-3"><%= t('testimonial_title') %></h3>
-                    <p><%= t('testimonial_text') %></p>
+                    <% if (user && user.role === 'admin') { %>
+                    <h3 class="mb-3 editable-inline" data-section="testimonial" data-field="title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.title) || t('testimonial_title') %></h3>
+                    <p class="editable-inline" data-section="testimonial" data-field="content" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.content) || t('testimonial_text') %></p>
+                    <% } else { %>
+                    <h3 class="mb-3"><%= (sections && sections.testimonial && sections.testimonial.title) || t('testimonial_title') %></h3>
+                    <p><%= (sections && sections.testimonial && sections.testimonial.content) || t('testimonial_text') %></p>
+                    <% } %>
                 </div>
                 <div class="owl-carousel testimonial-carousel wow fadeInUp" data-wow-delay="0.1s">
                     <div class="testimonial-item bg-light rounded p-5">
-                        <p class="fs-5"><%= t('testimonial_1') %></p>
+                        <% if (user && user.role === 'admin') { %>
+                        <p class="fs-5 editable-inline" data-section="testimonial" data-field="item1_text" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.item1_text) || t('testimonial_1') %></p>
+                        <% } else { %>
+                        <p class="fs-5"><%= (sections && sections.testimonial && sections.testimonial.item1_text) || t('testimonial_1') %></p>
+                        <% } %>
                         <div class="d-flex align-items-center bg-white me-n5" style="border-radius: 50px 0 0 50px;">
                             <img class="img-fluid flex-shrink-0 rounded-circle" src="img/testimonial-1.jpg" style="width: 90px; height: 90px;">
                             <div class="ps-3">
-                                <h3 class="mb-1"><%= t('parent_1_name') %></h3>
-                                <span><%= t('parent_1_title') %></span>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="mb-1 editable-inline" data-section="testimonial" data-field="item1_name" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.item1_name) || t('parent_1_name') %></h3>
+                                <span class="editable-inline" data-section="testimonial" data-field="item1_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.item1_title) || t('parent_1_title') %></span>
+                                <% } else { %>
+                                <h3 class="mb-1"><%= (sections && sections.testimonial && sections.testimonial.item1_name) || t('parent_1_name') %></h3>
+                                <span><%= (sections && sections.testimonial && sections.testimonial.item1_title) || t('parent_1_title') %></span>
+                                <% } %>
                             </div>
                             <i class="fa fa-quote-right fa-3x text-primary ms-auto d-none d-sm-flex"></i>
                         </div>
                     </div>
                     <div class="testimonial-item bg-light rounded p-5">
-                        <p class="fs-5"><%= t('testimonial_2') %></p>
+                        <% if (user && user.role === 'admin') { %>
+                        <p class="fs-5 editable-inline" data-section="testimonial" data-field="item2_text" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.item2_text) || t('testimonial_2') %></p>
+                        <% } else { %>
+                        <p class="fs-5"><%= (sections && sections.testimonial && sections.testimonial.item2_text) || t('testimonial_2') %></p>
+                        <% } %>
                         <div class="d-flex align-items-center bg-white me-n5" style="border-radius: 50px 0 0 50px;">
                             <img class="img-fluid flex-shrink-0 rounded-circle" src="img/testimonial-2.jpg" style="width: 90px; height: 90px;">
                             <div class="ps-3">
-                                <h3 class="mb-1"><%= t('parent_2_name') %></h3>
-                                <span><%= t('parent_2_title') %></span>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="mb-1 editable-inline" data-section="testimonial" data-field="item2_name" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.item2_name) || t('parent_2_name') %></h3>
+                                <span class="editable-inline" data-section="testimonial" data-field="item2_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.item2_title) || t('parent_2_title') %></span>
+                                <% } else { %>
+                                <h3 class="mb-1"><%= (sections && sections.testimonial && sections.testimonial.item2_name) || t('parent_2_name') %></h3>
+                                <span><%= (sections && sections.testimonial && sections.testimonial.item2_title) || t('parent_2_title') %></span>
+                                <% } %>
                             </div>
                             <i class="fa fa-quote-right fa-3x text-primary ms-auto d-none d-sm-flex"></i>
                         </div>
                     </div>
                     <div class="testimonial-item bg-light rounded p-5">
-                        <p class="fs-5"><%= t('testimonial_3') %></p>
+                        <% if (user && user.role === 'admin') { %>
+                        <p class="fs-5 editable-inline" data-section="testimonial" data-field="item3_text" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.item3_text) || t('testimonial_3') %></p>
+                        <% } else { %>
+                        <p class="fs-5"><%= (sections && sections.testimonial && sections.testimonial.item3_text) || t('testimonial_3') %></p>
+                        <% } %>
                         <div class="d-flex align-items-center bg-white me-n5" style="border-radius: 50px 0 0 50px;">
                             <img class="img-fluid flex-shrink-0 rounded-circle" src="img/testimonial-3.jpg" style="width: 90px; height: 90px;">
                             <div class="ps-3">
-                                <h3 class="mb-1"><%= t('parent_3_name') %></h3>
-                                <span><%= t('parent_3_title') %></span>
+                                <% if (user && user.role === 'admin') { %>
+                                <h3 class="mb-1 editable-inline" data-section="testimonial" data-field="item3_name" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.item3_name) || t('parent_3_name') %></h3>
+                                <span class="editable-inline" data-section="testimonial" data-field="item3_title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.testimonial && sections.testimonial.item3_title) || t('parent_3_title') %></span>
+                                <% } else { %>
+                                <h3 class="mb-1"><%= (sections && sections.testimonial && sections.testimonial.item3_name) || t('parent_3_name') %></h3>
+                                <span><%= (sections && sections.testimonial && sections.testimonial.item3_title) || t('parent_3_title') %></span>
+                                <% } %>
                             </div>
                             <i class="fa fa-quote-right fa-3x text-primary ms-auto d-none d-sm-flex"></i>
                         </div>
@@ -789,8 +912,13 @@
         <div class="container-fluid py-5">
             <div class="container">
                 <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                    <h3 class="mb-3"><%= t('faq_title') %></h3>
-                    <p><%= t('faq_text') %></p>
+                    <% if (user && user.role === 'admin') { %>
+                    <h3 class="mb-3 editable-inline" data-section="faq" data-field="title" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.faq && sections.faq.title) || t('faq_title') %></h3>
+                    <p class="editable-inline" data-section="faq" data-field="content" contenteditable="false" onclick="enableInlineEdit(this)"><%= (sections && sections.faq && sections.faq.content) || t('faq_text') %></p>
+                    <% } else { %>
+                    <h3 class="mb-3"><%= (sections && sections.faq && sections.faq.title) || t('faq_title') %></h3>
+                    <p><%= (sections && sections.faq && sections.faq.content) || t('faq_text') %></p>
+                    <% } %>
                 </div>
                 <div class="accordion" id="accordionExample">
                     <div class="accordion-item wow fadeInUp" data-wow-delay="0.1s">
@@ -837,55 +965,108 @@
 
 
         <!-- Blog Start -->
-        <div class="container-fluid py-5">
+        <div class="container-fluid py-5 section-edit-wrapper">
+            <% if (user && user.role === 'admin') { %>
+            <button class="section-edit-btn" onclick="openEditModal('blog', 'المدونة')" title="تعديل قسم المدونة">
+                <i class="fas fa-edit"></i>
+            </button>
+            <div class="edit-indicator"></div>
+            <% } %>
             <div class="container">
                 <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-                    <h3 class="mb-3"><%= t('blog_title') %></h3>
-                    <p><%= t('blog_text') %></p>
+                    <% if (user && user.role === 'admin') { %>
+                    <h3 class="mb-3 editable-inline"
+                        data-section="blog"
+                        data-field="title"
+                        contenteditable="false"
+                        onclick="enableInlineEdit(this)"
+                        onblur="saveInlineEdit(this)"
+                        onkeydown="handleInlineKeydown(event, this)">
+                        <%= (sections && sections.blog && sections.blog.title) || t('blog_title') %>
+                    </h3>
+                    <p class="editable-inline"
+                        data-section="blog"
+                        data-field="content"
+                        contenteditable="false"
+                        onclick="enableInlineEdit(this)"
+                        onblur="saveInlineEdit(this)"
+                        onkeydown="handleInlineKeydown(event, this)">
+                        <%= (sections && sections.blog && sections.blog.content) || t('blog_text') %>
+                    </p>
+                    <% } else { %>
+                    <h3 class="mb-3"><%= (sections && sections.blog && sections.blog.title) || t('blog_title') %></h3>
+                    <p><%= (sections && sections.blog && sections.blog.content) || t('blog_text') %></p>
+                    <% } %>
                 </div>
                 <div class="row g-4">
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-                        <div class="bg-light rounded p-4">
-                            <div class="mb-4">
-                                <img class="img-fluid rounded w-100" src="img/classes-1.jpg" alt="">
+                    <% if (blogPosts && blogPosts.length > 0) { %>
+                        <% blogPosts.forEach((post, index) => { %>
+                            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="<%= (index + 1) * 0.2 %>s">
+                                <div class="bg-light rounded p-4 h-100">
+                                    <div class="mb-4">
+                                        <% if (post.image) { %>
+                                            <img class="img-fluid rounded w-100" src="<%= getImageUrl(post.image) %>" alt="<%= post.title %>" style="height: 200px; object-fit: cover;">
+                                        <% } else { %>
+                                            <div class="d-flex align-items-center justify-content-center rounded" style="height: 200px; background: linear-gradient(135deg, #FFF0ED, #ffd9cc);">
+                                                <i class="fas fa-newspaper text-primary opacity-50" style="font-size: 3rem;"></i>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <small class="text-primary"><i class="fa fa-user me-2"></i><%= post.author || 'Admin' %></small>
+                                        <small class="text-primary"><i class="fa fa-calendar me-2"></i><%= new Date(post.createdAt).toLocaleDateString('ar-SA') %></small>
+                                    </div>
+                                    <a class="h4 d-block mb-3" href="#"><%= post.title %></a>
+                                    <p><%= post.summary || (post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content) %></p>
+                                    <a href="#" class="btn btn-primary rounded-pill py-2 px-4"><%= t('read_more') %></a>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between mb-3">
-                                <small class="text-primary"><i class="fa fa-user me-2"></i>Admin</small>
-                                <small class="text-primary"><i class="fa fa-calendar me-2"></i>01 Jan, 2045</small>
+                        <% }); %>
+                    <% } else { %>
+                        <!-- Fallback static blog posts if no dynamic content -->
+                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                            <div class="bg-light rounded p-4">
+                                <div class="mb-4">
+                                    <img class="img-fluid rounded w-100" src="img/classes-1.jpg" alt="">
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <small class="text-primary"><i class="fa fa-user me-2"></i>Admin</small>
+                                    <small class="text-primary"><i class="fa fa-calendar me-2"></i>01 Jan, 2045</small>
+                                </div>
+                                <a class="h4 d-block mb-3" href="">10 Tips for Early Childhood Development</a>
+                                <p>Read about how to support your child's growth through play, nutrition, and positive reinforcement.</p>
+                                <a href="" class="btn btn-primary rounded-pill py-2 px-4">Read More</a>
                             </div>
-                            <a class="h4 d-block mb-3" href="">10 Tips for Early Childhood Development</a>
-                            <p>Read about how to support your child's growth through play, nutrition, and positive reinforcement.</p>
-                            <a href="" class="btn btn-primary rounded-pill py-2 px-4">Read More</a>
                         </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
-                        <div class="bg-light rounded p-4">
-                            <div class="mb-4">
-                                <img class="img-fluid rounded w-100" src="img/classes-2.jpg" alt="">
+                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
+                            <div class="bg-light rounded p-4">
+                                <div class="mb-4">
+                                    <img class="img-fluid rounded w-100" src="img/classes-2.jpg" alt="">
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <small class="text-primary"><i class="fa fa-user me-2"></i>Admin</small>
+                                    <small class="text-primary"><i class="fa fa-calendar me-2"></i>01 Jan, 2045</small>
+                                </div>
+                                <a class="h4 d-block mb-3" href="">Why Play is Important for Learning</a>
+                                <p>Discover the benefits of play-based learning and how it enhances cognitive and social skills in young children.</p>
+                                <a href="" class="btn btn-primary rounded-pill py-2 px-4">Read More</a>
                             </div>
-                            <div class="d-flex justify-content-between mb-3">
-                                <small class="text-primary"><i class="fa fa-user me-2"></i>Admin</small>
-                                <small class="text-primary"><i class="fa fa-calendar me-2"></i>01 Jan, 2045</small>
-                            </div>
-                            <a class="h4 d-block mb-3" href="">Why Play is Important for Learning</a>
-                            <p>Discover the benefits of play-based learning and how it enhances cognitive and social skills in young children.</p>
-                            <a href="" class="btn btn-primary rounded-pill py-2 px-4">Read More</a>
                         </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
-                        <div class="bg-light rounded p-4">
-                            <div class="mb-4">
-                                <img class="img-fluid rounded w-100" src="img/classes-3.jpg" alt="">
+                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
+                            <div class="bg-light rounded p-4">
+                                <div class="mb-4">
+                                    <img class="img-fluid rounded w-100" src="img/classes-3.jpg" alt="">
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <small class="text-primary"><i class="fa fa-user me-2"></i>Admin</small>
+                                    <small class="text-primary"><i class="fa fa-calendar me-2"></i>01 Jan, 2045</small>
+                                </div>
+                                <a class="h4 d-block mb-3" href="">Preparing Your Child for First Grade</a>
+                                <p>Essential tips and activities to help your child transition smoothly from kindergarten to primary school.</p>
+                                <a href="" class="btn btn-primary rounded-pill py-2 px-4">Read More</a>
                             </div>
-                            <div class="d-flex justify-content-between mb-3">
-                                <small class="text-primary"><i class="fa fa-user me-2"></i>Admin</small>
-                                <small class="text-primary"><i class="fa fa-calendar me-2"></i>01 Jan, 2045</small>
-                            </div>
-                            <a class="h4 d-block mb-3" href="">Preparing Your Child for First Grade</a>
-                            <p>Essential tips and activities to help your child transition smoothly from kindergarten to primary school.</p>
-                            <a href="" class="btn btn-primary rounded-pill py-2 px-4">Read More</a>
                         </div>
-                    </div>
+                    <% } %>
                 </div>
             </div>
         </div>
@@ -893,14 +1074,41 @@
 
 
         <!-- Footer Start -->
-        <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5 wow fadeIn" data-wow-delay="0.1s">
+        <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5 wow fadeIn section-edit-wrapper" data-wow-delay="0.1s">
+            <% if (user && user.role === 'admin') { %>
+            <button class="section-edit-btn" onclick="openEditModal('contact', 'التواصل')" title="تعديل معلومات التواصل">
+                <i class="fas fa-edit"></i>
+            </button>
+            <div class="edit-indicator"></div>
+            <% } %>
             <div class="container py-5">
                 <div class="row g-5">
                     <div class="col-lg-3 col-md-6">
-                        <h3 class="text-white mb-4"><%= t('get_in_touch') %></h3>
-                        <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>123 Street, New York, USA</p>
-                        <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>+012 345 67890</p>
-                        <p class="mb-2"><i class="fa fa-envelope me-3"></i>info@example.com</p>
+                        <% if (user && user.role === 'admin') { %>
+                        <h3 class="text-white mb-4 editable-inline"
+                            data-section="contact"
+                            data-field="title"
+                            contenteditable="false"
+                            onclick="enableInlineEdit(this)"
+                            onblur="saveInlineEdit(this)"
+                            onkeydown="handleInlineKeydown(event, this)">
+                            <%= (sections && sections.contact && sections.contact.title) || t('get_in_touch') %>
+                        </h3>
+                        <p class="mb-2 editable-inline"
+                           data-section="contact"
+                           data-field="content"
+                           contenteditable="false"
+                           onclick="enableInlineEdit(this)"
+                           onblur="saveInlineEdit(this)"
+                           onkeydown="handleInlineKeydown(event, this)">
+                           <i class="fa fa-map-marker-alt me-3"></i><%= (sections && sections.contact && sections.contact.content) || '123 Street, New York, USA' %>
+                        </p>
+                        <% } else { %>
+                        <h3 class="text-white mb-4"><%= (sections && sections.contact && sections.contact.title) || t('get_in_touch') %></h3>
+                        <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i><%= (sections && sections.contact && sections.contact.content) || '123 Street, New York, USA' %></p>
+                        <% } %>
+                        <p class="mb-2"><i class="fa fa-phone-alt me-3"></i><%= (settings && settings.academyPhone) || '+012 345 67890' %></p>
+                        <p class="mb-2"><i class="fa fa-envelope me-3"></i><%= (settings && settings.academyEmail) || 'info@example.com' %></p>
                         <div class="d-flex pt-2">
                             <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-twitter"></i></a>
                             <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-facebook-f"></i></a>
@@ -994,6 +1202,570 @@
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+
+    <!-- Website Builder Styles -->
+    <style>
+        /* Inline Editable Elements */
+        .editable-inline {
+            position: relative;
+            cursor: text;
+            transition: all 0.3s;
+            border-radius: 8px;
+        }
+        
+        .builder-active .editable-inline:hover {
+            outline: 2px dashed #FE5D37;
+            outline-offset: 8px;
+            background: rgba(254, 93, 55, 0.08);
+        }
+        
+        .editable-inline[contenteditable="true"] {
+            outline: 3px solid #FE5D37 !important;
+            outline-offset: 8px;
+            background: rgba(254, 93, 55, 0.15) !important;
+            animation: pulse-edit 1.5s infinite;
+        }
+        
+        @keyframes pulse-edit {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(254, 93, 55, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(254, 93, 55, 0); }
+        }
+        
+        /* Edit Indicator */
+        .builder-active .editable-inline::before {
+            content: '✏️ اضغط للتعديل';
+            position: absolute;
+            top: -30px;
+            left: 0;
+            background: rgba(30, 30, 30, 0.95);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 100;
+            white-space: nowrap;
+        }
+        
+        .builder-active .editable-inline:hover::before {
+            opacity: 1;
+            top: -35px;
+        }
+        
+        .editable-inline[contenteditable="true"]::before {
+            content: '✅ جاري التحرير - اضغط خارج العنصر للحفظ';
+            background: linear-gradient(135deg, #22c55e, #4ade80);
+            opacity: 1 !important;
+        }
+        
+        /* Editable Button */
+        .editable-button {
+            position: relative;
+        }
+        
+        .builder-active .editable-button:hover {
+            outline: 2px dashed #FE5D37;
+            outline-offset: 4px;
+        }
+        
+        .builder-active .editable-button::after {
+            content: '⚙️';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #FE5D37;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .builder-active .editable-button:hover::after {
+            display: flex;
+        }
+        
+        /* Builder Toolbar */
+        .website-builder-toolbar {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 9999;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .builder-toggle-btn {
+            background: linear-gradient(135deg, #FE5D37, #ff8a6c);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(254, 93, 55, 0.4);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .builder-toggle-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(254, 93, 55, 0.5);
+        }
+        
+        .builder-toggle-btn.active {
+            background: linear-gradient(135deg, #22c55e, #4ade80);
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+        }
+        
+        .builder-toggle-btn.active:hover {
+            box-shadow: 0 6px 25px rgba(34, 197, 94, 0.5);
+        }
+        
+        /* Save Indicator */
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #22c55e, #4ade80);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        
+        .save-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Button Edit Modal */
+        .button-edit-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            width: 90%;
+            max-width: 500px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+        
+        .button-edit-modal.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .modal-backdrop-inline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+        
+        .modal-backdrop-inline.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+    </style>
+
+    <!-- Website Builder Modals & Script -->
+    <!-- Save Indicator -->
+    <div class="save-indicator" id="saveIndicator">
+        <i class="fas fa-check-circle me-2"></i>
+        <span>تم الحفظ!</span>
+    </div>
+
+    <!-- Website Builder Toolbar -->
+    <div class="website-builder-toolbar">
+        <button class="builder-toggle-btn" id="builderToggle" onclick="toggleBuilderMode()">
+            <i class="fas fa-magic"></i>
+            <span>وضع التحرير</span>
+        </button>
+    </div>
+
+    <!-- Modal Backdrop -->
+    <div class="modal-backdrop-inline" id="buttonEditBackdrop" onclick="closeButtonEdit()"></div>
+
+    <!-- Button Edit Modal -->
+    <div class="button-edit-modal" id="buttonEditModal">
+        <div style="background: linear-gradient(135deg, #FE5D37, #ff8a6c); color: white; padding: 1.25rem 1.5rem; border-radius: 1.5rem 1.5rem 0 0; display: flex; justify-content: space-between; align-items: center;">
+            <h5 class="fw-bold mb-0">
+                <i class="fas fa-link me-2"></i>
+                تعديل الزر
+            </h5>
+            <button class="btn btn-sm btn-link text-white" onclick="closeButtonEdit()">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+        <div style="padding: 1.5rem;">
+            <div class="mb-3">
+                <label class="form-label fw-bold">نص الزر</label>
+                <input type="text" class="form-control" id="buttonTextInput" placeholder="مثال: اعرف المزيد">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">رابط الزر</label>
+                <input type="url" class="form-control" id="buttonLinkInput" placeholder="/about" dir="ltr">
+            </div>
+        </div>
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn btn-light rounded-pill px-4" onclick="closeButtonEdit()">إلغاء</button>
+            <button class="btn btn-primary rounded-pill px-4" onclick="saveButtonEdit()">
+                <i class="fas fa-save me-2"></i>حفظ
+            </button>
+        </div>
+    </div>
+ 
+    <div class="modal fade edit-section-modal" id="editSectionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-edit me-2"></i>
+                        <span id="editModalTitle">تعديل القسم</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="editSectionForm">
+                        <input type="hidden" id="sectionKey" name="key">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">العنوان الرئيسي</label>
+                                <input type="text" class="form-control" id="sectionTitle" name="title" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">العنوان الفرعي</label>
+                                <input type="text" class="form-control" id="sectionSubtitle" name="subtitle">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">المحتوى / الوصف</label>
+                                <textarea class="form-control" id="sectionContent" name="content" rows="4"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">نص الزر (اختياري)</label>
+                                <input type="text" class="form-control" id="sectionButtonText" name="buttonText">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">رابط الزر (اختياري)</label>
+                                <input type="text" class="form-control" id="sectionButtonLink" name="buttonLink" dir="ltr">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4" onclick="saveSection()">
+                        <i class="fas fa-save me-2"></i>حفظ التغييرات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let builderMode = false;
+        const editModal = new bootstrap.Modal(document.getElementById('editSectionModal'));
+        
+        // Safely inject sections data from server
+        // Using JSON.stringify avoids syntax errors from special characters
+        const sectionsData = <%- JSON.stringify(sections || {}) %>;
+        
+        // Auto-enable builder mode if ?builder=1 in URL
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('builder') === '1') {
+                builderMode = true;
+                toggleBuilderMode();
+            }
+        });
+        
+        function toggleBuilderMode() {
+            builderMode = !builderMode;
+            const btn = document.getElementById('builderToggle');
+            const body = document.body;
+            
+            if (builderMode) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-check"></i><span>وضع التحرير مفعل</span>';
+                body.classList.add('builder-active');
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-magic"></i><span>وضع التحرير</span>';
+                body.classList.remove('builder-active');
+            }
+        }
+        
+        // Inline Editing System
+        let currentEditingElement = null;
+        let currentButtonElement = null;
+        let saveButtonContainer = null;
+
+        function createSaveButton(element) {
+            if (saveButtonContainer) saveButtonContainer.remove();
+
+            saveButtonContainer = document.createElement('div');
+            saveButtonContainer.className = 'inline-save-actions fade-in';
+            saveButtonContainer.style.position = 'absolute';
+            saveButtonContainer.style.zIndex = '10000';
+            saveButtonContainer.style.display = 'flex';
+            saveButtonContainer.style.gap = '8px';
+            saveButtonContainer.style.marginTop = '10px';
+            
+            // Calculate position
+            const rect = element.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+            
+            saveButtonContainer.style.top = (rect.bottom + scrollTop) + 'px';
+            saveButtonContainer.style.left = (rect.left + scrollLeft) + 'px';
+
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn btn-sm btn-success rounded-pill px-3 shadow-sm';
+            saveBtn.innerHTML = '<i class="fas fa-check me-1"></i>حفظ';
+            saveBtn.onclick = (e) => {
+                e.stopPropagation();
+                performSave(element);
+            };
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-sm btn-danger rounded-pill px-3 shadow-sm';
+            cancelBtn.innerHTML = '<i class="fas fa-times me-1"></i>إلغاء';
+            cancelBtn.onclick = (e) => {
+                e.stopPropagation();
+                cancelEdit(element);
+            };
+
+            saveButtonContainer.appendChild(saveBtn);
+            saveButtonContainer.appendChild(cancelBtn);
+            document.body.appendChild(saveButtonContainer);
+        }
+
+        function removeSaveButton() {
+            if (saveButtonContainer) {
+                saveButtonContainer.remove();
+                saveButtonContainer = null;
+            }
+        }
+
+       function enableInlineEdit(element) {
+            if (!builderMode) {
+                toggleBuilderMode();
+                setTimeout(() => enableInlineEdit(element), 100);
+                return;
+            }
+            
+            if (currentEditingElement && currentEditingElement !== element) {
+                // Determine what to do with previous element? 
+                // For now, let's just close it (cancel)
+                cancelEdit(currentEditingElement);
+            }
+            
+            currentEditingElement = element;
+            element.setAttribute('contenteditable', 'true');
+            element.dataset.original = element.innerText; // Store original text
+            element.focus();
+            element.style.outline = "2px dashed #FE5D37";
+            element.style.borderRadius = "5px";
+            
+            createSaveButton(element);
+        }
+        
+        function cancelEdit(element) {
+            element.setAttribute('contenteditable', 'false');
+            element.style.outline = "none";
+            // Restore original text
+            if (element.dataset.original !== undefined) {
+                element.innerText = element.dataset.original;
+            }
+            removeSaveButton();
+            currentEditingElement = null;
+        }
+
+        function handleInlineKeydown(event, element) {
+            if (event.key === 'Escape') {
+                cancelEdit(element);
+            }
+            // Disable Enter saving
+        }
+        
+        async function performSave(element) {
+            element.setAttribute('contenteditable', 'false');
+            element.style.outline = "none";
+            removeSaveButton();
+            
+            const section = element.dataset.section;
+            const field = element.dataset.field;
+            const value = element.innerText.trim(); // use innerText to preserve formatting if any, or textContent
+            
+            const formData = new FormData();
+            formData.append('key', section);
+            formData.append(field, value);
+            
+            await fetch('/admin/website/sections/update', {
+                method: 'POST',
+                body: formData
+            }).then(res => {
+                if (res.ok) {
+                    showSaveIndicator();
+                    // Update local data variable
+                    if (!sectionsData[section]) sectionsData[section] = {};
+                    sectionsData[section][field] = value;
+                    
+                    currentEditingElement = null;
+                } else {
+                    alert('حدث خطأ أثناء الحفظ');
+                    location.reload();
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('حدث خطأ أثناء الحفظ');
+                location.reload();
+            });
+        }
+        
+        // Old function kept for compatibility if needed, but unused
+        function saveInlineEdit(element) {
+           // Do nothing on blur
+        }
+        
+       function editButton(event, buttonElement) {
+            event.preventDefault();
+            if (!builderMode) {
+                toggleBuilderMode();
+                setTimeout(() => editButton(event, buttonElement), 100);
+                return;
+            }
+            
+            if (currentEditingElement) {
+                cancelEdit(currentEditingElement);
+            }
+            
+            currentButtonElement = buttonElement;
+            const section = buttonElement.dataset.section;
+            const data = sectionsData[section] || {};
+            
+            document.getElementById('buttonTextInput').value = data.buttonText || buttonElement.querySelector('.button-text').textContent;
+            document.getElementById('buttonLinkInput').value = buttonElement.href || '';
+            
+            document.getElementById('buttonEditModal').classList.add('active');
+            document.getElementById('buttonEditBackdrop').classList.add('active');
+        }
+        
+        function closeButtonEdit() {
+            document.getElementById('buttonEditModal').classList.remove('active');
+            document.getElementById('buttonEditBackdrop').classList.remove('active');
+            currentButtonElement = null;
+        }
+        
+        async function saveButtonEdit() {
+            if (!currentButtonElement) return;
+            
+            const section = currentButtonElement.dataset.section;
+            const buttonText = document.getElementById('buttonTextInput').value;
+            const buttonLink = document.getElementById('buttonLinkInput').value;
+            
+            const formData = new FormData();
+            formData.append('key', section);
+            formData.append('buttonText', buttonText);
+            formData.append('buttonLink', buttonLink);
+            
+            await fetch('/admin/website/sections/update', {
+                method: 'POST',
+                body: formData
+            }).then(res => {
+                if (res.ok) {
+                    closeButtonEdit();
+                    showSaveIndicator();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert('حدث خطأ أثناء الحفظ');
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('حدث خطأ أثناء الحفظ');
+            });
+        }
+        
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+        
+        function openEditModal(sectionKey, sectionName) {
+            document.getElementById('editModalTitle').textContent = 'تعديل قسم: ' + sectionName;
+            document.getElementById('sectionKey').value = sectionKey;
+            
+            const data = sectionsData[sectionKey] || {};
+            document.getElementById('sectionTitle').value = data.title || '';
+            document.getElementById('sectionSubtitle').value = data.subtitle || '';
+            document.getElementById('sectionContent').value = data.content || '';
+            document.getElementById('sectionButtonText').value = data.buttonText || '';
+            document.getElementById('sectionButtonLink').value = data.buttonLink || '';
+            
+            editModal.show();
+        }
+        
+        async function saveSection() {
+            const formData = new FormData(document.getElementById('editSectionForm'));
+            
+            await fetch('/admin/website/sections/update', {
+                method: 'POST',
+                body: formData
+            }).then(res => {
+                if (res.ok) {
+                    editModal.hide();
+                    const toast = document.createElement('div');
+                    toast.className = 'position-fixed top-0 start-50 translate-middle-x mt-4 alert alert-success shadow-lg';
+                    toast.style.zIndex = '99999';
+                    toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>تم حفظ التغييرات بنجاح! جاري إعادة التحميل...';
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    alert('حدث خطأ أثناء الحفظ. حاول مرة أخرى.');
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('حدث خطأ أثناء الحفظ. حاول مرة أخرى.');
+            });
+        }
+    </script>
+
 </body>
 
 </html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title><%= settings.academyName %> - إدارة أقسام الموقع</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Alexandria:wght@300;400;500;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
+        }
+        
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 1.5rem;
+            border: 1px solid #f1f1f1;
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.03);
+            transition: all 0.3s;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-card:hover {
+            box-shadow: 0 0.75rem 2rem rgba(0,0,0,0.08);
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--secondary), #fff);
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-body {
+            padding: 1.5rem;
+        }
+
+        .form-label-custom {
+            font-weight: 700;
+            color: #64748b;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control-custom {
+            background: #f8fafc;
+            border: 1px solid #eef0f2;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .form-control-custom:focus {
+            background: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(254, 93, 55, 0.1);
+            outline: none;
+        }
+
+        .btn-save-section {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.6rem 1.5rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .btn-save-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(254, 93, 55, 0.3);
+        }
+
+        .section-preview-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            border: 2px dashed #eee;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <%- include('./_admin_sidebar.ejs', { currentPage: 'website-sections', user: user }) %>
+
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2">
+                    <i class="fas fa-layer-group fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0 fw-bold">إدارة أقسام الموقع</h4>
+                    <p class="mb-0 small text-muted">تعديل محتوى الصفحة الرئيسية للموقع</p>
+                </div>
+            </div>
+            <a href="/admin" class="btn btn-light rounded-pill px-4">
+                <i class="fas fa-arrow-left me-2"></i> رجوع
+            </a>
+        </div>
+
+        <!-- Hero Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-home text-primary me-2"></i>قسم الترحيب (Hero)</h5>
+                    <small class="text-muted">العنوان الرئيسي والنص التعريفي في أعلى الصفحة</small>
+                </div>
+            </div>
+            <div class="section-body">
+                <form onsubmit="updateSection(event, 'hero')">
+                    <input type="hidden" name="key" value="hero">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label-custom">العنوان الرئيسي</label>
+                            <input type="text" name="title" class="form-control form-control-custom" 
+                                   value="<%= sections.find(s => s.key === 'hero')?.title || '' %>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">العنوان الفرعي</label>
+                            <input type="text" name="subtitle" class="form-control form-control-custom" 
+                                   value="<%= sections.find(s => s.key === 'hero')?.subtitle || '' %>">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label-custom">النص الوصفي</label>
+                            <textarea name="content" rows="3" class="form-control form-control-custom"><%= sections.find(s => s.key === 'hero')?.content || '' %></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">نص الزر</label>
+                            <input type="text" name="buttonText" class="form-control form-control-custom" 
+                                   value="<%= sections.find(s => s.key === 'hero')?.buttonText || '' %>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">رابط الزر</label>
+                            <input type="text" name="buttonLink" class="form-control form-control-custom" dir="ltr"
+                                   value="<%= sections.find(s => s.key === 'hero')?.buttonLink || '' %>">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn-save-section">
+                                <i class="fas fa-save me-2"></i>حفظ التغييرات
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-info-circle text-primary me-2"></i>قسم من نحن (About)</h5>
+                    <small class="text-muted">معلومات تعريفية عن المنصة</small>
+                </div>
+            </div>
+            <div class="section-body">
+                <form onsubmit="updateSection(event, 'about')">
+                    <input type="hidden" name="key" value="about">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label-custom">العنوان</label>
+                            <input type="text" name="title" class="form-control form-control-custom" 
+                                   value="<%= sections.find(s => s.key === 'about')?.title || '' %>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">العنوان الفرعي</label>
+                            <input type="text" name="subtitle" class="form-control form-control-custom" 
+                                   value="<%= sections.find(s => s.key === 'about')?.subtitle || '' %>">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label-custom">المحتوى</label>
+                            <textarea name="content" rows="4" class="form-control form-control-custom"><%= sections.find(s => s.key === 'about')?.content || '' %></textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn-save-section">
+                                <i class="fas fa-save me-2"></i>حفظ التغييرات
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-phone-alt text-primary me-2"></i>قسم التواصل (Contact)</h5>
+                    <small class="text-muted">معلومات الاتصال والموقع</small>
+                </div>
+            </div>
+            <div class="section-body">
+                <form onsubmit="updateSection(event, 'contact')">
+                    <input type="hidden" name="key" value="contact">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label-custom">العنوان</label>
+                            <input type="text" name="title" class="form-control form-control-custom" 
+                                   value="<%= sections.find(s => s.key === 'contact')?.title || '' %>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">العنوان الفرعي</label>
+                            <input type="text" name="subtitle" class="form-control form-control-custom" 
+                                   value="<%= sections.find(s => s.key === 'contact')?.subtitle || '' %>">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label-custom">تفاصيل التواصل</label>
+                            <textarea name="content" rows="3" class="form-control form-control-custom"><%= sections.find(s => s.key === 'contact')?.content || '' %></textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn-save-section">
+                                <i class="fas fa-save me-2"></i>حفظ التغييرات
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; <%= settings.academyName %> - جميع الحقوق محفوظة</small>
+        </footer>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        async function updateSection(event, sectionKey) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>جاري الحفظ...';
+
+            try {
+                const response = await fetch('/admin/website/sections/update', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم الحفظ!',
+                        text: 'تم تحديث القسم بنجاح.',
+                        confirmButtonColor: '#FE5D37'
+                    });
+                } else {
+                    throw new Error('فشل تحديث البيانات');
+                }
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: 'حدث خطأ غير متوقع أثناء الحفظ.',
+                    confirmButtonColor: '#FE5D37'
+                });
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+    </script>
+</body>
+</html>

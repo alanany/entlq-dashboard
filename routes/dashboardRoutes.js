@@ -5,6 +5,7 @@ const dashboardRoutes = Router();
 const multer = require('multer');
 const path = require('path');
 const teacherController = require('../controllers/teacher_controller');
+const websiteManagementController = require('../controllers/websiteManagementController');
 // إعداد مكان تخزين الصور وتسميتها
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -64,5 +65,12 @@ dashboardRoutes.post('/admin/teachers/delete/:id',requireAuth,checkUser,requireA
 dashboardRoutes.post('/admin/teacher/pay-salary',requireAuth,checkUser,requireAdmin, teacherController.processTeacherSalary);
 dashboardRoutes.get('/upcoming-sessions', requireAuth, checkUser, courseController.getUpcomingSessions);
 dashboardRoutes.post('/features/send-notification', requireAuth, checkUser, courseController.sendSessionNotification);
+
+// Website Management Routes
+dashboardRoutes.get('/admin/website/sections', requireAuth, checkUser, requireAdmin, websiteManagementController.getWebsiteSections);
+dashboardRoutes.post('/admin/website/sections/update', requireAuth, checkUser, requireAdmin, upload.single('image'), websiteManagementController.updateWebsiteSection);
+dashboardRoutes.get('/admin/website/blog', requireAuth, checkUser, requireAdmin, websiteManagementController.getBlogPosts);
+dashboardRoutes.post('/admin/website/blog/add', requireAuth, checkUser, requireAdmin, upload.single('image'), websiteManagementController.addBlogPost);
+dashboardRoutes.delete('/admin/website/blog/:id', requireAuth, checkUser, requireAdmin, websiteManagementController.deleteBlogPost);
 
 module.exports = dashboardRoutes;
