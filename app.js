@@ -12,6 +12,7 @@ const methodOverride = require('method-override');
 const ApiAuthRouter = require('./routes/api routes/api_authRoutes');
 const ApiChatRouter = require('./routes/api routes/api_chatRoutes');
 const teacherDashboardRoutes = require('./routes/teacher_dashboard_routes');
+const supervisorRoutes = require('./routes/supervisorRoutes');
 const bodyParser = require('body-parser');
 
 // ⭐️ الإعداد الصحيح لمجلد العرض ⭐️
@@ -79,6 +80,7 @@ app.get('*', checkUser);
 app.use(authRoutes);
 app.use(dashboardRoutes);
 app.use(studentDashboardRoutes);
+app.use(supervisorRoutes);
 app.use(teacherDashboardRoutes);
 // api routes
 app.use(ApiAuthRouter);

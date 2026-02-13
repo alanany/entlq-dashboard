@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - الطلاب التابعون</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        :root { --primary: #FE5D37; --secondary: #FFF0ED; --light: #F8F9FA; --dark: #000B1C; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f9fc; font-size: 0.9rem; }
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+        .main-content { margin-right: 260px; padding: 1.5rem; min-height: 100vh; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .main-content { margin-right: 0; } }
+        .student-card {
+            background: #fff; border-radius: 1.25rem; padding: 1.25rem;
+            border: 1px solid rgba(0,0,0,0.05); transition: all 0.3s;
+            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.03);
+        }
+        .student-card:hover { transform: translateY(-3px); box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08); }
+        .sub-badge { font-size: 0.7rem; padding: 0.3rem 0.75rem; border-radius: 0.5rem; }
+    </style>
+</head>
+<body class="bg-light">
+    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none position-fixed top-0 start-0 m-3 z-3" id="sidebarCollapse">
+        <i class="fas fa-bars fs-5"></i>
+    </button>
+    <%- include('./_supervisor_sidebar.ejs', { currentPage: 'students', user: user }) %>
+
+    <div class="main-content">
+        <div class="px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div>
+                    <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2rem;">الطلاب التابعون</h4>
+                    <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Students of assigned teachers</small>
+                </div>
+                <div>
+                    <span class="badge bg-primary rounded-pill px-3 py-2"><%= students.length %> طالب</span>
+                </div>
+            </div>
+        </div>
+
+        <% if (students && students.length > 0) { %>
+            <div class="row g-3 animate__animated animate__fadeInUp">
+                <% students.forEach(item => { %>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="student-card" style="cursor: pointer;" onclick="window.location.href='/supervisor/student/profile/<%= item.student._id %>'">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center fw-bold outfit-font" style="width: 45px; height: 45px; font-size: 1.1rem;">
+                                    <%= item.student.name.charAt(0) %>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-0"><%= item.student.name %></h6>
+                                    <small class="text-muted" style="font-size: 0.7rem;"><%= item.student.email %></small>
+                                </div>
+                            </div>
+                            
+                            <% if (item.student.phone_number) { %>
+                            <div class="mb-3 d-flex align-items-center gap-2 text-muted small">
+                                <i class="fas fa-phone-alt text-primary"></i>
+                                <span class="outfit-font"><%= item.student.phone_number %></span>
+                            </div>
+                            <% } %>
+
+                            <div class="border-top pt-3">
+                                <p class="text-muted small fw-bold mb-2">الاشتراكات (<%= item.subscriptions.length %>)</p>
+                                <% item.subscriptions.forEach(sub => { %>
+                                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded-3">
+                                        <div>
+                                            <span class="fw-bold small d-block"><%= sub.courseTitle %></span>
+                                            <span class="text-muted" style="font-size: 0.65rem;">
+                                                <i class="fas fa-user-tie me-1"></i><%= sub.teacherName %>
+                                            </span>
+                                        </div>
+                                        <div class="text-center">
+                                            <span class="sub-badge bg-primary bg-opacity-10 text-primary fw-bold d-block mb-1">
+                                                <%= sub.completedSessions %>/<%= sub.sessionsCount %> حصة
+                                            </span>
+                                            <% if (sub.status === 'confirmed') { %>
+                                                <span class="sub-badge bg-success bg-opacity-10 text-success">نشط</span>
+                                            <% } else { %>
+                                                <span class="sub-badge bg-secondary bg-opacity-10 text-secondary"><%= sub.status %></span>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div class="bg-white rounded-4 shadow-sm border border-light p-5 text-center animate__animated animate__fadeInUp">
+                <i class="fas fa-users fs-1 text-muted opacity-25 mb-3"></i>
+                <p class="text-muted">لا يوجد طلاب مسجلين لدى المعلمين التابعين لك حالياً</p>
+            </div>
+        <% } %>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية <%= new Date().getFullYear() %> - جميع الحقوق محفوظة</small>
+        </footer>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

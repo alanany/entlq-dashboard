@@ -113,24 +113,15 @@
         scrollbar-color: #dee2e6 transparent;
     }
 
-    .sidebar-menu::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .sidebar-menu::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
+    .sidebar-menu::-webkit-scrollbar { width: 6px; }
+    .sidebar-menu::-webkit-scrollbar-track { background: transparent; }
     .sidebar-menu::-webkit-scrollbar-thumb {
         background-color: #dee2e6;
         border-radius: 20px;
         border: 2px solid transparent;
         background-clip: content-box;
     }
-
-    .sidebar-menu::-webkit-scrollbar-thumb:hover {
-        background-color: #adb5bd;
-    }
+    .sidebar-menu::-webkit-scrollbar-thumb:hover { background-color: #adb5bd; }
 </style>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -141,82 +132,50 @@
     </button>
     <div class="sidebar-header">
         <h3 class="m-0 text-primary lobster-font" style="font-size: 1.8rem;">
-            <i class="fas fa-laptop-code me-2"></i><%= settings.academyName %>
+            <i class="fas fa-user-shield me-2"></i>لوحة المشرف
         </h3>
+        <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">Supervisor Panel</small>
     </div>
     
     <div class="sidebar-menu">
-        <a href="/" class="nav-link-admin <%= currentPage === 'home' ? 'active' : '' %>">
+        <a href="/supervisor" class="nav-link-admin <%= currentPage === 'home' ? 'active' : '' %>">
             <i class="fas fa-home"></i>
-            <span><%= t('home') %></span>
+            <span>الرئيسية</span>
         </a>
         
         <div class="group-label-admin">الإدارة</div>
         
-        <a href="/courses" class="nav-link-admin <%= currentPage === 'courses' ? 'active' : '' %>">
-            <i class="fas fa-book"></i>
-            <span><%= t('courses') %></span>
+        <a href="/supervisor/teachers" class="nav-link-admin <%= currentPage === 'teachers' ? 'active' : '' %>">
+            <i class="fas fa-user-tie"></i>
+            <span>المعلمون</span>
         </a>
         
-        <a href="/subscriptions" class="nav-link-admin <%= currentPage === 'subscriptions' ? 'active' : '' %>">
-            <i class="fas fa-file-invoice"></i> 
-            <span><%= t('subscriptions') %></span>
-        </a>
-        
-        <a href="/upcoming-sessions" class="nav-link-admin <%= currentPage === 'upcoming-sessions' ? 'active' : '' %>">
-            <i class="fas fa-calendar-alt"></i>
-            <span>الجلسات القادمة</span>
-        </a>
-        
-        <a href="/chat" class="nav-link-admin <%= currentPage === 'chat' ? 'active' : '' %>">
-            <i class="fas fa-comments"></i>
-            <span>الرسائل</span>
-        </a>
-        
-        <a href="/admin/students" class="nav-link-admin <%= currentPage === 'students' ? 'active' : '' %>">
+        <a href="/supervisor/students" class="nav-link-admin <%= currentPage === 'students' ? 'active' : '' %>">
             <i class="fas fa-users"></i>
             <span>الطلاب</span>
         </a>
         
-        <a href="/admin/teachers" class="nav-link-admin <%= currentPage === 'teachers' ? 'active' : '' %>">
-            <i class="fas fa-user-tie"></i>
-            <span>المعلمون</span>
+        <a href="/supervisor/sessions" class="nav-link-admin <%= currentPage === 'sessions' ? 'active' : '' %>">
+            <i class="fas fa-calendar-alt"></i>
+            <span>الجلسات القادمة</span>
         </a>
-
-        <a href="/admin/supervisors" class="nav-link-admin <%= currentPage === 'supervisors' ? 'active' : '' %>">
-            <i class="fas fa-user-shield"></i>
-            <span>المشرفون</span>
-        </a>
-
-        <div class="group-label-admin">الموقع الإلكتروني</div>
-        <a href="/home?builder=1" class="nav-link-admin <%= currentPage === 'website-builder' ? 'active' : '' %>" target="_blank">
-            <i class="fas fa-magic"></i>
-            <span>منشئ الموقع</span>
-        </a>
-        <a href="/admin/website/sections" class="nav-link-admin <%= currentPage === 'website-sections' ? 'active' : '' %>">
-            <i class="fas fa-layer-group"></i>
-            <span>أقسام الموقع</span>
-        </a>
-        <a href="/admin/website/blog" class="nav-link-admin <%= currentPage === 'website-blog' ? 'active' : '' %>">
-            <i class="fas fa-newspaper"></i>
-            <span>المدونة</span>
+        
+        <a href="/supervisor/messages" class="nav-link-admin <%= currentPage === 'messages' ? 'active' : '' %>">
+            <i class="fas fa-comments"></i>
+            <span>الرسائل</span>
         </a>
         
         <div class="group-label-admin">النظام</div>
         
-        <a href="/admin/reports" class="nav-link-admin <%= currentPage === 'reports' ? 'active' : '' %>">
-            <i class="fas fa-chart-line"></i>
-            <span>التقارير المالية</span>
-        </a>
-        <a href="/dashboard/settings" class="nav-link-admin <%= currentPage === 'settings' ? 'active' : '' %>">
+        <a href="/supervisor/settings" class="nav-link-admin <%= currentPage === 'settings' ? 'active' : '' %>">
             <i class="fas fa-cog"></i>
-            <span><%= t('settings') %></span>
+            <span>الإعدادات</span>
         </a>
         
         <div class="group-label-admin">الحساب</div>
         <a href="#" onclick="openLogoutModal(event)" class="nav-link-admin text-danger">
             <i class="fas fa-sign-out-alt"></i>
-            <span><%= t('logout') %></span>
+            <span>تسجيل الخروج</span>
         </a>
     </div>
 
@@ -276,16 +235,8 @@
             document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
         }
 
-        if (sidebarCollapse) {
-            sidebarCollapse.addEventListener('click', toggleSidebar);
-        }
-
-        if (overlay) {
-            overlay.addEventListener('click', toggleSidebar);
-        }
-
-        if (closeBtn) {
-            closeBtn.addEventListener('click', toggleSidebar);
-        }
+        if (sidebarCollapse) sidebarCollapse.addEventListener('click', toggleSidebar);
+        if (overlay) overlay.addEventListener('click', toggleSidebar);
+        if (closeBtn) closeBtn.addEventListener('click', toggleSidebar);
     });
 </script>

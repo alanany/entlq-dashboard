@@ -62,6 +62,10 @@ dashboardRoutes.post('/admin/teacher/update-status',requireAuth,checkUser,requir
 
 // الحذف النهائي (اختياري)
 dashboardRoutes.post('/admin/teachers/delete/:id',requireAuth,checkUser,requireAdmin, teacherController.deleteTeacher);
+dashboardRoutes.get('/admin/supervisors', courseController.adminSupervisorsPage);
+dashboardRoutes.post('/admin/supervisors/add', courseController.addSupervisor);
+dashboardRoutes.post('/admin/supervisors/update/:id', courseController.updateSupervisor);
+dashboardRoutes.post('/admin/supervisors/delete/:id', courseController.deleteSupervisor);
 dashboardRoutes.post('/admin/teacher/pay-salary',requireAuth,checkUser,requireAdmin, teacherController.processTeacherSalary);
 dashboardRoutes.get('/upcoming-sessions', requireAuth, checkUser, courseController.getUpcomingSessions);
 dashboardRoutes.post('/features/send-notification', requireAuth, checkUser, courseController.sendSessionNotification);

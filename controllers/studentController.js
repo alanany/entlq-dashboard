@@ -28,6 +28,9 @@ const getstudentDashboard = async (req, res, next) => {
       });
     } else if (role === "teacher") {
     await  teacherController.teacherHome(req, res, next);
+    } else if (role === "supervisor") {
+      // Redirect supervisors to their own dashboard
+      return res.redirect('/supervisor');
     } else {
      
      console.log("admin dashboard");

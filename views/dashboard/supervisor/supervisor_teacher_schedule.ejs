@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - <%= title %></title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #FE5D37; --secondary: #FFF0ED; --light: #F8F9FA; --dark: #000B1C; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f9fc; font-size: 0.9rem; }
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+        .main-content { margin-right: 260px; padding: 1.5rem; min-height: 100vh; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .main-content { margin-right: 0; } }
+        .view-tabs { background: #f1f5f9; padding: 0.35rem; border-radius: 1rem; display: inline-flex; }
+        .view-tabs .btn { border-radius: 0.75rem; padding: 0.5rem 2rem; font-weight: 700; border: none; transition: all 0.3s; }
+        .view-tabs .btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(254, 93, 55, 0.3); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background-color: #f1f5f9; border-radius: 1.5rem; overflow: hidden; border: 2px solid #f1f5f9; }
+        .calendar-day { min-height: 130px; background-color: white; padding: 10px; position: relative; }
+        .calendar-day.today { background-color: rgba(254, 93, 55, 0.05); }
+        .calendar-day-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 0.5rem; }
+        .calendar-day-header > div { text-align: center; font-size: 0.75rem; font-weight: 700; color: #6c757d; padding: 0.75rem; background: #f8f9fa; border-radius: 0.75rem; }
+        .event-bar { font-size: 0.65rem; padding: 0.4rem 0.6rem; border-radius: 0.5rem; margin-top: 4px; cursor: pointer; font-weight: 700; border-right: 3px solid; transition: all 0.2s; }
+        .session-card { background: #fff; border: 1px solid #f1f1f1; border-radius: 1.25rem; padding: 1.25rem; transition: all 0.3s; position: relative; overflow: hidden; }
+        .session-card .status-indicator { position: absolute; top: 0; right: 0; width: 4px; height: 100%; }
+        .day-card { background: #fff; border-radius: 1.5rem; border: 1px solid #f1f1f1; padding: 1.5rem; margin-bottom: 1rem; }
+        .day-header { background: linear-gradient(135deg, var(--primary), #ff8a6c); color: white; border-radius: 1rem; padding: 1rem 1.5rem; text-align: center; min-width: 100px; }
+    </style>
+</head>
+<body class="bg-light">
+    <%- include('./_supervisor_sidebar.ejs', { currentPage: 'teachers', user: user }) %>
+
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-2" id="sidebarCollapse">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a href="javascript:history.back()" class="btn btn-light rounded-circle p-2">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div>
+                    <h4 class="mb-0 fw-bold text-dark">جدول الحصص | <%= teacher.name %></h4>
+                    <p class="mb-0 small text-muted">عرض مواعيد الحصص الأسبوعية والشهرية للمعلم</p>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-primary text-white rounded-pill px-3 py-2 local-tz-label">
+                    <i class="fas fa-globe me-1"></i> <span id="tz-name">...</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div class="view-tabs">
+                <button onclick="switchView('weekly')" id="btn-weekly" class="btn active">أسبوعي</button>
+                <button onclick="switchView('monthly')" id="btn-monthly" class="btn">شهري</button>
+            </div>
+            <div id="nav-controls" class="d-none align-items-center gap-3 bg-white px-4 py-2 rounded-3 shadow-sm">
+                <button onclick="changeMonth(-1)" class="btn btn-light btn-sm rounded-circle"><i class="fas fa-chevron-right"></i></button>
+                <h5 id="currentMonthLabel" class="mb-0 fw-bold text-dark" style="min-width: 150px; text-align: center;">---</h5>
+                <button onclick="changeMonth(1)" class="btn btn-light btn-sm rounded-circle"><i class="fas fa-chevron-left"></i></button>
+            </div>
+        </div>
+
+        <div id="weeklyView">
+            <% const sortedDates = Object.keys(schedule).sort(); %>
+            <% if (sortedDates.length === 0) { %>
+                <div class="bg-white rounded-4 p-5 text-center border">
+                    <i class="fas fa-calendar-times fa-3x text-muted opacity-25 mb-3"></i>
+                    <h5 class="text-muted">لا توجد حصص مجدولة هذا الأسبوع</h5>
+                </div>
+            <% } else { %>
+                <% sortedDates.forEach(dateStr => { const dayData = schedule[dateStr]; %>
+                    <div class="day-card">
+                        <div class="d-flex flex-column flex-md-row gap-4">
+                            <div class="day-header d-flex flex-column align-items-center justify-content-center">
+                                <span class="small opacity-75 fw-bold"><%= dayData.dayName %></span>
+                                <span class="display-6 fw-bold"><%= dayData.dayNumber %></span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="row g-3">
+                                    <% dayData.sessions.forEach(session => { const isCompleted = session.status === 'completed'; %>
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="session-card h-100 <%= isCompleted ? 'opacity-60' : '' %>" data-utc="<%= session.fullUTC %>" data-completed="<%= isCompleted %>">
+                                                <div class="status-indicator <%= isCompleted ? 'bg-success' : 'bg-primary' %>"></div>
+                                                <h6 class="fw-bold text-dark mb-1"><%= session.studentName %></h6>
+                                                <p class="small text-muted mb-3"><%= session.courseTitle %></p>
+                                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                                    <span class="fw-bold text-primary"><%= session.time %></span>
+                                                    <span class="badge rounded-pill px-3 py-1 <%= isCompleted ? 'bg-success text-white' : 'bg-light text-muted' %>">
+                                                        <%= isCompleted ? 'مكتملة' : 'قادمة' %>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
+
+        <div id="monthlyView" class="d-none">
+            <div class="bg-white rounded-4 p-4 shadow-sm border">
+                <div class="calendar-day-header mb-3">
+                    <% ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'].forEach(d => { %><div><%= d %></div><% }) %>
+                </div>
+                <div id="calendarGrid" class="calendar-grid"></div>
+            </div>
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية <%= new Date().getFullYear() %></small>
+        </footer>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+        let currentNavDate = new Date();
+        let allEvents = [];
+        const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        document.getElementById('tz-name').innerText = userTZ;
+
+        async function fetchEvents() {
+            try {
+                const res = await fetch('/teacher/events/<%= teacher._id %>');
+                allEvents = await res.json();
+                renderCustomCalendar();
+            } catch (err) { console.error(err); }
+        }
+
+        function switchView(view) {
+            if (view === 'weekly') {
+                document.getElementById('weeklyView').classList.remove('d-none');
+                document.getElementById('monthlyView').classList.add('d-none');
+                document.getElementById('nav-controls').classList.add('d-none');
+                document.getElementById('btn-weekly').classList.add('active');
+                document.getElementById('btn-monthly').classList.remove('active');
+            } else {
+                document.getElementById('weeklyView').classList.add('d-none');
+                document.getElementById('monthlyView').classList.remove('d-none');
+                document.getElementById('nav-controls').classList.remove('d-none');
+                document.getElementById('nav-controls').classList.add('d-flex');
+                document.getElementById('btn-monthly').classList.add('active');
+                document.getElementById('btn-weekly').classList.remove('active');
+                fetchEvents();
+            }
+        }
+
+        function renderCustomCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            const year = currentNavDate.getFullYear();
+            const month = currentNavDate.getMonth();
+            const monthNames = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+            document.getElementById('currentMonthLabel').innerText = `${monthNames[month]} ${year}`;
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="calendar-day" style="opacity:0.3; background:#f8f9fa;"></div>`;
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEvents = allEvents.filter(e => {
+                    const d = new Date(e.start);
+                    return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+                });
+                let eventsHtml = dayEvents.map(e => `
+                    <div class="event-bar ${e.isSendReport ? 'bg-success' : 'bg-primary'} text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-truncate fw-bold">${e.title}</span>
+                        </div>
+                    </div>`).join('');
+                grid.innerHTML += `<div class="calendar-day"><span class="fw-bold text-muted">${day}</span><div class="mt-1">${eventsHtml}</div></div>`;
+            }
+        }
+
+        function changeMonth(step) {
+            currentNavDate.setMonth(currentNavDate.getMonth() + step);
+            renderCustomCalendar();
+        }
+    </script>
+</body>
+</html>

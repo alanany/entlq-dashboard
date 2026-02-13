@@ -126,6 +126,7 @@
                     <thead>
                         <tr>
                             <th class="px-4 py-3">المدرب</th>
+                            <th class="px-4 py-3">المشرف</th>
                             <th class="px-4 py-3">التواصل</th>
                             <th class="px-4 py-3 text-center">سعر الساعة</th>
                             <th class="px-4 py-3 text-center">زووم</th>
@@ -146,6 +147,16 @@
                                             <div class="text-muted small" style="font-size: 0.75rem;"><%= teacher.email %></div>
                                         </div>
                                     </div>
+                                </td>
+                                <td class="px-4 py-3 text-muted outfit-font" style="font-size: 0.8rem;">
+                                    <% if (teacher.supervisorId) { %>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fas fa-user-shield text-primary"></i>
+                                            <span class="fw-bold text-dark"><%= teacher.supervisorId.name %></span>
+                                        </div>
+                                    <% } else { %>
+                                        <span class="text-muted">---</span>
+                                    <% } %>
                                 </td>
                                 <td class="px-4 py-3 text-muted outfit-font" style="font-size: 0.8rem;"><%= teacher.phone_number %></td>
                                 <td class="px-4 py-3 text-center fw-bold text-dark">
@@ -227,6 +238,17 @@
                         <div class="mb-3">
                             <label class="small text-muted mb-1 d-block">الايميل</label>
                             <input type="email" id="email" dir="ltr" class="form-control border-0 bg-light rounded-3 py-2 px-3 fw-bold" style="font-size: 0.85rem;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-muted mb-1 d-block">المشرف المسؤول</label>
+                            <select id="supervisorId" class="form-select border-0 bg-light rounded-3 py-2 px-3 fw-bold" style="font-size: 0.85rem;">
+                                <option value="">بدون مشرف</option>
+                                <% if (locals.supervisors) { %>
+                                    <% supervisors.forEach(sup => { %>
+                                        <option value="<%= sup._id %>"><%= sup.name %></option>
+                                    <% }) %>
+                                <% } %>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="small text-muted mb-1 d-block">سعر ساعة المعلم (خيارات متعددة)</label>
@@ -325,6 +347,8 @@
                 document.getElementById('email').value = teacher.email;
                 document.getElementById('zoom').value = teacher.zoom_link || '';
                 document.getElementById('phone').value = teacher.phone_number || '';
+                document.getElementById('supervisorId').value = teacher.supervisorId ? (teacher.supervisorId._id || teacher.supervisorId) : '';
+                
                 
                 if (teacher.hourly_rates && teacher.hourly_rates.length > 0) {
                     teacher.hourly_rates.forEach(r => addRateRow(r.label, r.rate));
@@ -378,7 +402,8 @@
                 zoom_link: document.getElementById('zoom').value,
                 phone_number: document.getElementById('phone').value,
                 hourly_rates: rates,
-                email: document.getElementById('email').value
+                email: document.getElementById('email').value,
+                supervisorId: document.getElementById('supervisorId').value
             };
             const url = currentTeacherId ? `/admin/teachers/update/${currentTeacherId}` : `/admin/teachers/add`;
             try {

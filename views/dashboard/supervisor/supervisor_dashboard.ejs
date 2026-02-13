@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - لوحة تحكم المشرف</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        :root { --primary: #FE5D37; --secondary: #FFF0ED; --light: #F8F9FA; --dark: #000B1C; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f9fc; font-size: 0.9rem; }
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+        .main-content { margin-right: 260px; padding: 1.5rem; min-height: 100vh; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .main-content { margin-right: 0; } }
+        .stats-card {
+            border: none; border-radius: 1.25rem; background: #fff;
+            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.03);
+            padding: 1.25rem; height: 100%; transition: all 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .stats-card:hover { transform: translateY(-3px); box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08); }
+        .stats-icon-kider {
+            position: relative; width: 30px; height: 30px; border-radius: 30px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; flex-shrink: 0; z-index: 1;
+        }
+        .stats-icon-kider::before {
+            position: absolute; content: ""; width: 100%; height: 100%;
+            background: rgba(255,255,255,.8); border-radius: 30px; z-index: -1; transition: .5s;
+        }
+        .stats-card:hover .stats-icon-kider::before { background: transparent; }
+        .stats-card:hover .stats-icon-kider i { color: #fff !important; }
+        .section-card {
+            background: #fff; border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            padding: 1.5rem; border: 1px solid rgba(0,0,0,0.05); margin-bottom: 1.5rem;
+        }
+        .table-custom thead th {
+            background-color: #f8f9fa; border-bottom: none; color: #6c757d;
+            font-weight: 700; padding: 0.75rem 1rem; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .table-custom tbody td {
+            padding: 0.75rem 1rem; vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1; font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none position-fixed top-0 start-0 m-3 z-3" id="sidebarCollapse">
+        <i class="fas fa-bars fs-5"></i>
+    </button>
+    <%- include('./_supervisor_sidebar.ejs', { currentPage: 'home', user: user }) %>
+
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div>
+                    <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2em;">لوحة تحكم المشرف</h4>
+                    <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Supervisor Dashboard Overview</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button onclick="openLogoutModal(event)" class="btn btn-light rounded-circle p-2 text-danger" title="تسجيل الخروج">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome -->
+        <div class="mb-4 animate__animated animate__fadeIn">
+            <h3 class="fw-black text-dark mb-1">مرحباً بك, <%= user.name %>! 👋</h3>
+            <p class="text-muted small">إليك ملخص المعلمين والطلاب التابعين لك</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="row g-3 mb-4 animate__animated animate__fadeInUp">
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon-kider bg-primary text-primary me-3">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;"><%= stats.teachersCount %></h3>
+                            <small class="text-muted fw-bold" style="font-size: 0.7rem;">المعلمون</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon-kider bg-success text-success me-3">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;"><%= stats.studentsCount %></h3>
+                            <small class="text-muted fw-bold" style="font-size: 0.7rem;">الطلاب</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon-kider bg-info text-info me-3">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;"><%= stats.subscriptionsCount %></h3>
+                            <small class="text-muted fw-bold" style="font-size: 0.7rem;">الاشتراكات النشطة</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stats-card">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon-kider bg-warning text-warning me-3">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.3rem;"><%= stats.upcomingSessionsCount %></h3>
+                            <small class="text-muted fw-bold" style="font-size: 0.7rem;">جلسات قادمة (7 أيام)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4 animate__animated animate__fadeInUp">
+            <!-- Teachers List -->
+            <div class="col-lg-5">
+                <div class="section-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0">المعلمون التابعون</h5>
+                        <a href="/supervisor/teachers" class="btn btn-link text-primary text-decoration-none fw-bold small">عرض الكل</a>
+                    </div>
+                    <% if (teachers && teachers.length > 0) { %>
+                        <% teachers.forEach(teacher => { %>
+                            <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+                                <div class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center fw-bold outfit-font" style="width: 36px; height: 36px; font-size: 0.9rem;">
+                                    <%= teacher.name.charAt(0) %>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small"><%= teacher.name %></div>
+                                    <div class="text-muted" style="font-size: 0.7rem;"><%= teacher.email %></div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p class="text-center text-muted py-4 small">لا يوجد معلمون مسندين إليك</p>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Upcoming Sessions -->
+            <div class="col-lg-7">
+                <div class="section-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0">الجلسات القادمة</h5>
+                        <a href="/supervisor/sessions" class="btn btn-link text-primary text-decoration-none fw-bold small">عرض الكل</a>
+                    </div>
+                    <% if (upcomingSessions && upcomingSessions.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-custom mb-0 text-end">
+                                <thead>
+                                    <tr>
+                                        <th>الطالب</th>
+                                        <th>المعلم</th>
+                                        <th>الدورة</th>
+                                        <th>التاريخ</th>
+                                        <th>الوقت</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% upcomingSessions.forEach(s => { %>
+                                        <tr>
+                                            <td class="fw-bold"><%= s.studentName %></td>
+                                            <td><%= s.teacherName %></td>
+                                            <td><%= s.courseTitle %></td>
+                                            <td class="outfit-font"><%= s.displayDate %></td>
+                                            <td class="outfit-font"><%= s.displayTime %></td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <p class="text-center text-muted py-4 small">لا توجد جلسات قادمة</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-auto py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية <%= new Date().getFullYear() %> - جميع الحقوق محفوظة</small>
+        </footer>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

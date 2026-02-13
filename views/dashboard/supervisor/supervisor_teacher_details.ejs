@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - <%= title %></title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root { --primary: #FE5D37; --secondary: #FFF0ED; --light: #F8F9FA; --dark: #000B1C; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f9fc; font-size: 0.9rem; }
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+        .main-content { margin-right: 260px; padding: 1.5rem; min-height: 100vh; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .main-content { margin-right: 0; } }
+        .card-stats { background: #fff; border-radius: 1.5rem; padding: 1.5rem; border: 1px solid #f1f1f1; transition: all 0.3s; }
+        .card-stats:hover { transform: translateY(-5px); box-shadow: 0 1rem 2rem rgba(0,0,0,0.08); }
+        .table-custom thead th { background-color: #f8f9fa; border-bottom: none; color: #6c757d; font-weight: 700; padding: 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .table-custom tbody td { padding: 1rem; vertical-align: middle; border-bottom: 1px solid #f1f1f1; }
+        .teacher-avatar { width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), #ff8a6c); border-radius: 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; color: white; box-shadow: 0 0.5rem 1.5rem rgba(254, 93, 55, 0.3); }
+    </style>
+</head>
+<body class="bg-light">
+    <%- include('./_supervisor_sidebar.ejs', { currentPage: 'teachers', user: user }) %>
+
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-2" id="sidebarCollapse">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a href="/supervisor/teachers" class="btn btn-light rounded-circle p-2">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div class="teacher-avatar">
+                    <%= teacher.name.charAt(0).toUpperCase() %>
+                </div>
+                <div>
+                    <h4 class="mb-0 fw-bold text-dark"><%= teacher.name %></h4>
+                    <p class="mb-0 small text-muted"><%= teacher.email %></p>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        <% if (teacher.hourly_rates && teacher.hourly_rates.length > 0) { %>
+                            <% teacher.hourly_rates.forEach(r => { %>
+                                <span class="badge bg-primary text-white rounded-pill px-2 py-1 small"><%= r.label %>: <%= r.rate %> ر.س</span>
+                            <% }) %>
+                        <% } else { %>
+                            <span class="badge bg-primary text-white rounded-pill px-3 py-2">
+                                <i class="fas fa-money-bill me-1"></i> سعر الساعة: <%= teacher.hour_rate || 0 %> ر.س
+                            </span>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/supervisor/teacher/schedule/<%= teacher._id %>" class="btn btn-light rounded-3 px-3">
+                    <i class="fas fa-calendar-alt me-2 text-primary"></i> جدول الحصص
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card-stats">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3"><i class="fas fa-users"></i></div>
+                        <div>
+                            <p class="small text-muted mb-0">إجمالي الطلاب</p>
+                            <h3 class="fw-bold mb-0 outfit-font"><%= stats.totalStudents %></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card-stats" style="background: linear-gradient(135deg, var(--primary), #ff8a6c); border: none;">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="bg-white bg-opacity-25 text-white rounded-3 p-3"><i class="fas fa-wallet"></i></div>
+                        <div>
+                            <p class="small text-white opacity-75 mb-0">المستحقات المعلقة</p>
+                            <h3 class="fw-bold mb-0 text-white outfit-font"><%= stats.totalEarnings %> <small class="fw-normal">ر.س</small></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card-stats">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="bg-success bg-opacity-10 text-success rounded-3 p-3"><i class="fas fa-check-circle"></i></div>
+                        <div>
+                            <p class="small text-muted mb-0">حصص منجزة</p>
+                            <h3 class="fw-bold mb-0 outfit-font text-success"><%= stats.completedSessionsCount %></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card-stats">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-3"><i class="fas fa-clock"></i></div>
+                        <div>
+                            <p class="small text-muted mb-0">حصص متبقية</p>
+                            <h3 class="fw-bold mb-0 outfit-font text-warning"><%= stats.totalRemainingSessions %></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-4 shadow-sm border border-light overflow-hidden">
+            <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">سجل الطلاب</h5>
+                    <p class="small text-muted mb-0">جميع الطلاب المشتركين مع هذا المعلم</p>
+                </div>
+                <button onclick="exportToExcel()" class="btn btn-success rounded-3 px-4">
+                    <i class="fas fa-file-excel me-2"></i> تصدير Excel
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table id="studentsTable" class="table table-custom mb-0 text-end">
+                    <thead>
+                        <tr>
+                            <th class="px-4">الطالب</th>
+                            <th class="text-center">إجمالي الحصص</th>
+                            <th class="text-center">الحصص المنجزة</th>
+                            <th class="text-center">المتبقي</th>
+                            <th class="text-center">الحالة</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (students.length === 0) { %>
+                            <tr><td colspan="6" class="text-center text-muted py-5"><i class="fas fa-user-slash fa-2x mb-3 d-block opacity-25"></i>لا يوجد طلاب مسجلون بعد</td></tr>
+                        <% } else { %>
+                            <% students.forEach(s => { %>
+                                <tr style="cursor: pointer;" onclick="window.location.href='/supervisor/student/profile/<%= s.id %>'">
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px;"><%= s.name.charAt(0).toUpperCase() %></div>
+                                            <div>
+                                                <p class="fw-bold text-dark mb-0"><%= s.name %></p>
+                                                <p class="small text-muted mb-0"><%= s.courses.join(' + ') %></p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center"><span class="fw-bold text-primary fs-5"><%= s.totalSessions %></span><small class="d-block text-muted">إجمالي</small></td>
+                                    <td class="text-center"><span class="fw-bold text-success fs-5"><%= s.completedSessions %></span><small class="d-block text-muted">منتهية</small></td>
+                                    <td class="text-center"><span class="fw-bold text-warning fs-5"><%= s.remainingSessions %></span><small class="d-block text-muted">متبقية</small></td>
+                                    <td class="text-center">
+                                        <% if(s.status !== 'completed') { %><span class="badge bg-success text-white rounded-pill px-3 py-2"><i class="fas fa-circle me-1" style="font-size: 6px;"></i> نشط</span>
+                                        <% } else { %><span class="badge bg-secondary text-white rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> مكتمل</span><% } %>
+                                    </td>
+                                    <td class="text-start"><i class="fas fa-chevron-left text-muted"></i></td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية <%= new Date().getFullYear() %></small>
+        </footer>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function exportToExcel() {
+            const table = document.getElementById("studentsTable");
+            const ws = XLSX.utils.table_to_sheet(table);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "بيانات الطلاب");
+            const date = new Date().toISOString().split('T')[0];
+            const teacherName = "<%= teacher.name %>".replace(/\s+/g, '_');
+            XLSX.writeFile(wb, `تقرير_${teacherName}_${date}.xlsx`);
+        }
+    </script>
+</body>
+</html>

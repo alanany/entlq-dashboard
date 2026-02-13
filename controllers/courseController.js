@@ -854,9 +854,14 @@ const adminTeachersPage = async (req, res) => {
     try {
         // جلب المستخدمين الذين لديهم رتبة معلم فقط
         const teachers = await User.find({ role: 'teacher' })
-                                   .sort({ createdAt: -1 });
-res.render('../views/dashboard/teachers', {
+                                   .sort({ createdAt: -1 })
+                                   .populate('supervisorId', 'name'); // Populate supervisor details
+
+        const supervisors = await User.find({ role: 'supervisor' }).select('name _id');
+
+        res.render('../views/dashboard/teachers', {
             teachers: teachers,
+            supervisors: supervisors,
             user: req.user // بيانات الأدمن الحالي (للسيدبار)
         });
         // رندر الصفحة وإرسال البيانات
@@ -875,7 +880,8 @@ const updateTeacher = async (req, res) => {
             zoom_link: req.body.zoom_link,
             phone_number: req.body.phone_number,
             notes: req.body.notes,
-            hourly_rates: req.body.hourly_rates
+            hourly_rates: req.body.hourly_rates,
+            supervisorId: req.body.supervisorId || null // Add supervisorId
         };
 
         // تحديث المستخدم في قاعدة البيانات
@@ -896,7 +902,7 @@ console.log(updatedUser);
 // إضافة معلم جديد
 const addTeacher = async (req, res) => {
     try {
-        const { name, phone_number, zoom_link, hour_rate, notes, email } = req.body;
+        const { name, phone_number, zoom_link, hour_rate, notes, email, supervisorId } = req.body;
         const defaultPassword = 'password123';
 
         // 1. التحقق من عدم وجود حساب بنفس الإيميل (اختياري لكن مهم)
@@ -913,6 +919,7 @@ const addTeacher = async (req, res) => {
             zoom_link,
             hourly_rates: req.body.hourly_rates,
             notes,
+            supervisorId: supervisorId || null, // Add supervisorId
             email,
             password: defaultPassword,
             role: 'teacher',
@@ -1164,6 +1171,79 @@ const sendSessionNotification = async (req, res) => {
     }
 };
 
+const adminSupervisorsPage = async (req, res) => {
+    try {
+        const supervisors = await User.find({ role: 'supervisor' }).sort({ createdAt: -1 });
+        res.render('../views/dashboard/supervisors', {
+            supervisors: supervisors,
+            user: req.user,
+            title: 'إدارة المشرفين'
+        });
+    } catch (err) {
+        console.error("Error fetching supervisors:", err);
+        res.status(500).render('error', { message: "حدث خطأ أثناء جلب بيانات المشرفين" });
+    }
+};
+
+const addSupervisor = async (req, res) => {
+    try {
+        const { name, phone_number, email } = req.body;
+        const defaultPassword = 'password123';
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: 'البريد الإلكتروني مستخدم بالفعل' });
+        }
+
+        const newSupervisor = new User({
+            name,
+            phone_number,
+            email,
+            password: defaultPassword,
+            role: 'supervisor',
+            status: 'active'
+        });
+
+        await newSupervisor.save();
+
+        res.status(201).json({ success: true, message: 'تم إضافة المشرف بنجاح' });
+    } catch (error) {
+        console.error("Error adding supervisor:", error);
+        res.status(500).json({ success: false, message: 'حدث خطأ أثناء حفظ البيانات' });
+    }
+};
+
+const updateSupervisor = async (req, res) => {
+    try {
+        const supervisorId = req.params.id;
+        const updates = {
+            name: req.body.name,
+            phone_number: req.body.phone_number,
+            email: req.body.email
+        };
+
+        const updatedUser = await User.findByIdAndUpdate(supervisorId, updates, { new: true });
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, message: 'المشرف غير موجود' });
+        }
+
+        res.json({ success: true, message: 'تم تحديث البيانات بنجاح' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'خطأ داخلي في السيرفر' });
+    }
+};
+
+const deleteSupervisor = async (req, res) => {
+    try {
+        const result = await User.findByIdAndDelete(req.params.id);
+        if (!result) return res.status(404).json({ success: false, message: 'المشرف غير موجود' });
+        res.json({ success: true, message: 'تم حذف المشرف بنجاح' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'خطأ في السيرفر' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     checkConflict,
@@ -1182,5 +1262,9 @@ module.exports = {
     getManageSessionsLinks,
     postUpdateSessionsLinks,getManageStudents,markSessionAsComplete,
     getUpcomingSessions,
-    sendSessionNotification
+    sendSessionNotification,
+    adminSupervisorsPage,
+    addSupervisor,
+    updateSupervisor,
+    deleteSupervisor
 };

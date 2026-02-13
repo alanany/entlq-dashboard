@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - المعلمون التابعون</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        :root { --primary: #FE5D37; --secondary: #FFF0ED; --light: #F8F9FA; --dark: #000B1C; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f9fc; font-size: 0.9rem; }
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+        .main-content { margin-right: 260px; padding: 1.5rem; min-height: 100vh; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .main-content { margin-right: 0; } }
+        .table-custom thead th {
+            background-color: #f8f9fa; border-bottom: none; color: #6c757d;
+            font-weight: 700; padding: 0.75rem 1rem; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .table-custom tbody td {
+            padding: 0.75rem 1rem; vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1; font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none position-fixed top-0 start-0 m-3 z-3" id="sidebarCollapse">
+        <i class="fas fa-bars fs-5"></i>
+    </button>
+    <%- include('./_supervisor_sidebar.ejs', { currentPage: 'teachers', user: user }) %>
+
+    <div class="main-content">
+        <div class="px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div>
+                    <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2rem;">المعلمون التابعون</h4>
+                    <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Assigned Teachers</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-4 shadow-sm border border-light overflow-hidden animate__animated animate__fadeInUp">
+            <div class="table-responsive">
+                <table class="table table-custom mb-0 text-end">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3">المعلم</th>
+                            <th class="px-4 py-3">التواصل</th>
+                            <th class="px-4 py-3 text-center">سعر الساعة</th>
+                            <th class="px-4 py-3 text-center">زووم</th>
+                            <th class="px-4 py-3 text-center">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                        <% if (teachers && teachers.length > 0) { %>
+                            <% teachers.forEach((teacher) => { %>
+                                <tr class="hover-bg-light transition-colors" style="cursor: pointer;" onclick="window.location.href='/supervisor/teacher/<%= teacher._id %>'">
+                                    <td class="px-4 py-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center fw-bold outfit-font" style="width: 40px; height: 40px; font-size: 1.1rem;">
+                                                <%= teacher.name.charAt(0) %>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark"><%= teacher.name %></div>
+                                                <div class="text-muted small" style="font-size: 0.75rem;"><%= teacher.email %></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-muted outfit-font" style="font-size: 0.8rem;"><%= teacher.phone_number %></td>
+                                    <td class="px-4 py-3 text-center fw-bold text-dark">
+                                        <% if (teacher.hourly_rates && teacher.hourly_rates.length > 0) { %>
+                                            <% teacher.hourly_rates.forEach(r => { %>
+                                                <div class="small"><%= r.label %>: <%= r.rate %> ر.س</div>
+                                            <% }) %>
+                                        <% } else { %> --- <% } %>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <% if (teacher.zoom_link) { %>
+                                            <a href="<%= teacher.zoom_link %>" target="_blank" class="btn btn-outline-primary btn-sm rounded-3">
+                                                <i class="fas fa-video"></i>
+                                            </a>
+                                        <% } else { %> --- <% } %>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <% if (teacher.isActive !== false) { %>
+                                            <span class="badge bg-success bg-opacity-10 text-white rounded-pill px-3 py-2" style="font-size: 0.65rem;">نشط</span>
+                                        <% } else { %>
+                                            <span class="badge bg-warning bg-opacity-10 text-white rounded-pill px-3 py-2" style="font-size: 0.65rem;">مؤرشف</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-5">لا يوجد معلمون مسندين إليك حالياً</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <small>&copy; منصة <%= t('brand_name') %> التعليمية <%= new Date().getFullYear() %> - جميع الحقوق محفوظة</small>
+        </footer>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
