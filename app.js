@@ -15,6 +15,7 @@ const ApiAuthRouter = require('./routes/api routes/api_authRoutes');
 const ApiChatRouter = require('./routes/api routes/api_chatRoutes');
 const teacherDashboardRoutes = require('./routes/teacher_dashboard_routes');
 const supervisorRoutes = require('./routes/supervisorRoutes');
+const superAdminRoutes = require('./routes/superAdminRoutes');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
@@ -110,6 +111,7 @@ app.use(dashboardRoutes);
 app.use(studentDashboardRoutes);
 app.use(supervisorRoutes);
 app.use(teacherDashboardRoutes);
+app.use(superAdminRoutes);
 // api routes
 app.use(ApiAuthRouter);
 app.use(ApiCoursesRouter);

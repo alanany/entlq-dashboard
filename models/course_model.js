@@ -30,6 +30,7 @@ const CourseSchema = new mongoose.Schema({
     },
    coverImage: { type: String },
     curriculum: [SectionSchema], // مصفوفة من الأقسام
+    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy' },
     // creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 });
 

@@ -34,7 +34,7 @@ const getstudentDashboard = async (req, res, next) => {
     } else {
      
      console.log("admin dashboard");
-      const stats = await courseController.getDashboardStats();
+      const stats = await courseController.getDashboardStats(req.user.academyId);
       console.log(stats,'stats'); 
       // For non-students, render without student data
       res.render("../views/dashboard/index", {
@@ -83,7 +83,8 @@ const addStudent = async (req, res) => {
         const newStudent = new User({
             name, email, country_code, phone_number,
             gender, password, timezone,
-            status: 'active'
+            status: 'active',
+            academyId: req.user.academyId // الربط بالأكاديمية
         });
 
         await newStudent.save();

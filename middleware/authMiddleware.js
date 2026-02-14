@@ -88,7 +88,7 @@ const requireAdmin = (req, res, next) => {
     // 1. التأكد أولاً أن المستخدم مسجل دخول (بياناته موجودة في req.user)
     if (req.user) {
         // 2. التحقق من رتبة المستخدم (أدمن أو مشرف)
-        if (req.user.role === 'admin' || req.user.role === 'supervisor') {
+        if (req.user.role === 'admin' || req.user.role === 'supervisor' || req.user.role === 'superadmin') {
             next(); // مستخدم أدمن أو مشرف، اسمح له بالمرور
         } else {
             // مستخدم مسجل دخول ولكنه ليس أدمن أو مشرف
@@ -99,4 +99,13 @@ const requireAdmin = (req, res, next) => {
         res.redirect('/');
     }
 };
-module.exports = { requireAuth, checkUser, requireAdmin };
+
+const requireSuperAdmin = (req, res, next) => {
+    if (req.user && req.user.role === 'superadmin') {
+        next();
+    } else {
+        res.status(403).send('غير مسموح لك بالدخول، هذه المنطقة للمدير العام فقط');
+    }
+};
+
+module.exports = { requireAuth, checkUser, requireAdmin, requireSuperAdmin };

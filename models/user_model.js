@@ -39,9 +39,10 @@ zoom_link: {
   },
   role:{
     type: String,
-    enum: ['admin', 'student', 'teacher', 'supervisor'],
+    enum: ['admin', 'student', 'teacher', 'supervisor', 'superadmin'],
     default: 'student'
   },
+  academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy' },
   supervisorId: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
   timezone: { type: String, default: 'UTC' }, // مثال: 'Asia/Riyadh'
   status:{

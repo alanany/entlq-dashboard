@@ -54,10 +54,10 @@ module.exports.login_get = (req, res) => {
 }
 
 module.exports.signup_post = async (req, res) => {
-  const { email, password,name ,role} = req.body;
+  const { email, password, name, role, academyId } = req.body;
 console.log(req.body);
   try {
-    const user = await User.create({ email, password,name,role });
+    const user = await User.create({ email, password, name, role, academyId });
     console.log(user);
     const token =  createToken(user._id);
     console.log(token);

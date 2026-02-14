@@ -64,6 +64,7 @@ const bookingSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy' },
     status: { // حالة الحجز (بانتظار الدفع، مؤكد، ملغي، مكتمل)
         type: String,
         enum: ['pending', 'confirmed', 'cancelled', 'completed'],

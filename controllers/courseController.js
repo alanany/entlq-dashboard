@@ -22,7 +22,7 @@ const upload = multer({ storage: storage });
 
 const getAdminDashboard = async (req, res) => {
     console.log("admin dashboard at courseController");
-    const stats = await getDashboardStats(req, res);
+    const stats = await getDashboardStats(req.user.academyId);
     console.log(stats,'stats'); 
     // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
     res.render('dashboard/index', { title: 'لوحة تحكم الأدمن',stats:stats }); };
@@ -31,7 +31,7 @@ const getAdminDashboard = async (req, res) => {
 
 const getAllCourses = async (req, res) => {
 
- const courses = await Course.find();  console.log(courses);
+ const courses = await Course.find({ academyId: req.user.academyId });  console.log(courses);
     // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
     res.render('dashboard/courses', { title: 'كورسات الموقع', courses: courses});    
 }
@@ -75,7 +75,8 @@ const addCourse = async (req, res) => {
             category,
             pricingOptions,
             curriculum,
-            coverImage: coverImagePath
+            coverImage: coverImagePath,
+            academyId: req.user.academyId
         });
 
         res.status(201).json({ message: 'تم نشر الدورة بنجاح', course: newCourse });
@@ -362,7 +363,7 @@ const checkout = async (req, res) => {
 const getAdminSubscription = async (req, res) => {
 
 try {
-        let subscriptions = await Subscription.find()
+        let subscriptions = await Subscription.find({ academyId: req.user.academyId })
     .populate({
         path: 'courseId',
         populate: { path: 'category', model: 'Category' }
@@ -695,7 +696,7 @@ const getManageStudents = async (req, res) => {
     try {
        
         // 3. التنفيذ الفعلي لـ find
-        const students = await User.find({ role: 'student' })
+        const students = await User.find({ role: 'student', academyId: req.user.academyId })
         
             .select('name email phone_number country_code isActive status createdAt role')
             .sort({ createdAt: -1 });
@@ -858,11 +859,11 @@ const markSessionAsComplete = async (req, res, next) => {
 const adminTeachersPage = async (req, res) => {
     try {
         // جلب المستخدمين الذين لديهم رتبة معلم فقط
-        const teachers = await User.find({ role: 'teacher' })
+        const teachers = await User.find({ role: 'teacher', academyId: req.user.academyId })
                                    .sort({ createdAt: -1 })
                                    .populate('supervisorId', 'name'); // Populate supervisor details
 
-        const supervisors = await User.find({ role: 'supervisor' }).select('name _id');
+        const supervisors = await User.find({ role: 'supervisor', academyId: req.user.academyId }).select('name _id');
 
         res.render('../views/dashboard/teachers', {
             teachers: teachers,
@@ -928,7 +929,8 @@ const addTeacher = async (req, res) => {
             email,
             password: defaultPassword,
             role: 'teacher',
-            status: 'active'
+            status: 'active',
+            academyId: req.user.academyId
         });
 
         // 3. حفظ في قاعدة البيانات
@@ -1006,10 +1008,11 @@ const checkConflict = async (req, res) => {
     }
 }
 
-const getDashboardStats=  async () => {
-    console.log("getDashboardStats");
+const getDashboardStats=  async (academyId) => {
+    console.log("getDashboardStats for academy:", academyId);
     try {
-        // تنفيذ جميع الاستعلامات في وقت واحد لتحسين الأداء
+        const filter = { academyId };
+        
         const [
             totalStudents,
             totalTeachers,
@@ -1018,12 +1021,15 @@ const getDashboardStats=  async () => {
             popularCourses,
             recentSubscriptions
         ] = await Promise.all([
-            User.countDocuments({ role: 'student' }),
-            User.countDocuments({ role: 'teacher' }),
-            Course.countDocuments(),
-            Subscription.aggregate([{ $group: { _id: null, total: { $sum: "$totalAmount" } } }]), // استخدم totalAmount بدلاً من amount
-            Course.find().sort({ studentsCount: -1 }).limit(5), 
-            Subscription.find()
+            User.countDocuments({ role: 'student', ...filter }),
+            User.countDocuments({ role: 'teacher', ...filter }),
+            Course.countDocuments(filter),
+            Subscription.aggregate([
+                { $match: filter },
+                { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+            ]),
+            Course.find(filter).sort({ studentsCount: -1 }).limit(5), 
+            Subscription.find(filter)
                 .sort({ createdAt: -1 })
                 .limit(6)
                 .populate('studentId', 'name')
@@ -1178,7 +1184,7 @@ const sendSessionNotification = async (req, res) => {
 
 const adminSupervisorsPage = async (req, res) => {
     try {
-        const supervisors = await User.find({ role: 'supervisor' }).sort({ createdAt: -1 });
+        const supervisors = await User.find({ role: 'supervisor', academyId: req.user.academyId }).sort({ createdAt: -1 });
         res.render('../views/dashboard/supervisors', {
             supervisors: supervisors,
             user: req.user,
@@ -1206,7 +1212,8 @@ const addSupervisor = async (req, res) => {
             email,
             password: defaultPassword,
             role: 'supervisor',
-            status: 'active'
+            status: 'active',
+            academyId: req.user.academyId
         });
 
         await newSupervisor.save();

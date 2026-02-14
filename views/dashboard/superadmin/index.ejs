@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --secondary: #1A202C;
+            --success: #10B981;
+            --danger: #EF4444;
+            --bg-glass: rgba(255, 255, 255, 0.9);
+        }
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            background: var(--secondary);
+            color: white;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: none;
+            transition: transform 0.3s;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        .academy-table-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-top: 2rem;
+            overflow: hidden;
+        }
+        .badge-active { background-color: var(--success); }
+        .badge-suspended { background-color: var(--danger); }
+        .btn-primary { background-color: var(--primary); border: none; }
+        .navbar-brand { font-weight: 800; color: var(--primary) !important; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar d-none d-md-block">
+            <h4 class="mb-5 text-center">انطلق بلاس</h4>
+            <ul class="nav flex-column">
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-white active" href="/superadmin">
+                        <i class="fa fa-home me-2"></i> الرئيسة
+                    </a>
+                </li>
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#addAcademyModal">
+                        <i class="fa fa-plus-circle me-2"></i> إضافة أكاديمية
+                    </a>
+                </li>
+                <li class="nav-item mt-auto">
+                    <a class="nav-link text-danger" href="/logout">
+                        <i class="fa fa-sign-out-alt me-2"></i> تسجيل الخروج
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>لوحة تحكم المدير العام</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAcademyModal">
+                    <i class="fa fa-plus me-2"></i> إنشاء أكاديمية جديدة
+                </button>
+            </div>
+
+            <!-- Global Stats -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="fa fa-university text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-0">إجمالي الأكاديميات</h6>
+                                <h3 class="mb-0"><%= globalStats.totalAcademies %></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="fa fa-check-circle text-success fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-0">أكاديميات نشطة</h6>
+                                <h3 class="mb-0"><%= globalStats.activeAcademies %></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="fa fa-wallet text-warning fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-0">إجمالي الإيرادات</h6>
+                                <h3 class="mb-0">$<%= globalStats.totalRevenue %></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academies Table -->
+            <div class="academy-table-card">
+                <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">الأكاديميات المسجلة</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>الأكاديمية</th>
+                                <th>الإحصائيات</th>
+                                <th>الإيرادات</th>
+                                <th>الحالة</th>
+                                <th>تاريخ الانضمام</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% academies.forEach(academy => { %>
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold"><%= academy.name %></div>
+                                        <small class="text-muted"><%= academy.subdomain %>.entlqsa.com</small>
+                                    </td>
+                                    <td>
+                                        <div class="small">
+                                            <span class="me-2"><i class="fa fa-user-graduate text-muted"></i> <%= academy.stats.students %></span>
+                                            <span><i class="fa fa-chalkboard-teacher text-muted"></i> <%= academy.stats.teachers %></span>
+                                        </div>
+                                        <div class="small text-muted"><i class="fa fa-book me-1"></i> <%= academy.stats.courses %> دورة</div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">$<%= academy.stats.revenue %></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge <%= academy.status === 'active' ? 'badge-active' : 'badge-suspended' %>">
+                                            <%= academy.status === 'active' ? 'نشط' : 'محظور' %>
+                                        </span>
+                                    </td>
+                                    <td><%= new Date(academy.createdAt).toLocaleDateString('ar-EG') %></td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-secondary toggle-status" 
+                                                    data-id="<%= academy._id %>" 
+                                                    data-status="<%= academy.status === 'active' ? 'suspended' : 'active' %>">
+                                                <i class="fa <%= academy.status === 'active' ? 'fa-ban' : 'fa-check' %>"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger delete-academy" data-id="<%= academy._id %>">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Academy Modal -->
+<div class="modal fade" id="addAcademyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">إنشاء أكاديمية جديدة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addAcademyForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">اسم الأكاديمية</label>
+                        <input type="text" name="academyName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">النطاق الفرعي (Subdomain)</label>
+                        <input type="text" name="subdomain" class="form-control" placeholder="مثال: master-academy">
+                    </div>
+                    <hr>
+                    <h6>بيانات المدير (Admin)</h6>
+                    <div class="mb-3">
+                        <label class="form-label">اسم المدير</label>
+                        <input type="text" name="adminName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">البريد الإلكتروني</label>
+                        <input type="email" name="adminEmail" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">كلمة المرور</label>
+                        <input type="password" name="adminPassword" class="form-control" required minlength="6">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إنشاء الأكاديمية</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById('addAcademyForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch('/superadmin/create-academy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (result.success) {
+                Swal.fire('نجاح', 'تم إنشاء الأكاديمية بنجاح', 'success').then(() => location.reload());
+            } else {
+                Swal.fire('خطأ', result.message, 'error');
+            }
+        } catch (err) {
+            Swal.fire('خطأ', 'حدث خطأ غير متوقع', 'error');
+        }
+    });
+
+    document.querySelectorAll('.toggle-status').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const academyId = btn.dataset.id;
+            const status = btn.dataset.status;
+
+            const response = await fetch('/superadmin/toggle-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ academyId, status })
+            });
+            if (await response.json()) location.reload();
+        });
+    });
+
+    document.querySelectorAll('.delete-academy').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('هل أنت متأكد من حذف هذه الأكاديمية؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+            const academyId = btn.dataset.id;
+            const response = await fetch(`/superadmin/academy/${academyId}`, { method: 'DELETE' });
+            if (await response.json()) location.reload();
+        });
+    });
+</script>
+</body>
+</html>
