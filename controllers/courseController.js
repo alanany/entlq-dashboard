@@ -199,6 +199,11 @@ const deleteCourse = async (req, res) => {
         blogPosts: blogPosts
     });
 }
+const getLandingPage = (req, res) => {
+    res.render('../views/website/landing', {
+        user: req.user
+    });
+};
 const allCourses_website_get = async(req, res) => {
   const courses = await Course.find();  console.log(courses);
   res.render('../views/website/course-list', { title: 'كورسات الموقع', courses: courses});
@@ -1255,6 +1260,7 @@ module.exports = {
     updateCoursePost,getManagePayment,
     deleteCourse,
     home_website_get,
+    getLandingPage,
     allCourses_website_get,
     getCourseDetails,checkout,confirmBookingPayment,
     getScheduleSessions,

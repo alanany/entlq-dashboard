@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة انطلق - حلول تعليمية ذكية</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Alexandria:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- Owl Carousel -->
+    <link href="/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --primary-light: #ff8e75;
+            --secondary: #121F3E;
+            --bg-dark: #0F172A;
+            --card-glass: rgba(255, 255, 255, 0.05);
+            --card-glass-hover: rgba(255, 255, 255, 0.1);
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Alexandria', 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated Background */
+        .bg-shapes {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            filter: blur(80px);
+            opacity: 0.15;
+            border-radius: 50%;
+            animation: move 20s infinite alternate;
+        }
+
+        .shape-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary);
+            top: -100px;
+            right: -100px;
+        }
+
+        .shape-2 {
+            width: 400px;
+            height: 400px;
+            background: #4F46E5;
+            bottom: -50px;
+            left: -50px;
+            animation-delay: -5s;
+        }
+
+        @keyframes move {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(50px, 100px) scale(1.1); }
+        }
+
+        /* Navbar */
+        nav {
+            padding: 2rem 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: transparent;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Slider */
+        header {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-carousel .owl-carousel-item {
+            min-height: 100vh;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10%;
+            text-align: center;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Slide Themes */
+        .slide-1 { background: radial-gradient(circle at top right, #2D3748, #1A202C), linear-gradient(135deg, #FE5D37 0%, #1A202C 100%); }
+        .slide-2 { background: radial-gradient(circle at top right, #1E1B4B, #0F172A), linear-gradient(135deg, #4F46E5 0%, #0F172A 100%); }
+        .slide-3 { background: radial-gradient(circle at top right, #064E3B, #022C22), linear-gradient(135deg, #10B981 0%, #022C22 100%); }
+        .slide-4 { background: radial-gradient(circle at top right, #4C1D95, #1E1B4B), linear-gradient(135deg, #8B5CF6 0%, #1E1B4B 100%); }
+
+        /* Removed slider-bg as per user request for blend colors */
+
+        .slider-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.6));
+            z-index: 2; /* Distinct z-index */
+        }
+
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 3; /* Distinct z-index */
+        }
+
+        .owl-nav {
+            position: absolute;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: space-between;
+            padding: 0 5%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .owl-nav button {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-radius: 50% !important;
+            color: #fff !important;
+            font-size: 1.5rem !important;
+            pointer-events: auto;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .owl-nav button:hover {
+            background: var(--primary) !important;
+            transform: scale(1.1);
+        }
+
+        .owl-dots {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .owl-dot {
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2) !important;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .owl-dot.active {
+            background: var(--primary) !important;
+            width: 30px;
+            border-radius: 20px;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            color: #FFFFFF; /* Clearly white */
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        p.subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.9); /* Brighter white */
+            margin-bottom: 2.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 10px 30px rgba(254, 93, 55, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(254, 93, 55, 0.4);
+            background-color: var(--primary-light);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline:hover {
+            background: #fff;
+            color: var(--secondary);
+        }
+
+        /* Main Section */
+        section {
+            padding: 100px 10%;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            color: var(--text-muted);
+        }
+
+        /* Grid */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .demo-card {
+            background: var(--card-glass);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2.5rem;
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: var(--transition);
+            transform-origin: right;
+        }
+
+        .demo-card:hover {
+            background: var(--card-glass-hover);
+            transform: translateY(-10px);
+            border-color: rgba(254, 93, 55, 0.3);
+        }
+
+        .demo-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: rgba(254, 93, 55, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        /* App Download Section */
+        .download-sect {
+            background: linear-gradient(135deg, rgba(254, 93, 55, 0.1) 0%, rgba(18, 31, 62, 0) 100%);
+            border-radius: 40px;
+            padding: 80px;
+            margin: 100px 10%;
+            display: flex;
+            align-items: center;
+            gap: 4rem;
+        }
+
+        .download-content {
+            flex: 1;
+        }
+
+        .download-img {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .download-img img {
+            max-width: 100%;
+            filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));
+            border-radius: 20px;
+        }
+
+        .app-badges {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .app-badge {
+            height: 50px;
+            transition: var(--transition);
+        }
+
+        .app-badge:hover {
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px 10%;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .btn-group { flex-direction: column; }
+            .download-sect { flex-direction: column; padding: 40px 20px; }
+            nav { padding: 1.5rem 5%; }
+            .nav-links { display: none; }
+            .demo-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--card-glass-hover);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <nav>
+        <a href="#" class="logo">
+            <i class="fa fa-laptop-code"></i>
+            ENTLQ <span>Plus</span>
+        </a>
+        <div class="nav-links">
+            <a href="/home">الموقع الإلكتروني</a>
+            <a href="#demos">اللوحات التعليمية</a>
+            <a href="#apps">التطبيق</a>
+            <% if (user) { %>
+                <a href="/dashboard" class="btn btn-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem;">لوحة التحكم</a>
+            <% } else { %>
+                <a href="/login" class="btn btn-primary" style="padding: 0.5rem 1.5rem; font-size: 0.9rem;">تسجيل الدخول</a>
+            <% } %>
+        </div>
+    </nav>
+
+    <header>
+        <div class="owl-carousel header-carousel">
+            <!-- Slide 1 -->
+            <div class="owl-carousel-item slide-1">
+                <div class="slider-overlay"></div>
+                <div class="hero-content">
+                    <div class="badge-new" style="display: inline-block; padding: 0.5rem 1.2rem; background: rgba(254, 93, 55, 0.1); color: #fff; border-radius: 50px; font-weight: 600; font-size: 0.9rem; margin-bottom: 2rem; border: 1px solid rgba(254, 93, 55, 0.2);">
+                        <i class="fa fa-sparkles"></i> النظام التعليمي الأكثر تكاملاً
+                    </div>
+                    <h1 class="">مستقبل التعليم الرقمي <br> يبدأ من هنا</h1>
+                    <p class="subtitle" style="animation-delay: 0.2s;">
+                        منصة انطلق بلاس هي الحل الشامل لإدارة الأكاديميات والمراكز التعليمية، توفر تجربة فريدة للإدارة والمعلمين والطلاب.
+                    </p>
+                    <div class="btn-group " style="animation-delay: 0.4s;">
+                        <% if (user) { %>
+                            <a href="/dashboard" class="btn btn-primary">
+                                <i class="fa fa-th-large"></i>
+                                لوحة التحكم
+                            </a>
+                        <% } else { %>
+                            <a href="#demos" class="btn btn-primary">
+                                <i class="fa fa-play-circle"></i>
+                                استعراض الديمو
+                            </a>
+                        <% } %>
+                        <a href="/home" class="btn btn-outline">
+                            <i class="fa fa-external-link-alt"></i>
+                            زيارة الموقع
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="owl-carousel-item slide-2">
+                <div class="slider-overlay"></div>
+                <div class="hero-content">
+                    <div class="badge-new " style="display: inline-block; padding: 0.5rem 1.2rem; background: rgba(79, 70, 229, 0.1); color: #fff; border-radius: 50px; font-weight: 600; font-size: 0.9rem; margin-bottom: 2rem; border: 1px solid rgba(79, 70, 229, 0.2);">
+                        <i class="fa fa-chart-line"></i> إدارة ذكية وذكاء اصطناعي
+                    </div>
+                    <h1 class="">لوحات تحكم متطورة <br> وتقارير حية</h1>
+                    <p class="subtitle " style="animation-delay: 0.2s;">
+                        احصل على رؤية كاملة لمؤسستك التعليمية من خلال تقارير تفصيلية عن الأداء المالي وتقدم الطلاب وإحصائيات المعلمين.
+                    </p>
+                    <div class="btn-group " style="animation-delay: 0.4s;">
+                        <a href="#demos" class="btn btn-primary" style="background: #4F46E5; box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);">
+                            <i class="fa fa-magic"></i>
+                            اكتشف المميزات
+                        </a>
+                        <a href="/home" class="btn btn-outline">
+                            <i class="fa fa-envelope"></i>
+                            تواصل معنا
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="owl-carousel-item slide-3">
+                <div class="slider-overlay"></div>
+                <div class="hero-content">
+                    <div class="badge-new " style="display: inline-block; padding: 0.5rem 1.2rem; background: rgba(16, 185, 129, 0.1); color: #fff; border-radius: 50px; font-weight: 600; font-size: 0.9rem; margin-bottom: 2rem; border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <i class="fa fa-mobile-alt"></i> التعليم في جيبك
+                    </div>
+                    <h1 class="">تطبيق موبايل متكامل <br> للجميع</h1>
+                    <p class="subtitle " style="animation-delay: 0.2s;">
+                        دخول مباشر للمحاضرات، تنبيهات فورية، وتفاعل غير مسبوق. تطبيقنا يوفر تجربة تعلم سلسة لا مثيل لها.
+                    </p>
+                    <div class="btn-group " style="animation-delay: 0.4s;">
+                        <a href="#apps" class="btn btn-primary" style="background: #10B981; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);">
+                            <i class="fa fa-download"></i>
+                            تحميل التطبيق الآن
+                        </a>
+                        <a href="#demos" class="btn btn-outline">
+                            <i class="fa fa-tablet-alt"></i>
+                            مشاهدة الديمو
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 4 -->
+            <div class="owl-carousel-item slide-4">
+                <div class="slider-overlay"></div>
+                <div class="hero-content">
+                    <div class="badge-new " style="display: inline-block; padding: 0.5rem 1.2rem; background: rgba(139, 92, 246, 0.1); color: #fff; border-radius: 50px; font-weight: 600; font-size: 0.9rem; margin-bottom: 2rem; border: 1px solid rgba(139, 92, 246, 0.2);">
+                        <i class="fa fa-graduation-cap"></i> نخبة من المعلمين والخبراء
+                    </div>
+                    <h1 class="">تعلم من الأفضل <br> في مجالك</h1>
+                    <p class="subtitle " style="animation-delay: 0.2s;">
+                        تواصل مع نخبة من التربويين والموجهين المخصصين لنجاحك. منصتنا تضم أكفأ الكوادر المهنية.
+                    </p>
+                    <div class="btn-group " style="animation-delay: 0.4s;">
+                        <a href="/website-courses" class="btn btn-primary" style="background: #8B5CF6; border-color: #8B5CF6; box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);">
+                            <i class="fa fa-book-open"></i>
+                            استعرض الدورات
+                        </a>
+                        <a href="#demos" class="btn btn-outline">
+                            <i class="fa fa-users"></i>
+                            تعرف على فريقنا
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="features" style="padding: 100px 10%; background: #121F3E;">
+        <div class="section-title">
+            <h2 style="color: #fff;">لماذا تختار ENTLQ Plus؟</h2>
+            <p style="color: #94A3B8;">مميزات حصرية تضمن لك التفوق في عالم التعليم الرقمي</p>
+        </div>
+        <div class="demo-grid">
+            <div class="demo-card">
+                <div class="card-icon" style="background: rgba(79, 70, 229, 0.1); color: #818CF8;">
+                    <i class="fa fa-bolt"></i>
+                </div>
+                <div class="card-content">
+                    <h3>أداء فائق السرعة</h3>
+                    <p>نظام سحابي عالمي يضمن لك استقراراً تاماً وسرعة استجابة عالية في أي وقت.</p>
+                </div>
+            </div>
+            <div class="demo-card">
+                <div class="card-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">
+                    <i class="fa fa-shield-alt"></i>
+                </div>
+                <div class="card-content">
+                    <h3>أمان وتشفير بيانات</h3>
+                    <p>نولي خصوصية بياناتك أهمية قصوى مع بروتوكولات حماية متطورة وتشفير كامل.</p>
+                </div>
+            </div>
+            <div class="demo-card">
+                <div class="card-icon" style="background: rgba(254, 93, 55, 0.1); color: var(--primary);">
+                    <i class="fa fa-headset"></i>
+                </div>
+                <div class="card-content">
+                    <h3>دعم فني 24/7</h3>
+                    <p>فريقنا التقني متواجد دائماً لمساعدتك في حل أي تحديات وضمان سير العمل.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="demos">
+        <div class="section-title">
+            <h2>لوحات التحكم الذكية</h2>
+            <p>استكشف واجهات النظام المخصصة لكل طرف في العملية التعليمية</p>
+        </div>
+
+        <div class="demo-grid">
+            <!-- Admin Dashboard -->
+            <a href="/login" class="demo-card animate__animated animate__fadeInUp">
+                <div class="card-icon">
+                    <i class="fa fa-user-shield"></i>
+                </div>
+                <div class="card-content">
+                    <h3>لوحة تحكم المسؤول</h3>
+                    <p>إدارة كاملة للمنصة، التقارير المالية، متابعة الحصص، إدارة المعلمين والطلاب، والتحكم في محتوى الموقع.</p>
+                    <div class="card-link">
+                        عرض الديمو <i class="fa fa-arrow-left"></i>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Teacher Dashboard -->
+            <a href="/teacher/login" class="demo-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                <div class="card-icon">
+                    <i class="fa fa-chalkboard-teacher"></i>
+                </div>
+                <div class="card-content">
+                    <h3>لوحة تحكم المعلم</h3>
+                    <p>إدارة الحصص الخاصة، جدول المواعيد، تقارير تقدم الطلاب، والتواصل المباشر مع المنصة.</p>
+                    <div class="card-link">
+                        عرض الديمو <i class="fa fa-arrow-left"></i>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Student Dashboard -->
+            <a href="/student/login" class="demo-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                <div class="card-icon">
+                    <i class="fa fa-user-graduate"></i>
+                </div>
+                <div class="card-content">
+                    <h3>لوحة تحكم الطالب</h3>
+                    <p>المتابعة الدراسية، دخول الحصص الافتراضية، مراجعة التقارير، وحجز الدورات والبرامج التعليمية.</p>
+                    <div class="card-link">
+                        عرض الديمو <i class="fa fa-arrow-left"></i>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Supervisor Dashboard -->
+            <a href="/login" class="demo-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                <div class="card-icon">
+                    <i class="fa fa-users-cog"></i>
+                </div>
+                <div class="card-content">
+                    <h3>لوحة تحكم المشرف</h3>
+                    <p>صلاحيات وسيطة لمراقبة سير العملية التعليمية، التنسيق بين المعلمين والطلاب، وضمان جودة الحصص.</p>
+                    <div class="card-link">
+                        عرض الديمو <i class="fa fa-arrow-left"></i>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Public Website -->
+            <a href="/home" class="demo-card animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+                <div class="card-icon">
+                    <i class="fa fa-globe"></i>
+                </div>
+                <div class="card-content">
+                    <h3>الموقع التعريفي العام</h3>
+                    <p>واجهة متكاملة لعرض الدورات والأسعار، التسجيل الجديد، والمدونة التعليمية مع نظام SEO متقدم.</p>
+                    <div class="card-link">
+                        زيارة الموقع <i class="fa fa-arrow-left"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <div class="download-sect" id="apps">
+        <div class="download-content animate__animated animate__slideInRight">
+            <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem;">تعلم من أي مكان مع تطبيق انطلق</h2>
+            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;">
+                احصل على تجربة تعلم سلسة على هاتفك المحمول. تنبيهات فورية للحصص، وصول سريع للمحتوى، وتواصل مباشر في جيبك.
+            </p>
+            <div class="app-badges">
+                <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" class="app-badge"></a>
+                <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" alt="App Store" class="app-badge"></a>
+            </div>
+            <div style="margin-top: 3rem; display: flex; gap: 2rem; align-items: center;">
+                <div>
+                    <h4 style="color: var(--primary); font-size: 1.5rem; font-weight: 800;">4.9/5</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">تقييم المتجر</p>
+                </div>
+                <div style="width: 1px; height: 40px; background: rgba(255,255,255,0.1);"></div>
+                <div>
+                    <h4 style="color: var(--primary); font-size: 1.5rem; font-weight: 800;">+10K</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">تحميل نشط</p>
+                </div>
+            </div>
+        </div>
+        <div class="download-img animate__animated animate__slideInLeft">
+            <!-- سيتم استبدال الصورة بواحدة حقيقية أو مولدة -->
+            <img src="https://img.freepik.com/free-vector/modern-smartphone-with-empty-screen-isolated_53876-115935.jpg?w=800" alt="App Preview" style="max-width: 300px; border-radius: 40px;">
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2026 جميع الحقوق محفوظة لـ <strong>منصة انطلق التعليمية</strong></p>
+        <p style="font-size: 0.8rem; margin-top: 0.5rem;">تم التطوير بكل حب لدعم رحلتكم التعليمية</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/wow/wow.min.js"></script>
+    <script src="/lib/owlcarousel/owl.carousel.min.js"></script>
+    
+    <script>
+        $(document).ready(function () {
+            // Header carousel
+            $(".header-carousel").owlCarousel({
+                autoplay: true,
+                smartSpeed: 1500,
+                items: 1,
+                dots: true,
+                loop: true,
+                nav : true,
+                rtl: true, // Support for RTL layout
+                navText : [
+                    '<i class="fa fa-chevron-right"></i>',
+                    '<i class="fa fa-chevron-left"></i>'
+                ]
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Intersection Observer for animation re-triggering (optional)
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate__animated');
+                }
+            });
+        });
+
+            document.querySelectorAll('.demo-card').forEach(card => observer.observe(card));
+        });
+    </script>
+</body>
+</html>

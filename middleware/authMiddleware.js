@@ -7,11 +7,11 @@ const requireAuth = (req, res, next) => {
 
     // check json web token exists & is verified
     if (token) {
-        jwt.verify(token, '01115699209', (err, decodedToken) => {
+        jwt.verify(token, process.env.JWT_SECRET || '01115699209', (err, decodedToken) => {
             if (err) {
                 // إذا كان الرمز غير صالح: تحويل إلى صفحة تسجيل الدخول
                 console.log(err.message);
-                res.redirect('/home');
+                res.redirect('/');
             } else {
                 // ⭐️ إذا كان الرمز صالحاً: نمرر الطلب فقط (next())
                 console.log(decodedToken);
@@ -21,7 +21,7 @@ const requireAuth = (req, res, next) => {
         });
     } else {
         // إذا لم يكن هناك رمز: تحويل إلى صفحة تسجيل الدخول
-        res.redirect('/home');
+        res.redirect('/');
     }
 };
 
@@ -29,7 +29,7 @@ const requireAuth = (req, res, next) => {
 const checkUser = (req, res, next) => {
     const token = req.cookies.jwt;
     if (token) {
-        jwt.verify(token, '01115699209', async (err, decodedToken) => {
+        jwt.verify(token, process.env.JWT_SECRET || '01115699209', async (err, decodedToken) => {
             if (err) {
                 res.locals.user = null;
                 next();

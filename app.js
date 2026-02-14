@@ -1,9 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const authRoutes = require('./routes/authRoutes');
 const cookieParser = require('cookie-parser');
 const {  checkUser } = require('./middleware/authMiddleware');
 const connectMango = require('./middleware/mongo_connect');
-const app = express();
+const bodyParser = require('body-parser');
+const { globalLimiter, authLimiter } = require('./middleware/rateLimiter');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const studentDashboardRoutes = require('./routes/studentDashboardRoutes');
 const ApiCoursesRouter = require('./routes/api routes/api_coursesRoutes ');
@@ -13,7 +15,30 @@ const ApiAuthRouter = require('./routes/api routes/api_authRoutes');
 const ApiChatRouter = require('./routes/api routes/api_chatRoutes');
 const teacherDashboardRoutes = require('./routes/teacher_dashboard_routes');
 const supervisorRoutes = require('./routes/supervisorRoutes');
-const bodyParser = require('body-parser');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const hpp = require('hpp');
+
+const app = express();
+
+// 1. Security Headers (Protection against XSS, Clickjacking, etc.)
+app.use(helmet({
+    contentSecurityPolicy: false, // Disabled for easier integration with EJS/CDNs, can be tuned later
+}));
+
+// 2. Data Sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// 3. Prevent HTTP Parameter Pollution
+app.use(hpp());
+
+// Apply global rate limiter to all requests (DDoS protection)
+app.use(globalLimiter);
+
+// Specific limiters for sensitive routes (Brute force protection)
+app.use('/login', authLimiter);
+app.use('/admin_register', authLimiter);
+app.use('/api/v1', authLimiter); // Apply to all API auth routes
 
 // ⭐️ الإعداد الصحيح لمجلد العرض ⭐️
 // يتم تعيين مجلد 'views' كمسار افتراضي للـ EJS
@@ -29,6 +54,8 @@ app.use(methodOverride('_method'));
 app.use(express.json());
 app.use(cookieParser());
 const cors = require('cors');
+app.use(cors());
+
 const i18nMiddleware = require('./middleware/i18nMiddleware');
 
 // i18n middleware
@@ -53,8 +80,9 @@ const chatSocket = require('./utility/chat_socket');
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
+    origin: ["https://entlqsa.com"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
     }
 });
 
