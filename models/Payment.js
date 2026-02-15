@@ -19,6 +19,7 @@ const paymentSchema = new mongoose.Schema({
     month: { type: String }, // e.g., "2024-05" for salaries
     paymentDate: { type: Date, default: Date.now }, // Legacy alias for date
     adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', required: true },
 
 }, { timestamps: true });
 

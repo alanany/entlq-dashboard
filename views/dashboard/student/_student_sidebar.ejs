@@ -1,0 +1,35 @@
+<div class="sidebar" id="sidebar">
+    <div class="p-4 text-center border-bottom">
+        <h3 class="m-0 text-primary lobster-font" style="font-size: 2rem;">
+            <i class="fa fa-laptop-code me-2"></i><%= settings.academyName %>
+        </h3>
+    </div>
+    <div class="py-4">
+        <a href="/" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'home' ? 'active' : '' %>">
+            <i class="fa fa-home"></i> <%= t('home') %>
+        </a>
+        <a href="/student/my-sessions" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'sessions' ? 'active' : '' %>">
+            <i class="fa fa-calendar-alt"></i> <%= t('sessions') %>
+        </a>
+        <a href="/student/courses_list" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'courses' ? 'active' : '' %>">
+            <i class="fa fa-book"></i> <%= t('courses') %>
+        </a>
+        <a href="/student/enrolled_subscription" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'subscriptions' ? 'active' : '' %>">
+            <i class="fa fa-file-invoice"></i> <%= t('subscriptions') %>
+        </a>
+        <a href="/student/billing" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'billing' ? 'active' : '' %>">
+            <i class="fa fa-wallet"></i> <%= t('billing') %>
+        </a>
+        <a href="/chat" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'chat' ? 'active' : '' %>">
+            <i class="fa fa-comments"></i> الدردشة
+        </a>
+        <div class="mt-4 pt-4 border-top mx-3">
+            <a href="/student/profile" class="nav-link <%= typeof activePage !== 'undefined' && activePage === 'settings' ? 'active' : '' %>">
+                <i class="fa fa-user-cog"></i> <%= t('settings') %>
+            </a>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal" class="nav-link text-danger mt-2">
+                <i class="fa fa-sign-out-alt"></i> <%= t('logout') %>
+            </a>
+        </div>
+    </div>
+</div>

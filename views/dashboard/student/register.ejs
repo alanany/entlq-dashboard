@@ -261,7 +261,7 @@
             saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> CREATING...';
 
             try {
-                const res = await fetch('/student/register', {
+                const res = await fetch('/student/register/public', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)

@@ -2,6 +2,7 @@ const User = require("../models/user_model");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const Course = require('../models/course_model.js');
+const Academy = require('../models/academy_model');
 // handle errors
 const handleErrors = (err) => {
   console.log(err.message, err.code);
@@ -79,13 +80,14 @@ module.exports.login_post = async (req, res) => {
 
     // 1. استخراج البيانات المطلوبة
     const { email, password, role ,timezone} = req.body;
+    const normalizedEmail = email ? email.trim().toLowerCase() : '';
     
     // **كائن الأخطاء المخصص**
     let errors = {}; 
 
     try {
         // 2. البحث عن المستخدم بالبريد والدور
-        const user = await User.findOne({ email: email, role: role });
+        const user = await User.findOne({ email: normalizedEmail, role: role });
 
         if (!user) {
             // 3. حالة: المستخدم غير موجود (البريد غير صحيح)
@@ -103,7 +105,18 @@ module.exports.login_post = async (req, res) => {
             res.status(400).json({ errors });
             return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
         } 
-  if (timezone && user.timezone !== timezone) {
+
+        // 5.5 تحقق من حالة الأكاديمية (إذا كان المستخدم مرتبطاً بأكاديمية)
+        if (user.academyId) {
+            const academy = await Academy.findById(user.academyId);
+            if (academy && academy.status === 'suspended') {
+                errors.email = 'تم حظر هذه الأكاديمية مؤقتاً. يرجى التواصل مع الإدارة.';
+                res.status(403).json({ errors });
+                return;
+            }
+        }
+
+        if (timezone && user.timezone !== timezone) {
     user.timezone = timezone;
     await user.save();
     console.log(`تم تحديث توقيت المستخدم إلى: ${timezone}`);
@@ -113,7 +126,7 @@ module.exports.login_post = async (req, res) => {
         await res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
         
         // إرسال استجابة النجاح
-        res.status(200).json({ user: user._id, message: "تم تسجيل الدخول بنجاح." });
+        res.status(200).json({ user: user._id, role: user.role, message: "تم تسجيل الدخول بنجاح." });
         return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
 
     } 

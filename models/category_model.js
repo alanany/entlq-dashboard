@@ -14,6 +14,11 @@ const CategorySchema = new mongoose.Schema({
         lowercase: true
     },
     // يمكن إضافة حقول أخرى مثل creator أو dateCreated
+    academyId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Academy',
+        required: true
+    }
 });
 
 // 💡 يمكنك إضافة منطق لإنشاء الـ slug قبل الحفظ

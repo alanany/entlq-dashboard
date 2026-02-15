@@ -4,7 +4,8 @@ const BlogPost = require('../models/BlogPost');
 // GET - Website Sections List
 const getWebsiteSections = async (req, res) => {
     try {
-        const sections = await WebsiteSection.find();
+        const academyId = req.user.academyId;
+        const sections = await WebsiteSection.find({ academyId });
         res.render('dashboard/website-sections', { 
             title: 'إدارة أقسام الموقع', 
             sections, 
@@ -21,9 +22,10 @@ const updateWebsiteSection = async (req, res) => {
     try {
         const { key, title, subtitle, content, buttonText, buttonLink } = req.body;
         const image = req.file ? `/uploads/${req.file.filename}` : req.body.existingImage;
+        const academyId = req.user.academyId;
 
         await WebsiteSection.findOneAndUpdate(
-            { key },
+            { key, academyId },
             { title, subtitle, content, buttonText, buttonLink, image },
             { upsert: true, new: true }
         );
@@ -38,7 +40,8 @@ const updateWebsiteSection = async (req, res) => {
 // GET - Blog Posts List
 const getBlogPosts = async (req, res) => {
     try {
-        const posts = await BlogPost.find().sort({ createdAt: -1 });
+        const academyId = req.user.academyId;
+        const posts = await BlogPost.find({ academyId }).sort({ createdAt: -1 });
         res.render('dashboard/website-blog', { 
             title: 'إدارة المدونة', 
             posts, 
@@ -55,8 +58,9 @@ const addBlogPost = async (req, res) => {
     try {
         const { title, content, summary } = req.body;
         const image = req.file ? `/uploads/${req.file.filename}` : null;
+        const academyId = req.user.academyId;
 
-        await BlogPost.create({ title, content, summary, image });
+        await BlogPost.create({ title, content, summary, image, academyId });
         res.status(201).json({ message: 'تم إضافة المقال بنجاح' });
     } catch (err) {
         console.error(err);
@@ -67,7 +71,8 @@ const addBlogPost = async (req, res) => {
 // DELETE - Delete Blog Post
 const deleteBlogPost = async (req, res) => {
     try {
-        await BlogPost.findByIdAndDelete(req.params.id);
+        const academyId = req.user.academyId;
+        await BlogPost.findOneAndDelete({ _id: req.params.id, academyId });
         res.status(200).json({ message: 'تم حذف المقال بنجاح' });
     } catch (err) {
         console.error(err);

@@ -4,6 +4,9 @@ const { requireAuth, requireSuperAdmin, checkUser } = require('../middleware/aut
 
 const router = Router();
 
+// Super Admin Login
+router.get('/superadmin/login', academyController.getSuperAdminLogin);
+
 // Dashboard Home (Stats & Academy List)
 router.get('/superadmin', requireAuth, checkUser, requireSuperAdmin, academyController.getSuperAdminDashboard);
 

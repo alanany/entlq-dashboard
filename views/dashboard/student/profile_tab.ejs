@@ -212,38 +212,7 @@
 
 <body>
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="p-4 text-center border-bottom">
-            <h1 class="m-0 text-primary lobster-font" style="font-size: 2rem;">
-                <i class="fa fa-laptop-code me-2"></i><%= t('brand_name') %>
-            </h1>
-        </div>
-        <div class="py-4">
-            <a href="/" class="nav-link">
-                <i class="fa fa-home"></i> <%= t('home') %>
-            </a>
-            <a href="/student/my-sessions" class="nav-link">
-                <i class="fa fa-calendar-alt"></i> <%= t('sessions') %>
-            </a>
-            <a href="/student/courses_list" class="nav-link">
-                <i class="fa fa-book"></i> <%= t('courses') %>
-            </a>
-            <a href="/student/enrolled_subscription" class="nav-link">
-                <i class="fa fa-file-invoice"></i> <%= t('subscriptions') %>
-            </a>
-            <a href="/student/billing" class="nav-link">
-                <i class="fa fa-wallet"></i> <%= t('billing') %>
-            </a>
-            <div class="mt-4 pt-4 border-top mx-3">
-                <a href="/student/profile" class="nav-link active">
-                    <i class="fa fa-user-cog"></i> الإعدادات
-                </a>
-                <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal" class="nav-link text-danger mt-2">
-                    <i class="fa fa-sign-out-alt"></i> تسجيل الخروج
-                </a>
-            </div>
-        </div>
-    </div>
+    <%- include('./_student_sidebar', { activePage: 'settings' }) %>
 
     <div class="main-content">
         <!-- Top Nav -->

@@ -104,8 +104,9 @@ const port = process.env.PORT || 4000;
 })();
 
 // routes   
-// check current user for all routes and get user for specific routes
-app.get('*', checkUser);
+// check current user for all routes (GET, POST, etc.) and get user for specific routes
+app.use(checkUser);
+
 app.use(authRoutes);
 app.use(dashboardRoutes);
 app.use(studentDashboardRoutes);

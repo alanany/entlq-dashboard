@@ -6,7 +6,8 @@ const blogPostSchema = new mongoose.Schema({
     image: { type: String },
     author: { type: String, default: 'Admin' },
     summary: { type: String },
-    isPublished: { type: Boolean, default: true }
+    isPublished: { type: Boolean, default: true },
+    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', required: true }
 }, { timestamps: true });
 
 const BlogPost = mongoose.model('BlogPost', blogPostSchema);

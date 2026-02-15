@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="utf-8">
+    <title>تسجيل دخول المدير العام</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #5856d6;
+            --secondary: #f0f0f7;
+            --dark: #1c1c1e;
+        }
+
+        body {
+            background-color: var(--secondary);
+            font-family: 'Cairo', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            border: none;
+            border-radius: 2rem;
+            overflow: hidden;
+            box-shadow: 0 1rem 3rem rgba(0,0,0,.1);
+            max-width: 450px;
+            width: 100%;
+            background: #fff;
+            padding: 3rem;
+        }
+
+        .btn-login {
+            background-color: var(--primary);
+            border: none;
+            color: #fff;
+            padding: 0.8rem;
+            font-weight: 700;
+            border-radius: 1rem;
+            transition: all .3s ease;
+        }
+
+        .btn-login:hover {
+            background-color: #4644b1;
+            transform: translateY(-2px);
+            box-shadow: 0 .5rem 1rem rgba(88, 86, 214, .2);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(88, 86, 214, .1);
+        }
+
+        .logo-box {
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            color: white;
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-card animate__animated animate__fadeIn">
+        <div class="text-center mb-4">
+            <div class="logo-box">
+                <i class="fa fa-user-gear"></i>
+            </div>
+            <h2 class="fw-900 mb-2">الدخول للمدير العام</h2>
+            <p class="text-muted small">هذه اللوحة محمية، يرجى إدخال بيانات الاعتماد</p>
+        </div>
+
+        <form onsubmit="handleSubmit(event)">
+            <input type="hidden" id="role" value="superadmin">
+            
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                <label for="email">البريد الإلكتروني</label>
+            </div>
+            
+            <div class="form-floating mb-4">
+                <input type="password" class="form-control" id="password" placeholder="Password" required>
+                <label for="password">كلمة المرور</label>
+            </div>
+
+            <button id="saveBtn" type="submit" class="btn btn-login w-100 mb-4 shadow-sm">
+                <i class="fa fa-sign-in-alt me-2"></i> دخول النظام
+            </button>
+            
+            <div class="text-center">
+                <a href="/" class="text-muted small text-decoration-none">العودة للرئيسية</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-4" style="z-index: 1050"></div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            let bgClass = 'bg-primary';
+            if (type === 'success') bgClass = 'bg-success';
+            if (type === 'error') bgClass = 'bg-danger';
+
+            const toastElem = document.createElement('div');
+            toastElem.className = `toast align-items-center text-white ${bgClass} border-0 mb-3 show`;
+            toastElem.innerHTML = `
+                <div class="d-flex p-2">
+                    <div class="toast-body fw-bold">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>`;
+            container.appendChild(toastElem);
+            setTimeout(() => toastElem.remove(), 3000);
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const saveBtn = document.getElementById("saveBtn");
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري التحويل...';
+
+            const userData = {
+                role: 'superadmin',
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw errorData;
+                }
+                
+                showToast("تم التحقق بنجاح! جاري الدخول...", 'success');
+                setTimeout(() => window.location.href = '/superadmin', 1000);
+            } catch (error) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fa fa-sign-in-alt me-2"></i> دخول النظام';
+                const msg = error?.errors?.email || error?.errors?.password || error?.message || "فشل تسجيل الدخول";
+                showToast("خطأ: " + msg, 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>

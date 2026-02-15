@@ -9,9 +9,9 @@ exports.getChatRooms = async (req, res) => {
         let rooms;
         const user = req.user || res.locals.user;
         if (user.role === 'admin') {
-            rooms = await ChatRoom.find().populate('participants lastMessage course');
+            rooms = await ChatRoom.find({ academyId: user.academyId }).populate('participants lastMessage course');
         } else {
-            rooms = await ChatRoom.find({ participants: user._id }).populate('participants lastMessage course');
+            rooms = await ChatRoom.find({ participants: user._id, academyId: user.academyId }).populate('participants lastMessage course');
         }
         res.json(rooms);
     } catch (err) {
@@ -38,6 +38,7 @@ exports.getOrCreateCourseRoom = async (req, res) => {
         let room = await ChatRoom.findOne({
             type: 'course',
             course: courseId,
+            academyId: (req.user || res.locals.user).academyId,
             participants: { $all: [studentId, teacherId] }
         });
 
@@ -45,6 +46,7 @@ exports.getOrCreateCourseRoom = async (req, res) => {
             room = await ChatRoom.create({
                 type: 'course',
                 course: courseId,
+                academyId: (req.user || res.locals.user).academyId,
                 participants: [studentId, teacherId]
             });
         }
@@ -56,10 +58,11 @@ exports.getOrCreateCourseRoom = async (req, res) => {
 
 // إنشاء أو جلب غرفة دردشة للدعم الفني
 exports.getOrCreateSupportRoom = async (req, res) => {
-    const userId = (req.user || res.locals.user)._id;
+    const user = req.user || res.locals.user;
+    const academyId = user.academyId;
     try {
-        const admin = await User.findOne({ role: 'admin' });
-        if (!admin) return res.status(404).json({ message: 'لا يوجد مسؤول متاح حالياً' });
+        const admin = await User.findOne({ role: 'admin', academyId });
+        if (!admin) return res.status(404).json({ message: 'لا يوجد مسؤول متاح حالياً لهذه الأكاديمية' });
 
         let room = await ChatRoom.findOne({
             type: 'support',
@@ -69,7 +72,8 @@ exports.getOrCreateSupportRoom = async (req, res) => {
         if (!room) {
             room = await ChatRoom.create({
                 type: 'support',
-                participants: [userId, admin._id]
+                academyId,
+                participants: [user._id, admin._id]
             });
         }
         res.json(room);

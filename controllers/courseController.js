@@ -10,6 +10,8 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const {DateTime}  =require ("luxon");
 const Payment = require('../models/Payment.js');
+const WebsiteSection = require('../models/WebsiteSection');
+const BlogPost = require('../models/BlogPost');
 const storage = multer.diskStorage({
         destination: function (req, file, cb) {
             cb(null, 'uploads/');
@@ -25,7 +27,12 @@ const getAdminDashboard = async (req, res) => {
     const stats = await getDashboardStats(req.user.academyId);
     console.log(stats,'stats'); 
     // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
-    res.render('dashboard/index', { title: 'لوحة تحكم الأدمن',stats:stats }); };
+    res.render('dashboard/index', { 
+        title: 'لوحة تحكم الأدمن',
+        stats: stats,
+        user: req.user
+    }); 
+};
 
 
 
@@ -33,16 +40,22 @@ const getAllCourses = async (req, res) => {
 
  const courses = await Course.find({ academyId: req.user.academyId });  console.log(courses);
     // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
-    res.render('dashboard/courses', { title: 'كورسات الموقع', courses: courses});    
+    res.render('dashboard/courses', { 
+        title: 'كورسات الموقع', 
+        courses: courses,
+        user: req.user
+    });    
 }
 const getAddCourse = async (req, res) => {
      const categories = await Category.find({})
                                          .select('name _id') // نختار الاسم والمعرّف فقط
                                          .lean();
     // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
-    res.render('dashboard/add-course', { title: 'اضافة كورس جديد',   
-                 categories: categories
- }); 
+    res.render('dashboard/add-course', { 
+        title: 'اضافة كورس جديد',   
+        categories: categories,
+        user: req.user
+    }); 
 
 };
 
@@ -90,12 +103,15 @@ const getEditCourse = async (req, res) => {
     const courseId = req.params.id; 
 
     try {
-        // جلب جميع الأقسام (Categories)
-        const categories = await Category.find({})
+        // جلب جميع الأقسام (Categories) الخاصة بالأكاديمية
+        const categories = await Category.find({ academyId: req.user.academyId })
                                          .select('name _id') // نختار الاسم والمعرّف فقط
                                          .lean();
         // جلب جميع بيانات الدورة، بما في ذلك المنهج الدراسي
-        const course = await Course.findById(courseId).lean();
+        const course = await Course.findOne({ 
+            _id: courseId, 
+            academyId: req.user.academyId 
+        }).lean();
 
         if (!course) {
             return res.status(404).render('404', { message: 'الدورة غير موجودة.' });
@@ -104,8 +120,9 @@ const getEditCourse = async (req, res) => {
         // ⭐️ إرسال كائن الدورة (course) إلى ملف القالب (edit_course.ejs)
         res.render('dashboard/edit_course', { 
             title: `تعديل الدورة: ${course.title}`,
-            course: course ,
-            categories: categories
+            course: course,
+            categories: categories,
+            user: req.user
         });
 
     } catch (err) {
@@ -141,7 +158,11 @@ const updateCoursePost = async (req, res) => {
             updatedData.coverImage = `/uploads/${req.file.filename}`;
         }
 
-        const course = await Course.findByIdAndUpdate(courseId, updatedData, { new: true });
+        const course = await Course.findOneAndUpdate(
+            { _id: courseId, academyId: req.user.academyId }, 
+            updatedData, 
+            { new: true }
+        );
 
         if (!course) return res.status(404).json({ message: "الدورة غير موجودة" });
         
@@ -163,8 +184,11 @@ const deleteCourse = async (req, res) => {
     const courseId = req.params.id; 
 
     try {
-        // استخدام findByIdAndDelete لحذف الدورة
-        const result = await Course.findByIdAndDelete(courseId);
+        // استخدام findOneAndDelete لحذف الدورة المرتبطة بالأكاديمية
+        const result = await Course.findOneAndDelete({ 
+            _id: courseId, 
+            academyId: req.user.academyId 
+        });
 
         if (!result) {
             return res.status(404).json({ message: 'الدورة غير موجودة ولا يمكن حذفها.' });
@@ -181,26 +205,44 @@ const deleteCourse = async (req, res) => {
     }
 };
 
- const home_website_get = async(req, res) => {
-    const WebsiteSection = require('../models/WebsiteSection');
-    const BlogPost = require('../models/BlogPost');
-    
-    const courses = await Course.find();
-    const sections = await WebsiteSection.find();
-    const blogPosts = await BlogPost.find({ isPublished: true }).sort({ createdAt: -1 }).limit(3);
-    
-    // Convert sections array to object for easier access in template
-    const sectionsMap = {};
-    sections.forEach(s => { sectionsMap[s.key] = s; });
-    
-    res.render('../views/website/home', { 
-        title: 'كورسات الموقع', 
-        courses: courses,
-        sections: sectionsMap,
-        blogPosts: blogPosts
-    });
+const home_website_get = async(req, res) => {
+    try {
+        const sectionsFilter = req.user && req.user.academyId 
+            ? { academyId: req.user.academyId } 
+            : {};
+        // If guest, find latest sections or default
+        const sections = await WebsiteSection.find(sectionsFilter);
+
+        const blogPostsFilter = req.user && req.user.academyId 
+            ? { isPublished: true, academyId: req.user.academyId } 
+            : { isPublished: true };
+        const blogPosts = await BlogPost.find(blogPostsFilter).sort({ createdAt: -1 }).limit(3);
+
+        const coursesFilter = req.user && req.user.academyId 
+            ? { academyId: req.user.academyId } 
+            : {};
+        const courses = await Course.find(coursesFilter);
+        
+        // Convert sections array to object for easier access in template
+        const sectionsMap = {};
+        sections.forEach(s => { sectionsMap[s.key] = s; });
+        
+        res.render('../views/website/home', { 
+            title: 'كورسات الموقع', 
+            courses: courses,
+            sections: sectionsMap,
+            blogPosts: blogPosts,
+            user: req.user
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
 }
 const getLandingPage = (req, res) => {
+    if (req.user) {
+        return res.redirect('/dashboard');
+    }
     res.render('../views/website/landing', {
         user: req.user
     });
@@ -422,10 +464,11 @@ const enhancedSubscriptions = subscriptions.map(sub => {
             stats: {
                 totalRequests: subscriptions.length,
                 pendingRequests: subscriptions.filter(b => b.status === 'pending').length,
-              criticalSubscriptions: enhancedSubscriptions.filter(b => b.isCritical === true).length, // إحصائية جديدة
+              criticalSubscriptions: enhancedSubscriptions.filter(b => b.isCritical === true).length,
                 acceptedRequests: subscriptions.filter(b => b.status === 'confirmed').length,
                 rejectedRequests: subscriptions.filter(b => b.status === 'rejected').length
-            }
+            },
+            user: req.user
         });
 
     } catch (err) {
@@ -464,9 +507,9 @@ const confirmBookingPayment = async (req, res) => {
     }
 
     // ✅ التحديث
-    const updatedSubscription = await Subscription.findByIdAndUpdate(
-      bookingId,
- { $set: updateData }, // استخدام $set لضمان تحديث الحقول المحددة فقط
+    const updatedSubscription = await Subscription.findOneAndUpdate(
+      { _id: bookingId, academyId: req.user.academyId },
+      { $set: updateData }, // استخدام $set لضمان تحديث الحقول المحددة فقط
       { new: true }
     );
 
@@ -487,7 +530,8 @@ const confirmBookingPayment = async (req, res) => {
             subscriptionId: updatedSubscription._id,
             fromUser: updatedSubscription.studentId, // Ensure populated or just ID is fine
             description: `تسجيل باقة اشتراك جديد`,
-            status: 'completed'
+            status: 'completed',
+            academyId: req.user.academyId
         });
     }
     if (paymentStatus === 'confirmed') {
@@ -524,7 +568,11 @@ const getManagePayment = async (req, res) => {
             return res.status(404).render('404'); 
         }
 
-        res.render('dashboard/confirm_payment', { booking: booking , teachers: teachers }); 
+        res.render('dashboard/confirm_payment', { 
+            booking: booking, 
+            teachers: teachers,
+            user: req.user
+        }); 
         // 💡 تأكد أن اسم ملف EJS هو 'manage_payment.ejs'
         
     } catch (error) {
@@ -546,7 +594,10 @@ console.log(booking);
         }
 
         // 💡 تمرير كائن الحجز إلى صفحة EJS
-        res.render('dashboard/schedule-sessions', { booking: booking }); 
+        res.render('dashboard/schedule-sessions', { 
+            booking: booking,
+            user: req.user
+        }); 
         
     } catch (error) {
         console.error("Error fetching booking for scheduling:", error);
@@ -566,7 +617,10 @@ const postUpdateSessions = async (req, res) => {
 
     // 🔹 جلب الحجز مع بيانات المعلم المسند له الحجز
     // قمنا بإضافة populate لجلب رابط الزووم من ملف المعلم الشخصي
-    const booking = await Subscription.findById(bookingId).populate('teacherId', 'zoom_link');
+    const booking = await Subscription.findOne({ 
+        _id: bookingId, 
+        academyId: req.user.academyId 
+    }).populate('teacherId', 'zoom_link');
     
     if (!booking || !booking.startDate) {
         return res.status(400).send('Invalid booking or missing start date.');
@@ -619,8 +673,8 @@ console.log(vvv,'vvv');
     });
 
     // 🔹 التحديث النهائي
-    await Subscription.findByIdAndUpdate(
-        bookingId,
+    await Subscription.findOneAndUpdate(
+        { _id: bookingId, academyId: req.user.academyId },
         { sessions: cleanedSessions },
         { runValidators: true }
     );
@@ -661,7 +715,10 @@ const getManageSessionsLinks = async (req, res) => {
             return res.status(404).send('Booking not found.');
         }
 
-        res.render('dashboard/manage_sessions_links', { booking: booking }); 
+        res.render('dashboard/manage_sessions_links', { 
+            booking: booking,
+            user: req.user
+        }); 
         
     } catch (error) {
         console.error("Error fetching booking for link management:", error);
@@ -750,12 +807,16 @@ const markSessionAsComplete = async (req, res, next) => {
 };
  const adminReportPage = async(req, res) => {
     try {
+        const mongoose = require('mongoose');
+        const academyId = req.user.academyId;
+        const academyObjectId = new mongoose.Types.ObjectId(academyId);
+
         // استخراج فلاتر البحث من Query Parameters
         const { month, type } = req.query;
         
         // 1. إجمالي الإيرادات (Income)
         const incomeAgg = await Payment.aggregate([
-            { $match: { type: 'income', status: 'completed' } },
+            { $match: { academyId: academyObjectId, type: 'income', status: 'completed' } },
             { $group: { _id: null, total: { $sum: '$amount' } } }
         ]);
         const totalIncome = incomeAgg[0]?.total || 0;
@@ -763,6 +824,7 @@ const markSessionAsComplete = async (req, res, next) => {
         // 2. إجمالي المصروفات (Expenses - رواتب المعلمين)
         const expenseAgg = await Payment.aggregate([
             { $match: { 
+                academyId: academyObjectId,
                 $or: [
                     { type: 'expense' },
                     { teacherId: { $exists: true }, type: { $exists: false } }, // السجلات القديمة
@@ -778,6 +840,7 @@ const markSessionAsComplete = async (req, res, next) => {
 
         // 4. مستحقات المعلمين المعلقة (حصص مكتملة ولم تدفع بعد)
         const pendingTeacherDues = await Subscription.aggregate([
+            { $match: { academyId: academyObjectId } },
             { $unwind: '$sessions' },
             { $match: { 'sessions.status': 'completed', 'sessions.isPaidByAdmin': { $ne: true } } },
             { $lookup: { from: 'users', localField: 'teacherId', foreignField: '_id', as: 'teacher' } },
@@ -790,12 +853,12 @@ const markSessionAsComplete = async (req, res, next) => {
                         { $ifNull: ["$teacherHourlyRate", { $ifNull: ["$teacher.hour_rate", 0] }] }
                     ] 
                 }}
-            }}
+            } }
         ]);
         const pendingExpenses = pendingTeacherDues[0]?.total || 0;
 
         // 5. بناء فلتر المعاملات
-        let transactionFilter = {};
+        let transactionFilter = { academyId: academyObjectId };
         
         // فلتر النوع (income / expense)
         if (type && (type === 'income' || type === 'expense')) {
@@ -823,6 +886,7 @@ const markSessionAsComplete = async (req, res, next) => {
 
         // 7. جلب قائمة الأشهر المتاحة للفلترة
         const availableMonths = await Payment.aggregate([
+            { $match: { academyId: academyObjectId } },
             { $group: { 
                 _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }
             }},
@@ -890,8 +954,12 @@ const updateTeacher = async (req, res) => {
             supervisorId: req.body.supervisorId || null // Add supervisorId
         };
 
-        // تحديث المستخدم في قاعدة البيانات
-        const updatedUser = await User.findByIdAndUpdate(teacherId, updates, { new: true });
+        // تحديث المستخدم في قاعدة البيانات والتأكد من انتمائه للأكاديمية
+        const updatedUser = await User.findOneAndUpdate(
+            { _id: teacherId, academyId: req.user.academyId }, 
+            updates, 
+            { new: true }
+        );
 console.log(updatedUser);
         if (!updatedUser) {
             return res.status(404).json({ success: false, message: 'المعلم غير موجود' });
@@ -1009,9 +1077,18 @@ const checkConflict = async (req, res) => {
 }
 
 const getDashboardStats=  async (academyId) => {
-    console.log("getDashboardStats for academy:", academyId);
+    const mongoose = require('mongoose');
+    if (!academyId) {
+        return {
+            summary: { students: 0, teachers: 0, courses: 0, revenue: 0 },
+            popularCourses: [],
+            recentRegistrations: []
+        };
+    }
+
     try {
-        const filter = { academyId };
+        const academyObjectId = new mongoose.Types.ObjectId(academyId);
+        const filter = { academyId: academyObjectId };
         
         const [
             totalStudents,
@@ -1025,7 +1102,7 @@ const getDashboardStats=  async (academyId) => {
             User.countDocuments({ role: 'teacher', ...filter }),
             Course.countDocuments(filter),
             Subscription.aggregate([
-                { $match: filter },
+                { $match: { academyId: academyObjectId, status: 'confirmed' } },
                 { $group: { _id: null, total: { $sum: "$totalAmount" } } }
             ]),
             Course.find(filter).sort({ studentsCount: -1 }).limit(5), 
@@ -1070,6 +1147,7 @@ const getUpcomingSessions = async (req, res) => {
         if (!endDate.isValid) endDate = DateTime.now().endOf('day');
 
         const subscriptions = await Subscription.find({ 
+            academyId: req.user.academyId,
             status: 'confirmed',
             'sessions.0': { $exists: true } 
         })
@@ -1234,7 +1312,11 @@ const updateSupervisor = async (req, res) => {
             email: req.body.email
         };
 
-        const updatedUser = await User.findByIdAndUpdate(supervisorId, updates, { new: true });
+        const updatedUser = await User.findOneAndUpdate(
+            { _id: supervisorId, academyId: req.user.academyId }, 
+            updates, 
+            { new: true }
+        );
         if (!updatedUser) {
             return res.status(404).json({ success: false, message: 'المشرف غير موجود' });
         }
@@ -1248,7 +1330,10 @@ const updateSupervisor = async (req, res) => {
 
 const deleteSupervisor = async (req, res) => {
     try {
-        const result = await User.findByIdAndDelete(req.params.id);
+        const result = await User.findOneAndDelete({ 
+            _id: req.params.id, 
+            academyId: req.user.academyId 
+        });
         if (!result) return res.status(404).json({ success: false, message: 'المشرف غير موجود' });
         res.json({ success: true, message: 'تم حذف المشرف بنجاح' });
     } catch (error) {

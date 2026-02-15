@@ -458,6 +458,55 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--primary);
         }
+        /* WhatsApp Floating Button */
+        .whatsapp-float {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            bottom: 40px;
+            right: 40px;
+            background-color: #25d366;
+            color: #FFF;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 30px;
+            box-shadow: 2px 2px 3px #999;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            animation: pulse-whatsapp 2s infinite;
+        }
+
+        .whatsapp-float:hover {
+            background-color: #128c7e;
+            color: #FFF;
+            transform: scale(1.1);
+        }
+
+        @keyframes pulse-whatsapp {
+            0% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(37, 211, 102, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .whatsapp-float {
+                width: 50px;
+                height: 50px;
+                bottom: 20px;
+                right: 20px;
+                font-size: 25px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -737,6 +786,9 @@
     <footer>
         <p>© 2026 جميع الحقوق محفوظة لـ <strong>منصة انطلق التعليمية</strong></p>
         <p style="font-size: 0.8rem; margin-top: 0.5rem;">تم التطوير بكل حب لدعم رحلتكم التعليمية</p>
+        <div style="margin-top: 1.5rem; opacity: 0.3;">
+            <a href="/superadmin/login" style="color: white; font-size: 0.7rem; text-decoration: none;">دخول الإدارة العامة</a>
+        </div>
     </footer>
 
     <!-- Scripts -->
@@ -784,5 +836,10 @@
             document.querySelectorAll('.demo-card').forEach(card => observer.observe(card));
         });
     </script>
+    <!-- WhatsApp Floating Button -->
+    <a href="https://wa.me/201115699209" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
 </body>
 </html>

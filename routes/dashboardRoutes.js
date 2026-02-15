@@ -39,33 +39,33 @@ dashboardRoutes.get('/subscriptions',requireAuth,checkUser, courseController.get
 dashboardRoutes.get('/booking/:id/manage-payment',requireAuth,checkUser, courseController.getManagePayment);
 dashboardRoutes.post('/booking/:id/confirm-payment',requireAuth,checkUser, courseController.confirmBookingPayment);
 // مسار عرض صفحة الجدولة (GET)
-dashboardRoutes.get('/booking/:id/schedule', courseController.getScheduleSessions); 
+dashboardRoutes.get('/booking/:id/schedule', requireAuth, checkUser, requireAdmin, courseController.getScheduleSessions); 
 
 // مسار معالجة إرسال الجدولة (POST)
 dashboardRoutes.post('/booking/:id/update-sessions',requireAuth,checkUser, courseController.postUpdateSessions);
 // مسار عرض صفحة إدارة الروابط (GET)
-dashboardRoutes.get('/booking/:id/manage-sessions', courseController.getManageSessionsLinks); 
+dashboardRoutes.get('/booking/:id/manage-sessions', requireAuth, checkUser, requireAdmin, courseController.getManageSessionsLinks); 
 
 // مسار معالجة إرسال الروابط (POST)
-dashboardRoutes.post('/booking/:id/update-links', courseController.postUpdateSessionsLinks);
+dashboardRoutes.post('/booking/:id/update-links', requireAuth, checkUser, requireAdmin, courseController.postUpdateSessionsLinks);
 
-dashboardRoutes.get('/admin/students', courseController.getManageStudents);
-dashboardRoutes.get('/booking/:bookingId/session/:sessionId/complete', courseController.markSessionAsComplete);
-dashboardRoutes.get('/admin/reports', courseController.adminReportPage);
-dashboardRoutes.get('/admin/teachers', courseController.adminTeachersPage);
-dashboardRoutes.post('/admin/teachers/update/:id', courseController.updateTeacher);
-dashboardRoutes.post('/admin/teachers/add', courseController.addTeacher);
-dashboardRoutes.post('/admin/check-teacher-conflict', courseController.checkConflict);
-dashboardRoutes.get('/admin/teacher/:id', teacherController.getTeacherPage);
-dashboardRoutes.get('/admin/teacher/:id/financial',requireAuth,checkUser, teacherController.getAdminTeacherFinancial);
+dashboardRoutes.get('/admin/students', requireAuth, checkUser, requireAdmin, courseController.getManageStudents);
+dashboardRoutes.get('/booking/:bookingId/session/:sessionId/complete', requireAuth, checkUser, requireAdmin, courseController.markSessionAsComplete);
+dashboardRoutes.get('/admin/reports', requireAuth, checkUser, requireAdmin, courseController.adminReportPage);
+dashboardRoutes.get('/admin/teachers', requireAuth, checkUser, requireAdmin, courseController.adminTeachersPage);
+dashboardRoutes.post('/admin/teachers/update/:id', requireAuth, checkUser, requireAdmin, courseController.updateTeacher);
+dashboardRoutes.post('/admin/teachers/add', requireAuth, checkUser, requireAdmin, courseController.addTeacher);
+dashboardRoutes.post('/admin/check-teacher-conflict', requireAuth, checkUser, requireAdmin, courseController.checkConflict);
+dashboardRoutes.get('/admin/teacher/:id', requireAuth, checkUser, requireAdmin, teacherController.getTeacherPage);
+dashboardRoutes.get('/admin/teacher/:id/financial',requireAuth,checkUser, requireAdmin, teacherController.getAdminTeacherFinancial);
 dashboardRoutes.post('/admin/teacher/update-status',requireAuth,checkUser,requireAdmin, teacherController.updateTeacherStatus);
 
 // الحذف النهائي (اختياري)
 dashboardRoutes.post('/admin/teachers/delete/:id',requireAuth,checkUser,requireAdmin, teacherController.deleteTeacher);
-dashboardRoutes.get('/admin/supervisors', courseController.adminSupervisorsPage);
-dashboardRoutes.post('/admin/supervisors/add', courseController.addSupervisor);
-dashboardRoutes.post('/admin/supervisors/update/:id', courseController.updateSupervisor);
-dashboardRoutes.post('/admin/supervisors/delete/:id', courseController.deleteSupervisor);
+dashboardRoutes.get('/admin/supervisors', requireAuth, checkUser, requireAdmin, courseController.adminSupervisorsPage);
+dashboardRoutes.post('/admin/supervisors/add', requireAuth, checkUser, requireAdmin, courseController.addSupervisor);
+dashboardRoutes.post('/admin/supervisors/update/:id', requireAuth, checkUser, requireAdmin, courseController.updateSupervisor);
+dashboardRoutes.post('/admin/supervisors/delete/:id', requireAuth, checkUser, requireAdmin, courseController.deleteSupervisor);
 dashboardRoutes.post('/admin/teacher/pay-salary',requireAuth,checkUser,requireAdmin, teacherController.processTeacherSalary);
 dashboardRoutes.get('/upcoming-sessions', requireAuth, checkUser, courseController.getUpcomingSessions);
 dashboardRoutes.post('/features/send-notification', requireAuth, checkUser, courseController.sendSessionNotification);

@@ -74,8 +74,9 @@ const login_get = (req, res) => {
 const addStudent = async (req, res) => {
     try {
         const { name, email, country_code, phone_number, gender, password, timezone } = req.body;
+        const normalizedEmail = email ? email.trim().toLowerCase() : '';
         
-        const existingStudent = await User.findOne({ email });
+        const existingStudent = await User.findOne({ email: normalizedEmail });
         if (existingStudent) {
             return res.status(400).json({ success: false, message: 'البريد الإلكتروني مسجل مسبقاً' });
         }
@@ -83,6 +84,7 @@ const addStudent = async (req, res) => {
         const newStudent = new User({
             name, email, country_code, phone_number,
             gender, password, timezone,
+            role: 'student',
             status: 'active',
             academyId: req.user.academyId // الربط بالأكاديمية
         });
@@ -143,6 +145,8 @@ const registerStudent = async (req, res) => {
     timezone,
   } = req.body;
 
+  const normalizedEmail = email ? email.trim().toLowerCase() : '';
+
   try {
     // التحقق من الحقول المطلوبة
     const requiredFields = {
@@ -172,7 +176,7 @@ const registerStudent = async (req, res) => {
     }
 
     // التحقق من وجود مستخدم بنفس البريد الإلكتروني
-    const existingStudent = await User.findOne({ email });
+    const existingStudent = await User.findOne({ email: normalizedEmail });
     if (existingStudent) {
       console.log("Email already exists");
       return res.status(400).json({
@@ -196,7 +200,7 @@ const registerStudent = async (req, res) => {
 
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       country_code: country_code,
       phone_number: country_code + phone_number, // حفظ رقم الهاتف بالكامل
       gender,
@@ -275,13 +279,13 @@ res.status(200).json({ message: "تم تحديث الملف الشخصي بنج�
 };
 const login_student = async (req, res) => {
 
-  const { email, password, role,timezone} = req.body;
-console.log(req.body,'req.body');
-
+  const { email, password, role, timezone } = req.body;
+  const normalizedEmail = email ? email.trim().toLowerCase() : '';
+  console.log(req.body, 'req.body');
 
   try {
     // 2. البحث عن المستخدم بالبريد والدور
-    const user = await User.findOne({ email: email, role: role });
+    const user = await User.findOne({ email: normalizedEmail, role: role });
 
     if (!user) {
       return res.status(400).json({ error:"هذا البريد الإلكتروني غير صحيح" }); // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
@@ -317,18 +321,20 @@ console.log(req.body,'req.body');
   }
 };
 const getAllCourses = async (req, res) => {
-  const courses = await Course.find();
-  console.log(courses);
-  // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
+  const academyId = req.user ? req.user.academyId : null;
+  const courses = await Course.find({ academyId });
+  
   res.render("../views/dashboard/student/course-list", {
     title: "كورسات الموقع",
     courses: courses,
+    user: req.user
   });
 };
 const getAllCoursesForAdminAutoSubscription = async (req, res) => {
-  const courses = await Course.find();
-  console.log(courses);
-  // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
+  const student = await User.findById(req.params.studentId);
+  const academyId = student ? student.academyId : null;
+  const courses = await Course.find({ academyId });
+  
   res.render("../views/dashboard/student/course-list", {
     title: "كورسات الموقع",
     courses: courses,
@@ -339,7 +345,11 @@ const getBookPlan = async (req, res) => {
   const courseId = req.params.id;
 
   try {
-    const course = await Course.findById(courseId).populate("category");
+    const academyId = req.user ? req.user.academyId : null;
+    const course = await Course.findOne({ 
+        _id: courseId, 
+        academyId: academyId 
+    }).populate("category");
     console.log(course);
     if (!course) {
       return res.status(404).render("404", { message: "الدورة غير موجودة." });
@@ -453,9 +463,13 @@ const getRequestDetails = async (req, res, next) => {
   const requestId = req.params.requestId;
 
   try {
+    const academyId = req.user ? req.user.academyId : null;
     // 1. جلب بيانات الطلب وتعبئة بيانات الكورس والمدرب (Populaton)
     // نفترض أن حقل courseId يحتوي على تفاصيل الكورس (المتضمنة اسم المدرب)
-    const request = await Subscription.findById(requestId)
+    const request = await Subscription.findOne({ 
+        _id: requestId, 
+        academyId: academyId 
+    })
       .populate({
         path: "courseId",
       })

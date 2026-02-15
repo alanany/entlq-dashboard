@@ -345,7 +345,14 @@
                     throw errorData; 
                 }
                 showToast("تم تسجيل الدخول بنجاح! جاري التحويل...", 'success'); 
-                setTimeout(() => window.location.href = '/', 1000);
+                const result = await response.json();
+                setTimeout(() => {
+                    if (result.role === 'superadmin') {
+                        window.location.href = '/superadmin';
+                    } else {
+                        window.location.href = '/';
+                    }
+                }, 1000);
             } catch (error) {
                 stopLoading();
                 const msg = error?.errors?.email || error?.errors?.password || error?.message || "فشل تسجيل الدخول";

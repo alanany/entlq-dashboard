@@ -195,45 +195,58 @@
             transform: scale(1.05);
             background-color: var(--light);
         }
+
+        /* Floating WhatsApp Support */
+        .support-float {
+            position: fixed;
+            width: 55px;
+            height: 55px;
+            bottom: 30px;
+            left: 30px; /* Left side for dashboard to not cover scroll or main actions */
+            background-color: #25d366;
+            color: #FFF;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 28px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .support-float:hover {
+            transform: scale(1.1) rotate(5deg);
+            background-color: #128c7e;
+            color: white;
+            box-shadow: 0 6px 15px rgba(37, 211, 102, 0.4);
+        }
+        .support-label {
+            position: absolute;
+            right: 65px;
+            background: #25d366;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .support-float:hover .support-label {
+            opacity: 1;
+            visibility: visible;
+            right: 70px;
+        }
     </style>
 </head>
 
 <body>
-    <div class="sidebar" id="sidebar">
-        <div class="p-4 text-center border-bottom">
-            <h3 class="m-0 text-primary lobster-font" style="font-size: 2rem;">
-                <i class="fa fa-laptop-code me-2"></i><%= settings.academyName %>
-            </h3>
-        </div>
-        <div class="py-4">
-            <a href="/" class="nav-link active">
-                <i class="fa fa-home"></i> <%= t('home') %>
-            </a>
-            <a href="/student/my-sessions" class="nav-link text-dark">
-                <i class="fa fa-calendar-alt"></i> <%= t('sessions') %>
-            </a>
-            <a href="/student/courses_list" class="nav-link text-dark">
-                <i class="fa fa-book"></i> <%= t('courses') %>
-            </a>
-            <a href="/student/enrolled_subscription" class="nav-link text-dark">
-                <i class="fa fa-file-invoice"></i> <%= t('subscriptions') %>
-            </a>
-            <a href="/student/billing" class="nav-link text-dark">
-                <i class="fa fa-wallet"></i> <%= t('billing') %>
-            </a>
-            <a href="/chat" class="nav-link text-dark">
-                <i class="fa fa-comments"></i> الدردشة
-            </a>
-            <div class="mt-4 pt-4 border-top mx-3">
-                <a href="/student/profile" class="nav-link text-dark">
-                    <i class="fa fa-user-cog"></i> <%= t('settings') %>
-                </a>
-                <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal" class="nav-link text-danger mt-2">
-                    <i class="fa fa-sign-out-alt"></i> <%= t('logout') %>
-                </a>
-            </div>
-        </div>
-    </div>
+    <%- include('./_student_sidebar', { activePage: 'home' }) %>
 
     <div class="main-content">
         <!-- Top Navigation -->
@@ -447,6 +460,14 @@
             updateCountdown();
         <% } %>
     </script>
+
+    <!-- Support WhatsApp -->
+    <% if (settings.supportContact && settings.supportContact.student) { %>
+        <a href="https://wa.me/<%= settings.supportContact.student.replace(/\D/g, '') %>" class="support-float" target="_blank" title="تواصل مع الدعم الفني">
+            <i class="fab fa-whatsapp"></i>
+            <span class="support-label">الدعم الفني</span>
+        </a>
+    <% } %>
 </body>
 
 </html>

@@ -80,6 +80,51 @@
         }
 
         .fade-in { animation: fadeIn 0.5s ease forwards; }
+
+        /* Floating WhatsApp Support */
+        .support-float {
+            position: fixed;
+            width: 55px;
+            height: 55px;
+            bottom: 30px;
+            left: 30px;
+            background-color: #25d366;
+            color: #FFF;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 28px;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .support-float:hover {
+            transform: scale(1.1) rotate(5deg);
+            background-color: #128c7e;
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+        }
+        .support-label {
+            position: absolute;
+            right: 65px;
+            background: #25d366;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        .support-float:hover .support-label {
+            opacity: 1;
+            visibility: visible;
+            right: 70px;
+        }
     </style>
 </head>
 <body class="h-screen overflow-hidden">
@@ -467,5 +512,13 @@
             });
         });
     </script>
+
+    <!-- Support WhatsApp -->
+    <% if (settings.supportContact && settings.supportContact.teacher) { %>
+        <a href="https://wa.me/<%= settings.supportContact.teacher.replace(/\D/g, '') %>" class="support-float" target="_blank">
+            <i data-feather="message-circle" class="w-7 h-7"></i>
+            <span class="support-label">الدعم الفني</span>
+        </a>
+    <% } %>
 </body>
 </html>

@@ -5,15 +5,23 @@ const SystemSettings = require('../models/SystemSettings');
 const getSettingScreen = async (req, res) => {
     res.render('dashboard/settings', { 
             title: 'الإعدادات',
+            user: req.user
         });
 };
 
 const getSystemSettings = async (req, res) => {
     try {
-        let settings = await SystemSettings.findOne();
-        if (!settings) settings = await SystemSettings.create({});
-        res.render('dashboard/settings-system', { title: 'إعدادات النظام', settings });
+        const academyId = req.user.academyId;
+        let settings = await SystemSettings.findOne({ academyId });
+        if (!settings) {
+            settings = await SystemSettings.create({ 
+                academyId,
+                academyName: 'أكاديمية جديدة' 
+            });
+        }
+        res.render('dashboard/settings-system', { title: 'إعدادات النظام', settings, user: req.user });
     } catch (err) {
+        console.error(err);
         res.status(500).send('خطأ في جلب بيانات الإعدادات');
     }
 };
@@ -21,16 +29,22 @@ const getSystemSettings = async (req, res) => {
 const updateSystemSettings = async (req, res) => {
     try {
         const updateData = req.body;
-        let settings = await SystemSettings.findOneAndUpdate({}, updateData, { new: true, upsert: true });
+        const academyId = req.user.academyId;
+        let settings = await SystemSettings.findOneAndUpdate(
+            { academyId }, 
+            updateData, 
+            { new: true, upsert: true }
+        );
         res.status(200).json({ message: 'تم التحديث بنجاح', settings });
     } catch (err) {
+        console.error(err);
         res.status(500).json({ message: 'فشل التحديث' });
     }
 };
 // 1. جلب جميع الأقسام (GET)
 const getAllCategories = async (req, res) => {
     try {
-        const categories = await Category.find({}).lean();
+        const categories = await Category.find({ academyId: req.user.academyId }).lean();
         
         // 💡 لتبسيط المثال، لم نقم بجلب courseCount. ستحتاج لربطها بنموذج Course لحساب العدد الفعلي.
         
@@ -49,7 +63,10 @@ const createCategory = async (req, res) => {
     const { name } = req.body;
     
     try {
-        const category = await Category.create({ name });
+        const category = await Category.create({ 
+            name, 
+            academyId: req.user.academyId 
+        });
         res.status(201).json({ 
             message: 'تم إنشاء القسم بنجاح.', 
             category: category
@@ -72,7 +89,10 @@ const deleteCategory = async (req, res) => {
     // 💡 يمكن إضافة تحقق هنا: هل يوجد كورسات مرتبطة بهذا القسم؟
     
     try {
-        const result = await Category.findByIdAndDelete(categoryId);
+        const result = await Category.findOneAndDelete({ 
+            _id: categoryId, 
+            academyId: req.user.academyId 
+        });
         if (!result) {
             return res.status(404).json({ message: 'القسم غير موجود.' });
         }

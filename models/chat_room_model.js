@@ -24,7 +24,8 @@ const chatRoomSchema = new mongoose.Schema({
     lastMessage: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Message'
-    }
+    },
+    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', required: true }
 }, { timestamps: true });
 
 const ChatRoom = mongoose.model('ChatRoom', chatRoomSchema);

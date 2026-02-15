@@ -320,13 +320,17 @@ const finanical_page = async (req, res) => {
 const getAdminTeacherFinancial = async (req, res) => {
   try {
     const teacherId = req.params.id;
-    const teacher = await User.findById(teacherId);
-    if (!teacher) return res.status(404).send("المعلم غير موجود");
+    const teacher = await User.findOne({ 
+        _id: teacherId, 
+        academyId: req.user.academyId 
+    });
+    if (!teacher) return res.status(404).send("المعلم غير موجود أو لا ينتمي لأكاديميتك");
 
     const teacherHourlyRateDefault = Number(teacher.hour_rate) || (teacher.hourly_rates && teacher.hourly_rates.length > 0 ? teacher.hourly_rates[0].rate : 0);
 
     const bookings = await Subscription.find({
       teacherId: teacherId,
+      academyId: req.user.academyId,
       "sessions.status": "completed",
     })
       .populate("studentId", "name")
@@ -746,8 +750,11 @@ const getSchedule = async (req, res) => {
 const getAdminScheduleTeacher = async (req, res) => {
   try {
     const teacherId = req.params.id;
-    const teacher = await User.findById(teacherId);
-    if (!teacher) return res.status(404).send("المعلم غير موجود");
+    const teacher = await User.findOne({ 
+        _id: teacherId, 
+        academyId: req.user.academyId 
+    });
+    if (!teacher) return res.status(404).send("المعلم غير موجود أو لا ينتمي لأكاديميتك");
 
     // 1. تحديد بداية ونهاية الأسبوع الحالي (السبت - الجمعة)
     const now = new Date();
@@ -763,7 +770,10 @@ const getAdminScheduleTeacher = async (req, res) => {
     endOfWeek.setHours(23, 59, 59, 999);
 
     // 2. جلب الحجوزات
-    const bookings = await Subscription.find({ teacherId: teacherId })
+    const bookings = await Subscription.find({ 
+        teacherId: teacherId,
+        academyId: req.user.academyId
+    })
       .populate("studentId", "name")
       .populate("courseId", "title");
 
@@ -1028,12 +1038,16 @@ const processTeacherSalary = async (req, res) => {
       paymentDate: new Date(),
       date: new Date(),
       adminId: req.user._id,
+      academyId: req.user.academyId,
       status: "completed",
       description: `راتب المعلم لشهر ${monthKey}`
     });
     await newPayment.save();
 
-    const subscriptions = await Subscription.find({ teacherId: teacherId });
+    const subscriptions = await Subscription.find({ 
+        teacherId: teacherId,
+        academyId: req.user.academyId 
+    });
 
     for (let sub of subscriptions) {
       let hasChanged = false;
@@ -1095,8 +1109,16 @@ const updateTeacherStatus = async (req, res) => {
       }
     }
 
-    // تحديث الحالة في موديل المستخدم
-    await User.findByIdAndUpdate(teacherId, { isActive: isActive });
+    // تحديث الحالة في موديل المستخدم والتأكد من انتمائه للأكاديمية
+    const teacher = await User.findOneAndUpdate(
+        { _id: teacherId, academyId: req.user.academyId }, 
+        { isActive: isActive },
+        { new: true }
+    );
+
+    if (!teacher) {
+        return res.status(404).json({ success: false, error: "المعلم غير موجود في هذه الأكاديمية" });
+    }
 
     res.json({
       success: true,
@@ -1151,8 +1173,15 @@ const deleteTeacher = async (req, res) => {
       });
     }
 
-    // 3. التنفيذ في حال اجتياز الشروط
-    await User.findByIdAndDelete(teacherId);
+    // 3. التنفيذ في حال اجتياز الشروط والتأكد من الأكاديمية
+    const deletedUser = await User.findOneAndDelete({ 
+        _id: teacherId, 
+        academyId: req.user.academyId 
+    });
+
+    if (!deletedUser) {
+        return res.status(404).json({ success: false, message: "المعلم غير موجود أو لا ينتمي لأكاديميتك" });
+    }
 
     // ملاحظة: يُفضل أحياناً حذف أو تحديث الاشتراكات المرتبطة به لتجنب Database Orphans
     // await Subscription.deleteMany({ teacherId: teacherId });

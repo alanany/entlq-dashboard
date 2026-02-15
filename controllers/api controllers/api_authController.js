@@ -4,6 +4,7 @@ const httpStatus = require("../../utility/http_status");
 const AppError = require("../../utility/app_error");
 const asyncWrapper = require("../../middleware/async_wrapper");
 const generateJWT = require("../../middleware/generate_jwt");
+const Academy = require("../../models/academy_model");
 
 
 // handle errors
@@ -40,6 +41,17 @@ const login = async (req, res, next) => {
         status: "fail",
         message: "كلمة المرور المدخلة غير صحيحة",
       });
+    }
+
+    // 2.5️⃣ تحقق من حالة الأكاديمية
+    if (user.academyId) {
+        const academy = await Academy.findById(user.academyId);
+        if (academy && academy.status === 'suspended') {
+            return res.status(403).json({
+                status: "fail",
+                message: "تم حظر هذه الأكاديمية مؤقتاً. يرجى التواصل مع الإدارة.",
+            });
+        }
     }
 
     // 3️⃣ إضافة / تحديث الجهاز (بدون save)

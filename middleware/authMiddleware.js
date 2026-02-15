@@ -37,12 +37,15 @@ const checkUser = (req, res, next) => {
                 let user = await User.findById(decodedToken.id);
                 res.locals.user = user;
                 
-                // جلب إعدادات النظام وتوفيرها عالمياً
-                let settings = await SystemSettings.findOne();
-                if (!settings) {
-                    settings = await SystemSettings.create({});
+                // جلب إعدادات النظام وتوفيرها عالمياً للأكاديمية الحالية
+                let settings = await SystemSettings.findOne({ academyId: user.academyId });
+                if (!settings && user.academyId) {
+                    settings = await SystemSettings.create({ 
+                        academyId: user.academyId,
+                        academyName: 'أكاديمية التعليم'
+                    });
                 }
-                res.locals.settings = settings;
+                res.locals.settings = settings || {};
 
                 // Helper to format image URLs
                 res.locals.getImageUrl = (imagePath, fallback = '/img/classes-1.jpg') => {

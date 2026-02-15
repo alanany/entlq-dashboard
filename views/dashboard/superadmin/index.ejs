@@ -66,6 +66,25 @@
                         <i class="fa fa-plus-circle me-2"></i> إضافة أكاديمية
                     </a>
                 </li>
+                <hr class="text-white opacity-25">
+                <li class="nav-item mb-2">
+                    <small class="text-muted text-uppercase" style="font-size: 0.7rem;">الموقع العام</small>
+                </li>
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-white" href="/home?builder=1" target="_blank">
+                        <i class="fa fa-magic me-2"></i> منشئ الموقع
+                    </a>
+                </li>
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-white" href="/admin/website/sections">
+                        <i class="fa fa-layer-group me-2"></i> أقسام الموقع
+                    </a>
+                </li>
+                <li class="nav-item mb-3">
+                    <a class="nav-link text-white" href="/admin/website/blog">
+                        <i class="fa fa-newspaper me-2"></i> المدونة
+                    </a>
+                </li>
                 <li class="nav-item mt-auto">
                     <a class="nav-link text-danger" href="/logout">
                         <i class="fa fa-sign-out-alt me-2"></i> تسجيل الخروج
@@ -148,7 +167,8 @@
                                 <tr>
                                     <td>
                                         <div class="fw-bold"><%= academy.name %></div>
-                                        <small class="text-muted"><%= academy.subdomain %>.entlqsa.com</small>
+                                        <div class="small text-muted"><%= academy.subdomain %>.entlqsa.com</div>
+                                        <div class="small text-primary mt-1"><i class="fa fa-envelope me-1" style="font-size: 0.7rem;"></i><%= academy.adminEmail %></div>
                                     </td>
                                     <td>
                                         <div class="small">
@@ -168,10 +188,12 @@
                                     <td><%= new Date(academy.createdAt).toLocaleDateString('ar-EG') %></td>
                                     <td>
                                         <div class="btn-group">
-                                            <button class="btn btn-sm btn-outline-secondary toggle-status" 
+                                            <button class="btn btn-sm btn-outline-secondary manage-status" 
                                                     data-id="<%= academy._id %>" 
-                                                    data-status="<%= academy.status === 'active' ? 'suspended' : 'active' %>">
+                                                    data-name="<%= academy.name %>"
+                                                    data-status="<%= academy.status %>">
                                                 <i class="fa <%= academy.status === 'active' ? 'fa-ban' : 'fa-check' %>"></i>
+                                                <%= academy.status === 'active' ? 'حظر' : 'تنشيط' %>
                                             </button>
                                             <button class="btn btn-sm btn-outline-danger delete-academy" data-id="<%= academy._id %>">
                                                 <i class="fa fa-trash"></i>
@@ -230,6 +252,30 @@
     </div>
 </div>
 
+<!-- Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تغيير حالة الأكاديمية</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>هل أنت متأكد من تغيير حالة الأكاديمية <strong id="academyNameSpan"></strong>؟</p>
+                <div class="alert alert-warning" id="statusWarningText">
+                    سيتم منع جميع المستخدمين التابعين لهذه الأكاديمية من تسجيل الدخول في حال الحظر.
+                </div>
+                <input type="hidden" id="statusAcademyId">
+                <input type="hidden" id="statusTargetValue">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" id="confirmStatusBtn">تأكيد التغيير</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -255,18 +301,57 @@
         }
     });
 
-    document.querySelectorAll('.toggle-status').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const academyId = btn.dataset.id;
-            const status = btn.dataset.status;
+    // Status Management Logic
+    const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+    document.querySelectorAll('.manage-status').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const name = btn.dataset.name;
+            const currentStatus = btn.dataset.status;
+            const targetStatus = currentStatus === 'active' ? 'suspended' : 'active';
+            
+            document.getElementById('academyNameSpan').textContent = name;
+            document.getElementById('statusAcademyId').value = id;
+            document.getElementById('statusTargetValue').value = targetStatus;
+            
+            const warningText = document.getElementById('statusWarningText');
+            const confirmBtn = document.getElementById('confirmStatusBtn');
+            
+            if (targetStatus === 'suspended') {
+                warningText.innerHTML = '<strong>تنبيه:</strong> سيتم حظر الأكاديمية ومنع جميع مدرائها ومعلميها وطلابها من الدخول للنظام.';
+                warningText.className = 'alert alert-danger';
+                confirmBtn.className = 'btn btn-danger';
+                confirmBtn.textContent = 'تأكيد الحظر';
+            } else {
+                warningText.innerHTML = 'سيتم إعادة تفعيل الأكاديمية والسماح للمستخدمين بالدخول مرة أخرى.';
+                warningText.className = 'alert alert-success';
+                confirmBtn.className = 'btn btn-success';
+                confirmBtn.textContent = 'تأكيد التنشيط';
+            }
+            
+            statusModal.show();
+        });
+    });
 
+    document.getElementById('confirmStatusBtn').addEventListener('click', async () => {
+        const academyId = document.getElementById('statusAcademyId').value;
+        const status = document.getElementById('statusTargetValue').value;
+
+        try {
             const response = await fetch('/superadmin/toggle-status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ academyId, status })
             });
-            if (await response.json()) location.reload();
-        });
+            const result = await response.json();
+            if (result.success) {
+                location.reload();
+            } else {
+                Swal.fire('خطأ', result.message, 'error');
+            }
+        } catch (err) {
+            Swal.fire('خطأ', 'حدث خطأ غير متوقع', 'error');
+        }
     });
 
     document.querySelectorAll('.delete-academy').forEach(btn => {

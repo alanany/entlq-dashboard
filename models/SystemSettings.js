@@ -15,7 +15,13 @@ const systemSettingsSchema = new mongoose.Schema({
         twitter: String,
         instagram: String,
         whatsapp: String
-    }
+    },
+    supportContact: {
+        student: String,
+        teacher: String,
+        supervisor: String
+    },
+    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', required: true }
 }, { timestamps: true });
 
 const SystemSettings = mongoose.model('SystemSettings', systemSettingsSchema);
