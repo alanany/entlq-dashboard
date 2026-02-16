@@ -267,14 +267,26 @@ const createToken = (id) => {
 };
 const update_profile = async (req, res) => {
     try {
-        const { name } = req.body;
-        await User.findByIdAndUpdate(req.user._id, { name },{ new: true, runValidators: true });
-res.status(200).json({ message: "تم تحديث الملف الشخصي بنجاح." });
-       
+        const { name, phone_number, gender, timezone } = req.body;
         
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id, 
+            { name, phone_number, gender, timezone },
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({ 
+            success: true,
+            message: "تم تحديث الملف الشخصي بنجاح.",
+            user: updatedUser 
+        });
     } catch (err) {
-      console.log(err);
-        res.redirect('/settings?error=profile');
+        console.error("Update Profile Error:", err);
+        res.status(400).json({ 
+            success: false,
+            message: "حدث خطأ أثناء تحديث الملف الشخصي.",
+            error: err.message 
+        });
     }
 };
 const login_student = async (req, res) => {
@@ -960,28 +972,30 @@ const updatePassword = async (req, res) => {
         const { currentPassword, newPassword, confirmPassword } = req.body;
         const user = await User.findById(req.user._id);
 
-        // التأكد من تطابق كلمة المرور الجديدة والتأكيد
-      if (newPassword !== confirmPassword) {
-            return res.status(400).json({ message: "كلمة المرور الجديدة وتأكيدها غير متطابقين." });
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ success: false, message: "يرجى ملء جميع الحقول المطلوبة." });
         }
 
-        // 3. التحقق من كلمة المرور الحالية (قارن القديمة بالمخزنة)
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ success: false, message: "كلمة المرور الجديدة وتأكيدها غير متطابقين." });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ success: false, message: "يجب أن تكون كلمة المرور الجديدة 6 أحرف على الأقل." });
+        }
+
         const isMatch = await bcrypt.compare(currentPassword, user.password);
         if (!isMatch) {
-            return res.status(400).json({ message: "كلمة المرور الحالية غير صحيحة." });
+            return res.status(400).json({ success: false, message: "كلمة المرور الحالية غير صحيحة." });
         }
 
-      
         user.password = newPassword;
         await user.save();
-res.status(200).json({ message: "تم تغيير كلمة المرور بنجاح." });
-    
+
+        res.status(200).json({ success: true, message: "تم تغيير كلمة المرور بنجاح." });
     } catch (err) {
-        console.log(err);
-          
-            return res.status(400).json({ message:err});
-       
-     
+        console.error("Update Password Error:", err);
+        res.status(500).json({ success: false, message: "حدث خطأ داخلي أثناء تغيير كلمة المرور." });
     }
 };
 

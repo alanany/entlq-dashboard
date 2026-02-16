@@ -3,229 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إعدادات الحساب</title>
+    <title>إعدادات الحساب | <%= t('brand_name') %></title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
-</head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="flex h-screen overflow-hidden">
+    <style>
+        body { font-family: 'Cairo', 'Tajawal', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .input-focus { transition: all 0.3s ease; }
+        .input-focus:focus { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1); }
         
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-                <h2 class="text-xl font-semibold text-gray-800">إعدادات الحساب</h2>
-                <a href="" onclick="history.back(); return false;" class="text-sm text-indigo-600 hover:underline flex items-center font-medium">
-                    </i> العودة للرئيسية
-                </a>
-            </header>
+        /* Sidebar styles matching the dashboard */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            background: #fff;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.05);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        .main-content {
+            margin-right: 260px;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8fafc;
+        }
+        .nav-link {
+            color: #6c757d;
+            padding: 0.8rem 1.25rem;
+            border-radius: 0.75rem;
+            margin: 0.2rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+        .nav-link i { margin-left: 1rem; font-size: 1.2rem; width: 20px; text-align: center; }
+        .nav-link:hover, .nav-link.active { color: #FE5D37; background-color: #FFF0ED; }
+        .nav-link.active { font-weight: 700; }
+        
+        @media (max-width: 991.98px) {
+            .sidebar { margin-right: -260px; }
+            .sidebar.active { margin-right: 0; }
+            .main-content { margin-right: 0; }
+        }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800">
+    <!-- Sidebar -->
+    <%- include('./_student_sidebar', { activePage: 'settings' }) %>
 
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
-                <div class="max-w-3xl mx-auto space-y-8">
-                    
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                        <h3 class="font-bold text-xl text-indigo-700 mb-4 flex items-center"><i data-feather="user" class="ml-2 w-5 h-5"></i> تحديث الملف الشخصي</h3>
-                        
-<form action="/settings/update-profile" method="POST" class="space-y-4"    onsubmit="handleSubmit(event)">                            <div>
-                                <label for="name" class="block text-sm font-medium text-gray-700">الاسم الكامل </label>
-                                <input type="text" name="name" value= "<%= newuser.name %>"   class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label for="email" class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
-                                <input type="email" name="email" value=<%= newuser.email %> disabled class="mt-1 w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2">
-                            </div>
-                            <button  id="saveBtn"
-            type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">حفظ التغييرات</button>
-                        </form>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                        <h3 class="font-bold text-xl text-indigo-700 mb-4 flex items-center"><i data-feather="lock" class="ml-2 w-5 h-5"></i> تحديث كلمة المرور</h3>
-                        
-                        <form class="space-y-4" method="POST" onsubmit=handlePasswordSubmit(event) action="/settings/update-password">
-                            <div>
-                                <label for="currentPassword" class="block text-sm font-medium text-gray-700">كلمة المرور الحالية</label>
-                                <input type="password"  required name="currentPassword" class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label for="newPassword"  class="block text-sm font-medium text-gray-700">كلمة المرور الجديدة</label>
-                                <input type="password" required name="newPassword" class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label for="confirmPassword"  class="block text-sm font-medium text-gray-700">تأكيد كلمة المرور الجديدة</label>
-                                <input type="password" required name="confirmPassword" class="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <button id="saveBtn1"
-            type="submit"  class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">تغيير كلمة المرور</button>
-                        </form>
-                    </div>
-
+    <div class="main-content">
+        <!-- Header -->
+        <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10">
+            <div class="flex items-center gap-4">
+                <button id="sidebarCollapse" class="p-2 hover:bg-slate-100 rounded-lg lg:hidden transition-colors">
+                    <i data-feather="menu" class="w-5 h-5 text-slate-600"></i>
+                </button>
+                <div>
+                   <h2 class="text-xl font-black text-slate-800">إعدادات الحساب</h2>
+                   <p class="text-xs text-slate-400 font-medium">إدارة بيانتك الشخصية وكلمة المرور</p>
                 </div>
-            </main>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="text-left hidden sm:block">
+                    <p class="text-sm font-bold text-slate-700 leading-none mb-1"><%= user.name %></p>
+                    <p class="text-xs text-slate-400 font-medium leading-none"><%= user.email %></p>
+                </div>
+                <div class="w-10 h-10 bg-[#FE5D37] text-white rounded-xl shadow-lg shadow-orange-200 flex items-center justify-center font-bold">
+                    <%= user.name.charAt(0).toUpperCase() %>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-8">
+            <div class="max-w-4xl mx-auto space-y-8 animate__animated animate__fadeInUp">
+                
+                <!-- Profile Section -->
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                        <div>
+                            <h3 class="font-black text-lg text-slate-800 flex items-center gap-2">
+                                <i data-feather="user" class="w-5 h-5 text-[#FE5D37]"></i>
+                                البيانات الشخصية
+                            </h3>
+                            <p class="text-sm text-slate-400 mt-1">المعلومات الأساسية لحسابك التعليمي</p>
+                        </div>
+                    </div>
+                    
+                    <form id="profileForm" onsubmit="handleProfileSubmit(event)" class="p-8 space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-3">
+                                <label class="text-sm font-bold text-slate-700 mr-1 flex items-center gap-2">
+                                    <i data-feather="edit-3" class="w-3 h-3"></i> الاسم الكامل
+                                </label>
+                                <input type="text" name="name" value="<%= newuser.name %>" required
+                                       class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:border-[#FE5D37] focus:ring-4 focus:ring-orange-500/5 focus:bg-white input-focus transition-all font-bold">
+                            </div>
+
+                            <div class="space-y-3">
+                                <label class="text-sm font-bold text-slate-400 mr-1 flex items-center gap-2">
+                                    <i data-feather="mail" class="w-3 h-3"></i> البريد الإلكتروني (ثابت)
+                                </label>
+                                <input type="email" value="<%= newuser.email %>" disabled 
+                                       class="w-full border border-slate-100 bg-slate-50 text-slate-400 rounded-2xl px-5 py-4 cursor-not-allowed font-medium">
+                            </div>
+
+                            <div class="space-y-3">
+                                <label class="text-sm font-bold text-slate-700 mr-1 flex items-center gap-2">
+                                    <i data-feather="phone" class="w-3 h-3"></i> رقم الهاتف
+                                </label>
+                                <input type="text" name="phone_number" value="<%= newuser.phone_number %>" placeholder="05xxxxxxxx"
+                                       class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:border-[#FE5D37] focus:ring-4 focus:ring-orange-500/5 focus:bg-white input-focus transition-all font-bold">
+                            </div>
+
+                            <div class="space-y-3">
+                                <label class="text-sm font-bold text-slate-700 mr-1 flex items-center gap-2">
+                                    <i data-feather="user-plus" class="w-3 h-3"></i> الجنس
+                                </label>
+                                <select name="gender" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:border-[#FE5D37] focus:ring-4 focus:ring-orange-500/5 focus:bg-white input-focus transition-all font-bold appearance-none">
+                                    <option value="male" <%= newuser.gender === 'male' ? 'selected' : '' %>>ذكر</option>
+                                    <option value="female" <%= newuser.gender === 'female' ? 'selected' : '' %>>أنثى</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="timezone" value="<%= newuser.timezone %>">
+                        </div>
+
+                        <div class="pt-4 flex justify-end">
+                            <button type="submit" id="profileSubmitBtn"
+                                    class="px-10 py-4 bg-[#FE5D37] text-white rounded-2xl hover:bg-orange-600 font-black transition-all shadow-xl shadow-orange-500/20 active:scale-95 flex items-center gap-2">
+                                <i data-feather="check" class="w-5 h-5"></i>
+                                حفظ البيانات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Password Section -->
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-8 border-b border-slate-50 bg-slate-50/30">
+                        <h3 class="font-black text-lg text-slate-800 flex items-center gap-2">
+                            <i data-feather="shield" class="w-5 h-5 text-[#FE5D37]"></i>
+                            أمان وخصوصية الحساب
+                        </h3>
+                        <p class="text-sm text-slate-400 mt-1">قم بتغيير كلمة المرور بشكل دوري لحماية بياناتك</p>
+                    </div>
+                    
+                    <form id="passwordForm" onsubmit="handlePasswordSubmit(event)" class="p-8 space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div class="space-y-3">
+                                <label class="text-sm font-bold text-slate-700 mr-1 flex items-center gap-2">
+                                    <i data-feather="lock" class="w-3 h-3"></i> الحالية
+                                </label>
+                                <input type="password" name="currentPassword" required
+                                       class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:border-[#FE5D37] focus:ring-4 focus:ring-orange-500/5 focus:bg-white input-focus transition-all font-bold">
+                            </div>
+                            <div class="space-y-3">
+                                <label class="text-sm font-bold text-slate-700 mr-1 flex items-center gap-2">
+                                    <i data-feather="key" class="w-3 h-3"></i> الجديدة
+                                </label>
+                                <input type="password" name="newPassword" required minlength="6"
+                                       class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:border-[#FE5D37] focus:ring-4 focus:ring-orange-500/5 focus:bg-white input-focus transition-all font-bold">
+                            </div>
+                            <div class="space-y-3">
+                                <label class="text-sm font-bold text-slate-700 mr-1 flex items-center gap-2">
+                                    <i data-feather="check-square" class="w-3 h-3"></i> تأكيد
+                                </label>
+                                <input type="password" name="confirmPassword" required
+                                       class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 outline-none focus:border-[#FE5D37] focus:ring-4 focus:ring-orange-500/5 focus:bg-white input-focus transition-all font-bold">
+                            </div>
+                        </div>
+
+                        <div class="pt-4 flex justify-end">
+                            <button type="submit" id="passwordSubmitBtn"
+                                    class="px-10 py-4 bg-slate-900 text-white rounded-2xl hover:bg-black font-black transition-all shadow-xl active:scale-95 flex items-center gap-2">
+                                <i data-feather="refresh-cw" class="w-5 h-5"></i>
+                                تحديث كلمة المرور
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed bottom-10 left-10 z-[1050] space-y-4"></div>
+
+    <!-- Logout Modal (Needed because sidebar uses it) -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow" style="border-radius: 1.5rem;">
+                <div class="modal-body p-4 text-center">
+                    <div class="w-16 h-16 bg-red-50 text-red-500 mx-auto mb-3 rounded-full flex items-center justify-center text-xl">
+                        <i class="fa fa-sign-out-alt"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">تأكيد الخروج</h5>
+                    <p class="text-muted small mb-4">هل أنت متأكد أنك تريد مغادرة حسابك الآن؟</p>
+                    <div class="flex gap-3">
+                        <button class="bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-full flex-grow text-sm font-bold" data-bs-dismiss="modal">إلغاء</button>
+                        <a href="/student/logout" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full flex-grow text-sm font-bold text-white no-underline">خروج</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-   <div
-      id="toastContainer"
-      class="fixed bottom-4 right-4 z-[70] space-y-3"
-    ></div>
 
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      feather.replace();
-
-      const saveBtn = document.getElementById("saveBtn");
-      const originalButtonText = saveBtn.textContent.trim();
-   const saveBtn1 = document.getElementById("saveBtn1");
-      const originalButtonText1 = saveBtn1.textContent.trim();
-      function startLoading(isSend = true) {
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = !isSend
-          ? `<span>${originalButtonText}</span>`
-          : `<span>جاري الحفظ...</span>`;
-      }
-   function startLoading1(isSend = true) {
-        saveBtn1.disabled = true;
-        saveBtn1.innerHTML = !isSend
-          ? `<span>${originalButtonText1}</span>`
-          : `<span>جاري الحفظ...</span>`;
-      }
-      function stopLoading(isSend = true) {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = !isSend
-          ? `<span>${originalButtonText}</span>`
-          : `<span>جاري الحفظ ...</span>`;
-
         feather.replace();
-      }
-  function stopLoading1(isSend = true) {
-        saveBtn1.disabled = false;
-        saveBtn1.innerHTML = !isSend
-          ? `<span>${originalButtonText1}</span>`
-          : `<span>جاري الحفظ ...</span>`;
 
-        feather.replace();
-      }
-      function showToast(message, type = "info") {
-        const container = document.getElementById("toastContainer");
-        const toast = document.createElement("div");
-        let bgColor =
-          type === "success"
-            ? "bg-green-600"
-            : type === "error"
-            ? "bg-red-600"
-            : "bg-blue-600";
-        let icon =
-          type === "success"
-            ? "check-circle"
-            : type === "error"
-            ? "alert-triangle"
-            : "info";
+        $('#sidebarCollapse').on('click', () => $('#sidebar').toggleClass('active'));
 
-        toast.className = `p-4 min-w-[250px] text-white ${bgColor} rounded-xl shadow-xl flex items-center justify-between transform transition-all duration-300 translate-x-full opacity-0`;
-        toast.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <i data-feather="${icon}" class="w-5 h-5"></i>
-                    <span class="text-sm font-bold">${message}</span>
+        function showToast(message, type = "info") {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            
+            const styles = {
+                success: { bg: "bg-[#10B981]", icon: "check-circle" },
+                error: { bg: "bg-[#EF4444]", icon: "alert-circle" },
+                info: { bg: "bg-[#3B82F6]", icon: "info" }
+            };
+
+            const style = styles[type] || styles.info;
+
+            toast.className = `${style.bg} text-white px-8 py-5 rounded-[1.5rem] shadow-2xl flex items-center gap-5 transform transition-all duration-500 translate-y-20 opacity-0 min-w-[350px]`;
+            toast.innerHTML = `
+                <i data-feather="${style.icon}" class="w-6 h-6 shrink-0"></i>
+                <div class="flex-1">
+                    <p class="font-black text-sm text-right">${message}</p>
                 </div>
-                <button onclick="this.parentElement.remove()" class="mr-4"><i data-feather="x" class="w-4 h-4"></i></button>
+                <button onclick="this.parentElement.remove()" class="opacity-70 hover:opacity-100 transition-opacity">
+                    <i data-feather="x" class="w-4 h-4"></i>
+                </button>
             `;
 
-        container.appendChild(toast);
-        feather.replace();
+            container.appendChild(toast);
+            feather.replace();
 
-        setTimeout(() => {
-          toast.classList.remove("translate-x-full", "opacity-0");
-        }, 10);
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove("translate-y-20", "opacity-0");
+            }, 10);
 
-        setTimeout(() => {
-          toast.classList.add("translate-x-full", "opacity-0");
-          setTimeout(() => toast.remove(), 300);
-        }, 4000);
-      }
-async function handleSubmit(event) {
-    event.preventDefault();
-
-    const form = event.target;
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-    
-  
-
-    startLoading(true);
-
-    try {
-        const response = await fetch(form.action, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.message || "فشل التحديث");
+            // Animate out
+            setTimeout(() => {
+                toast.classList.add("translate-y-[-20px]", "opacity-0");
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
         }
 
-     
-        showToast("تم تعديل الحساب بنجاح!", "success");
+        async function handleProfileSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById("profileSubmitBtn");
+            const originalText = btn.innerHTML;
+            
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
 
-        // 4. التوجيه مع كسر الكاش (Cache Busting)
-        setTimeout(() => {
-            stopLoading(false);
-            // إضافة Query String تجعل المتصفح يظن أنها صفحة جديدة ويجلب بيانات فريش
-            window.location.href = "/";
-        }, 1000);
+            btn.disabled = true;
+            btn.innerHTML = 'جاري الحفظ...';
 
-    } catch (error) {
-        stopLoading(false);
-        showToast(error.message || error, "error");
-    }
-} 
+            try {
+                const response = await fetch("/settings/update-profile", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
 
-async function handlePasswordSubmit(event) {
-    event.preventDefault();
+                const result = await response.json();
 
-    const form = event.target;
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-    
-  console.log(data);
+                if (!response.ok) throw new Error(result.message || "فشل التحديث");
 
-    startLoading1(true);
-
-    try {
-        const response = await fetch(form.action, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-             stopLoading1(false);
-showToast(result.message, "error");            
-          
-        }else{
-              showToast("تم تعديل كلمة المرور بنجاح!", "success");
-
-        // 4. التوجيه مع كسر الكاش (Cache Busting)
-        setTimeout(() => {
-            stopLoading1(false);
-            // إضافة Query String تجعل المتصفح يظن أنها صفحة جديدة ويجلب بيانات فريش
-            window.location.href = "/";
-        }, 1000);
-
+                showToast("تم تحديث بياناتك الشخصية بنجاح", "success");
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                showToast(error.message, "error");
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                feather.replace();
+            }
         }
 
-     
-      
-    } catch (error) {
-        stopLoading1(false);
-        showToast(error || error, "error");
-    }
-}
+        async function handlePasswordSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById("passwordSubmitBtn");
+            const originalText = btn.innerHTML;
+            
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
 
+            if (data.newPassword !== data.confirmPassword) {
+                return showToast("كلمات المرور الجديدة غير متطابقة", "error");
+            }
 
-</script>
+            btn.disabled = true;
+            btn.innerHTML = 'جاري التحديث...';
+
+            try {
+                const response = await fetch("/settings/update-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) throw new Error(result.message || "فشل تغيير كلمة المرور");
+
+                showToast("تم تغيير كلمة المرور بنجاح", "success");
+                event.target.reset();
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                showToast(error.message, "error");
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                feather.replace();
+            }
+        }
+    </script>
 </body>
 </html>

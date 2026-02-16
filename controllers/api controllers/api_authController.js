@@ -18,7 +18,7 @@ const login = async (req, res, next) => {
       email,
       password,
       deviceToken,
-      platform = "andriod",
+      platform = "android",
       deviceModel,
       timezone,
     } = req.body;
