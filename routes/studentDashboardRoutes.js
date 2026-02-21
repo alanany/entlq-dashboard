@@ -4,6 +4,8 @@ const courseController = require('../controllers/courseController');
 const studentdashboardRoutes = Router();
 const studentController = require('../controllers/studentController');
 studentdashboardRoutes.get('/', checkUser, courseController.getLandingPage);
+studentdashboardRoutes.get('/landing', checkUser, courseController.getLandingPageForDashboard);
+
 studentdashboardRoutes.get('/dashboard',requireAuth,checkUser, studentController.getstudentDashboard);
 studentdashboardRoutes.get('/student/register', studentController.signup_get);
 studentdashboardRoutes.get('/student/login', studentController.login_get);

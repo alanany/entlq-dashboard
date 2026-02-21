@@ -70,8 +70,10 @@ const teacherHome = async (req, res) => {
     const endOfDay = new Date(now.setHours(23, 59, 59, 999));
     const teacherStatic = await teacherStatics(req, res);
 
+    const academyId = req.user.academyId?._id || req.user.academyId;
     const bookings = await Subscription.find({
       teacherId: teacherId,
+      academyId: academyId,
       "sessions.date": { $gte: startOfDay, $lte: endOfDay },
     }).populate("studentId courseId");
 
@@ -139,10 +141,12 @@ const teacherStatics = async (req, res) => {
   try {
     // 1. جلب معرف المعلم من الجلسة (بافتراض استخدام Passport.js أو JWT)
     const teacherId = req.user._id;
+    const academyId = req.user.academyId?._id || req.user.academyId;
 
-    // 2. حساب إجمالي عدد الطلاب المشتركين مع هذا المعلم
+    // 2. حساب إجمالي عدد الطلاب المشتركين مع هذا المعلم (في نفس الأكاديمية)
     const totalStudentsCount = await Subscription.countDocuments({
       teacherId: teacherId,
+      academyId: academyId,
     });
 
     const teacherHourlyRateDefault = Number(req.user.hour_rate) || (req.user.hourly_rates && req.user.hourly_rates.length > 0 ? req.user.hourly_rates[0].rate : 0);
@@ -150,6 +154,7 @@ const teacherStatics = async (req, res) => {
     // جلب الاشتراكات مع الحصص المكتملة والتي حضرها المعلم فعلياً
     const bookings = await Subscription.find({
       teacherId: teacherId,
+      academyId: academyId,
       "sessions.status": "completed",
       "sessions.attended": true,
     })
@@ -213,9 +218,9 @@ const teacherStatics = async (req, res) => {
     // 4. جلب عدد الكورسات التي يقدمها هذا المعلم
 
     // 5. جلب آخر 5 طلاب انضموا حديثاً (Latest Joins)
-    const latestBookings = await Subscription.find({ teacherId: teacherId })
+    const latestBookings = await Subscription.find({ teacherId: teacherId, academyId: academyId })
       .sort({ createdAt: -1 }) // الترتيب من الأحدث
-      .limit(2)
+      .limit(5)
       .populate("studentId") // جلب بيانات الطالب (الاسم)
       .populate("courseId"); // جلب بيانات الكورس (العنوان)
 
@@ -278,6 +283,7 @@ const finanical_page = async (req, res) => {
             price: sessionPrice,
             courseTitle: booking.courseId?.title,
             studentName: booking.studentId?.name,
+            sessionDuration: durationInMinutes,
             monthKey: monthKey,
             isPaid: session.isPaidByAdmin, // استخدام الحقل الجديد
           });
@@ -306,7 +312,7 @@ const finanical_page = async (req, res) => {
 
     res.render("../views/dashboard/teacher/teacher_financial.ejs", {
       teacherName: req.user.name,
-      hourlyRate: teacherHourlyRate,
+      hourlyRate: teacherHourlyRateDefault,
       totalEarnings: totalPendingEarnings.toFixed(2),
       monthlyStats,
       completedSessions,
@@ -927,12 +933,65 @@ const studentGetpage = async (req, res) => {
     console.log(students);
 
     // 4. رندر الصفحة وإرسال البيانات
+    const settings = req.settings || {};
     res.render("../views/dashboard/teacher/teacher_students", {
       user: req.user, // بيانات المعلم للهيدر
       students: students, // قائمة الطلاب للجدول
+      settings,
+      currentLang: "ar",
+      dir: "rtl",
     });
   } catch (err) {
     console.error("Error fetching students:", err);
+    res.status(500).send("حدث خطأ في جلب البيانات");
+  }
+};
+// بروفايل الطالب للمعلم
+const getStudentProfile = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const teacherId = req.user._id;
+
+    const student = await User.findById(studentId);
+    if (!student) {
+      return res.status(404).send("الطالب غير موجود");
+    }
+
+    // جلب اشتراكات الطالب مع هذا المعلم فقط
+    const subscriptions = await Subscription.find({ studentId, teacherId })
+      .populate("courseId")
+      .populate("teacherId");
+
+    // تجميع كل الحصص
+    let allSessions = [];
+    subscriptions.forEach((sub) => {
+      sub.sessions.forEach((session) => {
+        allSessions.push({
+          courseName: sub.courseId ? sub.courseId.title : "كورس غير مسمى",
+          teacherName: sub.teacherId ? sub.teacherId.name : "غير محدد",
+          date: session.date,
+          time: session.time,
+          status: session.status,
+          report: session.report,
+        });
+      });
+    });
+
+    allSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const settings = req.settings || {};
+    res.render("../views/dashboard/teacher/teacher_student_profile", {
+      user: req.user,
+      student,
+      subscriptions,
+      allSessions,
+      initials: student.name ? student.name.charAt(0) : "S",
+      settings,
+      currentLang: "ar",
+      dir: "rtl",
+    });
+  } catch (err) {
+    console.error("Error fetching student profile:", err);
     res.status(500).send("حدث خطأ في جلب البيانات");
   }
 };
@@ -1195,6 +1254,54 @@ const deleteTeacher = async (req, res) => {
   }
 };
 
+// GET: صفحة تغيير كلمة المرور
+const changePasswordPage = async (req, res) => {
+  try {
+    const settings = req.settings || {};
+    res.render("../views/dashboard/teacher/teacher_change_password.ejs", {
+      user: req.user,
+      settings,
+      currentLang: "ar",
+      dir: "rtl",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("حدث خطأ");
+  }
+};
+
+// POST: تغيير كلمة المرور
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "المستخدم غير موجود" });
+    }
+
+    // التحقق من كلمة المرور الحالية
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "كلمة المرور الحالية غير صحيحة" });
+    }
+
+    // التحقق من طول كلمة المرور الجديدة
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل" });
+    }
+
+    // تحديث كلمة المرور (الـ pre-save hook سيعمل hash تلقائياً)
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ message: "تم تغيير كلمة المرور بنجاح" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "حدث خطأ أثناء تغيير كلمة المرور" });
+  }
+};
+
 module.exports = {
   getAdminScheduleTeacher,
   updateTeacherStatus,
@@ -1217,4 +1324,7 @@ module.exports = {
   getSessionPage,
   saveSessionReport,
   postUpdateProfile,
+  changePasswordPage,
+  changePassword,
+  getStudentProfile,
 };

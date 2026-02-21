@@ -21,5 +21,8 @@ teacherdashboardRoutes.get('/teacher/finanical_page',checkUser,requireAuth, teac
 teacherdashboardRoutes.get('/teacher/settings',checkUser,requireAuth, teacherController.settings_page);
 teacherdashboardRoutes.post('/teacher/update',checkUser,requireAuth, teacherController.postUpdateProfile);
 teacherdashboardRoutes.get('/teacher/students',checkUser,requireAuth, teacherController.studentGetpage);
+teacherdashboardRoutes.get('/teacher/student/profile/:id',checkUser,requireAuth, teacherController.getStudentProfile);
+teacherdashboardRoutes.get('/teacher/change-password',checkUser,requireAuth, teacherController.changePasswordPage);
+teacherdashboardRoutes.post('/teacher/change-password',checkUser,requireAuth, teacherController.changePassword);
 
 module.exports = teacherdashboardRoutes;

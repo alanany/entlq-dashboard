@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang %>" dir="<%= dir %>">
+
+<head>
+    <meta charset="utf-8">
+    <title><%= settings.academyName %> - ملف الطالب</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&family=Alexandria:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+
+    <style>
+        :root { --primary: #FE5D37; --secondary: #FFF0ED; --light: #F8F9FA; --dark: #000B1C; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f9fc; font-size: 0.9rem; }
+        .lobster-font { font-family: 'Lobster Two', cursive; }
+        .outfit-font { font-family: 'Outfit', sans-serif; }
+        .main-content { margin-right: 260px; padding: 1.5rem; min-height: 100vh; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .main-content { margin-right: 0; } }
+
+        .section-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-card {
+            background: #fff;
+            border-radius: 2rem;
+            padding: 2rem;
+            border: 1px solid #f1f1f1;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.02);
+        }
+
+        .tab-btn {
+            border: none;
+            background: #fff;
+            color: #6c757d;
+            font-weight: 700;
+            padding: 0.75rem 1.25rem;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-size: 0.85rem;
+        }
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: var(--secondary);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+
+        .table-custom thead th {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            color: #6c757d;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .table-custom tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.8rem;
+        }
+
+        .sub-card {
+            background: #fff;
+            border: 1px solid #f1f1f1;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            transition: all 0.3s;
+        }
+        .sub-card:hover {
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+
+<body>
+    <%- include('./_teacher_sidebar.ejs', { currentPage: 'students', user: user }) %>
+
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fas fa-bars fs-5"></i>
+                    </button>
+                    <div>
+                        <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2em;">ملف الطالب</h4>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Student Profile & Details</small>
+                    </div>
+                </div>
+                <a href="/teacher/students" class="btn btn-light rounded-pill px-3 py-2 fw-bold small">
+                    <i class="fas fa-arrow-right me-1"></i> العودة للطلاب
+                </a>
+            </div>
+        </div>
+
+        <!-- Profile Header -->
+        <div class="profile-card d-flex flex-column flex-md-row align-items-center gap-4 mb-4 animate__animated animate__fadeInUp">
+            <div class="bg-primary bg-opacity-10 text-white rounded-4 d-flex align-items-center justify-content-center fw-bold" style="width: 90px; height: 90px; font-size: 2rem;">
+                <%= initials %>
+            </div>
+            <div class="flex-grow-1 text-center text-md-end">
+                <h3 class="fw-bold text-dark mb-2"><%= student.name %></h3>
+                <div class="d-flex flex-wrap justify-content-center justify-content-md-start gap-3">
+                    <a href="mailto:<%= student.email %>" class="text-muted text-decoration-none small fw-bold">
+                        <i class="fas fa-envelope text-primary me-1"></i> <%= student.email %>
+                    </a>
+                    <a href="tel:<%= student.phone_number %>" class="text-muted text-decoration-none small fw-bold">
+                        <i class="fas fa-phone text-primary me-1"></i> <%= student.phone_number || 'بدون هاتف' %>
+                    </a>
+                </div>
+            </div>
+            <div class="d-flex gap-3">
+                <div class="bg-light p-3 rounded-4 text-center border">
+                    <p class="text-muted small fw-bold mb-1">الحالة</p>
+                    <span class="badge <%= student.isActive ? 'bg-success' : 'bg-warning' %> rounded-pill px-3 py-1">
+                        <%= student.isActive ? 'نشط' : 'مؤرشف' %>
+                    </span>
+                </div>
+                <div class="bg-light p-3 rounded-4 text-center border">
+                    <p class="text-muted small fw-bold mb-1">الاشتراكات</p>
+                    <span class="fw-bold text-primary"><%= subscriptions.length %></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white p-2 rounded-4 shadow-sm border d-flex mb-4">
+            <button onclick="openTab(event, 'courses')" class="tab-btn active flex-grow-1 rounded-3">الكورسات (<%= subscriptions.length %>)</button>
+            <button onclick="openTab(event, 'sessions')" class="tab-btn flex-grow-1 rounded-3">سجل الحصص</button>
+        </div>
+
+        <!-- Courses Tab -->
+        <div id="courses" class="tab-content active px-1">
+            <div class="row g-3">
+                <% subscriptions.forEach(sub => { %>
+                    <% 
+                        const totalSessions = sub.numberOfSessionsPerMonth;
+                        const completedSessions = sub.sessions.filter(s => s.status === 'completed').length;
+                        const remainingSessions = totalSessions - completedSessions;
+                        const progressPercent = totalSessions > 0 ? (completedSessions / totalSessions * 100) : 0;
+                    %>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="sub-card h-100 d-flex flex-column gap-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="bg-primary bg-opacity-10 text-white rounded-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-book-open" style="font-size: 0.85rem;"></i>
+                                </div>
+                                <% if (sub.status === 'confirmed') { %>
+                                    <span class="badge bg-success bg-opacity-10 text-white rounded-pill px-2 py-1" style="font-size: 0.6rem;">نشط</span>
+                                <% } else if (sub.status === 'pending') { %>
+                                    <span class="badge bg-warning bg-opacity-10 text-white rounded-pill px-2 py-1" style="font-size: 0.6rem;">معلق</span>
+                                <% } else { %>
+                                    <span class="badge bg-secondary bg-opacity-10 text-white rounded-pill px-2 py-1" style="font-size: 0.6rem;"><%= sub.status %></span>
+                                <% } %>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1 small"><%= sub.courseId ? sub.courseId.title : 'كورس غير مسمى' %></h6>
+                                <small class="text-muted fw-bold" style="font-size: 0.65rem;">المعلم: <%= sub.teacherId ? sub.teacherId.name : 'غير محدد' %></small>
+                            </div>
+                            <div class="row g-2 text-center py-2 border-top border-bottom">
+                                <div class="col-4">
+                                    <p class="text-muted mb-0" style="font-size: 0.6rem;">الإجمالي</p>
+                                    <p class="fw-bold text-dark mb-0 small"><%= totalSessions %></p>
+                                </div>
+                                <div class="col-4 border-start border-end">
+                                    <p class="text-success mb-0" style="font-size: 0.6rem;">منتهية</p>
+                                    <p class="fw-bold text-success mb-0 small"><%= completedSessions %></p>
+                                </div>
+                                <div class="col-4">
+                                    <p class="text-warning mb-0" style="font-size: 0.6rem;">متبقية</p>
+                                    <p class="fw-bold text-warning mb-0 small"><%= remainingSessions > 0 ? remainingSessions : 0 %></p>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between small fw-bold text-muted mb-1" style="font-size: 0.65rem;">
+                                    <span>نسبة الإنجاز</span>
+                                    <span><%= Math.round(progressPercent) %>%</span>
+                                </div>
+                                <div class="progress" style="height: 5px;">
+                                    <div class="progress-bar bg-white" style="width: <%= progressPercent %>%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+
+        <!-- Sessions Tab -->
+        <div id="sessions" class="tab-content px-1">
+            <div class="section-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">الكورس</th>
+                                <th class="text-center">التاريخ</th>
+                                <th class="text-center">الوقت</th>
+                                <th class="text-center">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% allSessions.forEach(session => { %>
+                                <tr>
+                                    <td class="ps-4">
+                                        <p class="fw-bold text-success mb-0 small"><%= session.courseName %></p>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="outfit-font fw-bold small"><%= new Date(session.date).toLocaleDateString('ar-EG') %></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-white outfit-font fw-bold" style="font-size: 0.7rem;"><%= session.time %></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <% if(session.status === 'completed') { %>
+                                            <span class="badge bg-success bg-opacity-10 text-white rounded-pill px-2 py-1" style="font-size: 0.6rem;">
+                                                <i class="fas fa-check-circle me-1"></i>مكتملة
+                                            </span>
+                                        <% } else if(session.status === 'missed') { %>
+                                            <span class="badge bg-danger bg-opacity-10 text-white rounded-pill px-2 py-1" style="font-size: 0.6rem;">
+                                                <i class="fas fa-times-circle me-1"></i>غائب
+                                            </span>
+                                        <% } else { %>
+                                            <span class="badge bg-warning bg-opacity-10 text-white rounded-pill px-2 py-1" style="font-size: 0.6rem;">
+                                                <i class="fas fa-clock me-1"></i>قادمة
+                                            </span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                            <% if (allSessions.length === 0) { %>
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-5 fw-bold">لا توجد حصص حتى الآن</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-auto py-4 text-center text-muted border-top">
+            <small>&copy; <%= settings.academyName %> <%= new Date().getFullYear() %></small>
+        </footer>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function openTab(evt, tabName) {
+            $(".tab-content").removeClass("active");
+            $(".tab-btn").removeClass("active");
+            $(`#${tabName}`).addClass("active");
+            $(evt.currentTarget).addClass("active");
+        }
+    </script>
+</body>
+</html>

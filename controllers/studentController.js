@@ -11,6 +11,8 @@ const getstudentDashboard = async (req, res, next) => {
     // c على أقرب حصة
     if (role === "student") {
       const studentId = req.user._id;
+      
+      console.log(req.user.academyId.name, "academy name");
       const nearestSession = await getNearestSession(studentId, req.user.timezone);
             
      
@@ -34,8 +36,8 @@ const getstudentDashboard = async (req, res, next) => {
     } else {
      
      console.log("admin dashboard");
-      const stats = await courseController.getDashboardStats(req.user.academyId);
-      console.log(stats,'stats'); 
+      const academyId = (req.user.academyId?._id || req.user.academyId)?.toString();
+      const stats = await courseController.getDashboardStats(academyId);
       // For non-students, render without student data
       res.render("../views/dashboard/index", {
         title: "Dashboard",
@@ -451,7 +453,7 @@ const getEnrolledSubscription = async (req, res) => {
             console.log(`Diff Days: ${diffDays}`);
             console.log(`Remaining Sessions: ${remainingSessions}`);
             
-            if (diffDays < 5 || remainingSessions < 2) {
+            if (diffDays < 5 || remainingSessions < 2 &&remainingSessions >0) {
                 isRenewable = true;
             }
             console.log(`Is Renewable: ${isRenewable}`);
@@ -473,10 +475,13 @@ const getEnrolledSubscription = async (req, res) => {
 };
 const getRequestDetails = async (req, res, next) => {
   const requestId = req.params.requestId;
+console.log(requestId,'request id');
 
   try {
-    const academyId = req.user ? req.user.academyId : null;
-    // 1. جلب بيانات الطلب وتعبئة بيانات الكورس والمدرب (Populaton)
+    const academyId =  req.user.academyId._id ;
+    console.log(academyId,'academy id');
+
+    // 1. جلب بيانات الطل`ب وتعبئة بيانات الكورس والمدرب (Populaton)
     // نفترض أن حقل courseId يحتوي على تفاصيل الكورس (المتضمنة اسم المدرب)
     const request = await Subscription.findOne({ 
         _id: requestId, 
@@ -519,7 +524,7 @@ const getRequestDetails = async (req, res, next) => {
             remainingSessions = request.sessions.filter(s => s.status === 'pending').length;
         }
 
-        if (diffDays < 5 || remainingSessions < 2) {
+        if (diffDays < 5 || remainingSessions < 2&&remainingSessions >0) {
             isRenewable = true;
         }
     }
@@ -891,20 +896,20 @@ const getStudentBillingPage = async (req, res) => {
                         }
                     },
                     // حساب تاريخ التجديد (بعد شهر من البداية)
-                    renewalDate: { $add: ["$startDate", 30 * 24 * 60 * 60 * 1000] }
+                    renewalDate: { $add: ["$startDate", 30 * 24 * 60 * 60 * 1000]||Date.now() }
                 }
             },
             // 4. ترتيب الدفعات من الأحدث للأقدم
             { $sort: { createdAt: -1 } }
         ]);
 
-    console.log(billingData,'billingData');
-        // إرسال البيانات للصفحة
-        res.render('dashboard/student/billing', { 
-            billingData,
-            // نعتبر أول سجل هو الخطة النشطة حالياً
-            activePlan: billingData.length > 0 ? billingData[0] : null 
-        });
+    const activePlan = billingData.length > 0 ? billingData[0] : null;
+    
+    // إرسال البيانات للصفحة
+    res.render('dashboard/student/billing', { 
+        billingData,
+        activePlan 
+    });
 
     } catch (error) {
         console.error("Billing Page Error:", error);

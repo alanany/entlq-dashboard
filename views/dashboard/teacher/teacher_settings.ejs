@@ -1,178 +1,178 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="<%= currentLang %>" dir="<%= dir %>">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إعدادات الحساب | <%= settings.academyName %></title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <meta charset="utf-8">
+    <title><%= settings.academyName %> - إعدادات الحساب</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&family=Alexandria:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+
     <style>
-        :root {
-            --primary: #FE5D37;
-            --primary-light: #FFF0ED;
-            --accent: #000B1C;
-        }
-
-        body { 
-            font-family: 'Cairo', sans-serif; 
-            background: #f7f9fc;
-            color: #1F2937;
-            min-height: 100vh;
-        }
-
+        :root { --primary: #FE5D37; --secondary: #FFF0ED; --light: #F8F9FA; --dark: #000B1C; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f9fc; font-size: 0.9rem; }
+        .lobster-font { font-family: 'Lobster Two', cursive; }
         .outfit-font { font-family: 'Outfit', sans-serif; }
+        .main-content { margin-right: 260px; padding: 1.5rem; min-height: 100vh; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .main-content { margin-right: 0; } }
 
-        .glass-card {
-            background: white;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+        .section-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
         }
 
-        .input-field { 
-            width: 100%; 
-            background: #fdfdfd; 
-            border: 1.5px solid #F3F4F6; 
-            padding: 1rem 1.25rem; 
-            border-radius: 1rem; 
-            outline: none; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .btn-kider {
+            background-color: var(--primary);
+            color: #fff;
+            border-radius: 0.75rem;
+            padding: 0.6rem 1.5rem;
+            font-weight: 700;
+            border: none;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        .btn-kider:hover { background-color: #e44d2d; transform: translateY(-2px); box-shadow: 0 0.5rem 1rem rgba(254, 93, 55, 0.2); color: #fff; }
+
+        .form-control-custom {
+            background: #fdfdfd;
+            border: 1.5px solid #F3F4F6;
+            padding: 0.85rem 1.25rem;
+            border-radius: 1rem;
             font-size: 0.85rem;
             font-weight: 600;
+            transition: all 0.3s;
         }
-
-        .input-field:focus { 
-            border-color: #FE5D37; 
-            background: white;
+        .form-control-custom:focus {
+            border-color: var(--primary);
+            background: #fff;
             box-shadow: 0 0 0 4px rgba(254, 93, 55, 0.1);
         }
-
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .scale-in { animation: scaleIn 0.5s ease-out forwards; }
     </style>
 </head>
-<body class="p-4 md:p-10 pb-20">
 
-    <div class="max-w-4xl mx-auto space-y-10">
-        
-        <!-- Header Section -->
-        <header class="flex items-center justify-between gap-6 scale-in">
-            <div class="flex items-center gap-5">
-                <button onclick="history.back()" class="flex items-center justify-center w-12 h-12 bg-white rounded-xl text-gray-500 shadow-sm border border-gray-100 hover:bg-[#FE5D37] hover:text-white transition-all transform active:scale-90 group">
-                    <i data-feather="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
-                </button>
-                <div>
-                    <h1 class="text-2xl font-black text-gray-900 tracking-tight">إعدادات الملف الشخصي</h1>
-                    <p class="text-[10px] text-gray-400 font-bold outfit-font uppercase tracking-widest mt-1">Personal Account Settings</p>
+<body>
+    <%- include('./_teacher_sidebar.ejs', { currentPage: 'settings', user: user }) %>
+
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fas fa-bars fs-5"></i>
+                    </button>
+                    <div>
+                        <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2em;">إعدادات الملف الشخصي</h4>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Personal Account Settings</small>
+                    </div>
                 </div>
-            </div>
-            <div class="w-12 h-12 flex items-center justify-center bg-white rounded-xl text-gray-300 border border-gray-100 shadow-sm">
-                <i data-feather="settings" class="w-6 h-6"></i>
-            </div>
-        </header>
-
-        <!-- Profile Form Card -->
-        <div class="glass-card rounded-[2.5rem] overflow-hidden scale-in shadow-sm" style="animation-delay: 0.1s;">
-            <div class="p-8 md:p-12">
-                
-                <!-- Avatar Upload -->
-                <div class="flex flex-col items-center mb-12">
-                    <div class="relative group">
-                        <div class="w-28 h-28 bg-[#FFF0ED] rounded-[2rem] flex items-center justify-center text-[#FE5D37] font-black text-3xl border-4 border-white shadow-lg relative overflow-hidden transition-transform group-hover:scale-105 duration-500">
-                            <% if(teacher.image) { %>
-                                <img src="<%= teacher.image %>" class="w-full h-full object-cover">
-                            <% } else { %>
-                                <%= (teacher.name || 'U').charAt(0).toUpperCase() %>
-                            <% } %>
-                        </div>
-                        <label for="avatar-input" class="absolute -bottom-1 -right-1 bg-[#FE5D37] p-2.5 rounded-xl shadow-lg border-2 border-white text-white cursor-pointer hover:bg-black transition-all active:scale-95">
-                            <i data-feather="camera" class="w-4 h-4"></i>
-                        </label>
-                        <input id="avatar-input" type="file" class="hidden" accept="image/*">
-                    </div>
-                    <h2 class="mt-4 text-lg font-black text-gray-900"><%= teacher.name %></h2>
-                    <p class="text-[9px] font-black text-[#FE5D37] uppercase tracking-[0.2em] mt-1 outfit-font">Verified Educator</p>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-cog text-muted"></i>
                 </div>
-
-                <form action="/teacher/update" method="POST" class="space-y-8">
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Full Name -->
-                        <div class="space-y-2.5">
-                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 outfit-font">Full Name</label>
-                            <input type="text" name="name" value="<%= teacher.name %>" class="input-field" placeholder="اسم المعلم بالكامل">
-                        </div>
-
-                        <!-- Phone Number -->
-                        <div class="space-y-2.5">
-                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 outfit-font">Phone Number</label>
-                            <input type="tel" name="phone" value="<%= teacher.phone_number %>" class="input-field text-left" dir="ltr" placeholder="05XXXXXXXX">
-                        </div>
-                    </div>
-
-                    <!-- Email -->
-                    <div class="space-y-2.5">
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 outfit-font">Email Address (Locked)</label>
-                        <input type="email" value="<%= teacher.email %>" disabled class="input-field bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed" dir="ltr">
-                    </div>
-
-                    <!-- Zoom Link -->
-                    <div class="space-y-2.5">
-                        <div class="flex items-center justify-between mr-2">
-                            <label class="block text-[10px] font-black text-[#FE5D37] uppercase tracking-widest outfit-font">Persistent Zoom Link</label>
-                            <span class="px-2 py-0.5 bg-[#FFF0ED] text-[#FE5D37] text-[8px] font-black rounded-md outfit-font">Required</span>
-                        </div>
-                        <input type="url" name="zoom_link" value="<%= teacher.zoom_link %>" 
-                               class="input-field text-left border-[#FFF0ED] focus:border-[#FE5D37]" 
-                               dir="ltr" placeholder="https://zoom.us/j/your-meeting-id">
-                        <p class="text-[9px] text-gray-400 mr-2 italic font-bold">هذا الرابط سيستخدم تلقائياً لجميع حصصك القادمة.</p>
-                    </div>
-
-                    <!-- Bio -->
-                    <div class="space-y-2.5">
-                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 outfit-font">Biography / Profile Notes</label>
-                        <textarea name="bio" rows="4" class="input-field resize-none leading-relaxed" 
-                                  placeholder="اكتب نبذة عنك وعن خبراتك التعليمية..."><%= teacher.notes %></textarea>
-                    </div>
-
-                    <!-- Submit -->
-                    <div class="pt-6">
-                        <button type="submit" class="w-full py-4 bg-[#FE5D37] text-white rounded-2xl font-black text-sm shadow-lg shadow-[#FE5D37]/10 hover:bg-black transition-all transform active:scale-95 flex items-center justify-center gap-3 group">
-                            حفظ كافة المعلومات
-                            <i data-feather="check-circle" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-
-                </form>
             </div>
         </div>
 
-        <!-- Secondary Actions -->
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 scale-in" style="animation-delay: 0.2s;">
-            <button class="flex items-center gap-2 px-6 py-3 bg-white text-gray-400 rounded-xl text-[10px] font-black hover:text-[#FE5D37] transition-all shadow-sm border border-gray-50 outfit-font">
-                <i data-feather="lock" class="w-3.5 h-3.5"></i>
-                Change Password
-            </button>
-            <button class="flex items-center gap-2 px-6 py-3 bg-white text-gray-400 rounded-xl text-[10px] font-black hover:text-red-500 transition-all shadow-sm border border-gray-50 outfit-font">
-                <i data-feather="user-x" class="w-3.5 h-3.5"></i>
-                Deactivate Account
-            </button>
+        <!-- Profile Form -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="section-card animate__animated animate__fadeInUp">
+                    <!-- Avatar Section -->
+                    <div class="text-center mb-5">
+                        <div class="position-relative d-inline-block">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-4 d-flex align-items-center justify-content-center fw-bold mx-auto position-relative overflow-hidden" style="width: 100px; height: 100px; font-size: 2rem; border: 4px solid #fff; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);">
+                                <% if(teacher.image) { %>
+                                    <img src="<%= teacher.image %>" class="w-100 h-100" style="object-fit: cover;">
+                                <% } else { %>
+                                    <%= (teacher.name || 'U').charAt(0).toUpperCase() %>
+                                <% } %>
+                            </div>
+                            <label for="avatar-input" class="position-absolute bg-primary text-white rounded-3 d-flex align-items-center justify-content-center shadow" style="width: 32px; height: 32px; bottom: -4px; right: -4px; cursor: pointer; border: 2px solid #fff;">
+                                <i class="fas fa-camera" style="font-size: 0.7rem;"></i>
+                            </label>
+                            <input id="avatar-input" type="file" class="d-none" accept="image/*">
+                        </div>
+                        <h5 class="fw-bold text-dark mt-3 mb-0"><%= teacher.name %></h5>
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 mt-2" style="font-size: 0.6rem;">Verified Educator</span>
+                    </div>
+
+                    <form action="/teacher/update" method="POST">
+                        <div class="row g-4">
+                            <!-- Full Name -->
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold outfit-font" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">الاسم الكامل</label>
+                                <input type="text" name="name" value="<%= teacher.name %>" class="form-control form-control-custom" placeholder="اسم المعلم بالكامل">
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold outfit-font" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">رقم الهاتف</label>
+                                <input type="tel" name="phone" value="<%= teacher.phone_number %>" class="form-control form-control-custom text-start" dir="ltr" placeholder="05XXXXXXXX">
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-12">
+                                <label class="form-label text-muted fw-bold outfit-font" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">البريد الإلكتروني (مقفل)</label>
+                                <input type="email" value="<%= teacher.email %>" disabled class="form-control form-control-custom bg-light text-muted" dir="ltr">
+                            </div>
+
+                            <!-- Zoom Link -->
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label text-primary fw-bold outfit-font mb-0" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">رابط Zoom الدائم</label>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2" style="font-size: 0.55rem;">مطلوب</span>
+                                </div>
+                                <input type="url" name="zoom_link" value="<%= teacher.zoom_link %>" 
+                                       class="form-control form-control-custom text-start" 
+                                       dir="ltr" placeholder="https://zoom.us/j/your-meeting-id">
+                                <small class="text-muted d-block mt-1" style="font-size: 0.65rem;">هذا الرابط سيستخدم تلقائياً لجميع حصصك القادمة.</small>
+                            </div>
+
+                            <!-- Bio -->
+                            <div class="col-12">
+                                <label class="form-label text-muted fw-bold outfit-font" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">نبذة شخصية</label>
+                                <textarea name="bio" rows="4" class="form-control form-control-custom" style="resize: none;"
+                                          placeholder="اكتب نبذة عنك وعن خبراتك التعليمية..."><%= teacher.notes %></textarea>
+                            </div>
+
+                            <!-- Submit -->
+                            <div class="col-12 pt-2">
+                                <button type="submit" class="btn btn-kider w-100 py-3">
+                                    <i class="fas fa-check-circle me-2"></i> حفظ كافة المعلومات
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Secondary Actions -->
+                <div class="d-flex flex-wrap justify-content-center gap-3 mb-4 animate__animated animate__fadeInUp">
+                    <a href="/teacher/change-password" class="btn btn-light rounded-pill px-4 py-2 fw-bold small text-decoration-none">
+                        <i class="fas fa-lock me-2 text-muted"></i> تغيير كلمة المرور
+                    </a>
+                    <button class="btn btn-light rounded-pill px-4 py-2 fw-bold small text-danger">
+                        <i class="fas fa-user-times me-2"></i> تعطيل الحساب
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <!-- Footer -->
-        <footer class="py-10 text-center text-gray-400">
-            <p class="text-[10px] font-bold uppercase tracking-widest outfit-font opacity-60">
-                &copy; <%= new Date().getFullYear() %> <%= settings.academyName %> &bull; Security & Privacy Panel
-            </p>
+        <footer class="mt-auto py-4 text-center text-muted border-top">
+            <small>&copy; <%= settings.academyName %> <%= new Date().getFullYear() %></small>
         </footer>
     </div>
 
-    <script>
-        feather.replace();
-    </script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

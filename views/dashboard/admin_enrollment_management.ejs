@@ -221,8 +221,6 @@
                             <th class="px-4 py-3">الدورة</th>
                             <th class="px-4 py-3">البدء / المتبقي</th>
                             <th class="px-4 py-3 text-center">الحالة</th>
-                            <th class="px-4 py-3 text-center">تواصل سريع</th>
-                            <th class="px-4 py-3">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="bookingsTableBody" class="bg-white">
@@ -279,65 +277,57 @@
     function buildRow(b) {
         const isCritical = b.isCritical;
         const daysLeft = b.daysRemaining;
-        const phone = b.studentId?.phone_number || "";
-        const email = b.studentId?.email || "";
-        const sName = b.studentId?.name || "الطالب";
-        const cTitle = b.courseId?.title || "الدورة";
-
-        // التواصل
-        const waLink = `https://wa.me/${phone}?text=${encodeURIComponent('مرحباً ' + sName + '، نذكرك بموعد تجديد اشتراكك في دورة ' + cTitle)}`;
-        const mailLink = `mailto:${email}?subject=تجديد الاشتراك&body=عزيزي ${sName}، نود تذكيرك بقرب انتهاء اشتراكك...`;
 
         const statusMap = {
-            pending: { t: 'قيد المراجعة', c: 'bg-yellow-100 text-yellow-700' },
-            confirmed: { t: 'فعال', c: 'bg-green-100 text-green-700' },
-            rejected: { t: 'مرفوض', c: 'bg-gray-200 text-gray-600' }
+            pending:   { t: 'قيد المراجعة', badge: 'bg-warning'  },
+            confirmed: { t: 'فعال',          badge: 'bg-success'  },
+            rejected:  { t: 'مرفوض',         badge: 'bg-secondary'},
+            cancelled: { t: 'ملغي',           badge: 'bg-danger'  },
+            completed: { t: 'مكتمل',          badge: 'bg-info'    }
         };
-        const st = statusMap[b.status] || { t: b.status, c: 'bg-gray-100' };
+        const st = statusMap[b.status] || { t: b.status, badge: 'bg-secondary' };
 
         return `
-            <tr class="${isCritical ? 'critical-pulse' : ''} transition-all">
+            <tr class="booking-row ${isCritical ? 'critical-pulse' : ''}"
+                onclick="goToDetails('${b._id}', event)"
+                style="cursor:pointer; transition: background 0.2s;"
+                onmouseover="this.style.background='#fafbff'"
+                onmouseout="this.style.background=''">
                 <td class="px-3 py-3">
-                    <div class="fw-bold text-dark">${b.studentId?.name || '---'}</div>
-                    <div class="text-primary small" style="font-size: 0.7rem;">المعلم: ${b.teacherId?.name || 'غير محدد'}</div>
-                    ${b.teacherHourlyRate ? `<div class="text-muted small" style="font-size: 0.65rem;">السعر: ${b.teacherHourlyRate} ر.س</div>` : ''}
-                </td>
-                <td class="px-3 py-3 text-center">
-                    <div class="fw-bold text-dark small">${b.courseId?.title || '---'}</div>
-                    <div class="badge bg-secondary opacity-50 text-uppercase" style="font-size: 0.6rem;">${b.courseId?.category?.name || 'عام'}</div>
-                </td>
-                <td class="px-3 py-3 text-center">
-                    <div class="small text-muted">${b.startDate ? new Date(b.startDate).toLocaleDateString('ar-EG') : 'لم يبدأ'}</div>
-                    ${getBadge(daysLeft)}
-                </td>
-                <td class="px-3 py-3 text-center">
-                    <span class="badge ${st.c.includes('yellow') ? 'bg-warning' : st.c.includes('green') ? 'bg-success' : 'bg-secondary'} rounded-pill px-3 py-2" style="font-size: 0.7rem;">${st.t}</span>
-                    ${(isCritical || (daysLeft !== null && daysLeft <= 0)) ? `
-                        <button onclick="openRenewModal('${b._id}')" class="btn btn-danger btn-sm w-100 mt-2 fw-bold" style="font-size: 0.65rem;">
-                            <i class="fas fa-sync-alt me-1"></i> تجديد
-                        </button>` : ''}
-                </td>
-                <td class="px-3 py-3 text-center">
-                    <div class="d-flex gap-2 justify-content-center">
-                        <a href="${waLink}" target="_blank" class="btn btn-outline-success btn-sm rounded-3" title="واتساب">
-                            <i class="fab fa-whatsapp"></i>
-                        </a>
-                        <a href="${mailLink}" class="btn btn-outline-primary btn-sm rounded-3" title="إيميل">
-                            <i class="fas fa-envelope"></i>
-                        </a>
-                    </div>
-                </td>
-                <td class="px-3 py-3">
-                    <div class="d-flex flex-column gap-2">
-                        <a href="/booking/${b._id}/manage-payment" class="btn btn-link btn-sm p-0 fw-bold text-primary text-decoration-none" style="font-size: 0.75rem;">إدارة الدفع</a>
-                        <div class="d-flex gap-1 justify-content-center">
-                            <a href="/booking/${b._id}/schedule" title="الجدول" class="btn btn-light btn-sm p-1"><i class="fa fa-calendar text-muted"></i></a>
-                            <a href="/booking/${b._id}/manage-sessions" title="الحصص" class="btn btn-light btn-sm p-1"><i class="fa fa-layer-group text-muted"></i></a>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-800"
+                             style="width:36px;height:36px;background:#fff0ed;color:#FE5D37;font-size:0.85rem;">
+                            ${(b.studentId?.name || '؟')[0]}
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size:0.85rem;">${b.studentId?.name || '---'}</div>
+                            <div class="text-primary" style="font-size:0.7rem;">المعلم: ${b.teacherId?.name || 'غير محدد'}</div>
                         </div>
                     </div>
                 </td>
+                <td class="px-3 py-3">
+                    <div class="fw-bold text-dark" style="font-size:0.85rem;">${b.courseId?.title || '---'}</div>
+                    <div class="text-muted" style="font-size:0.7rem;">${b.selectedPriceOption || ''} دقيقة &bull; ${b.numberOfSessionsPerMonth || ''} حصة</div>
+                </td>
+                <td class="px-3 py-3 text-center">
+                    <div class="small fw-bold text-dark">${b.startDate ? new Date(b.startDate).toLocaleDateString('ar-EG') : 'لم يبدأ'}</div>
+                    ${getBadge(daysLeft)}
+                </td>
+                <td class="px-3 py-3 text-center">
+                    <span class="badge ${st.badge} rounded-pill px-3 py-2" style="font-size:0.72rem;">${st.t}</span>
+                    ${(isCritical || (daysLeft !== null && daysLeft <= 0)) ? `
+                        <div class="mt-1">
+                            <span class="badge bg-danger bg-opacity-10 text-danger" style="font-size:0.65rem;"><i class="fas fa-exclamation-circle me-1"></i>يحتاج تجديد</span>
+                        </div>` : ''}
+                </td>
             </tr>
         `;
+    }
+
+    function goToDetails(id, event) {
+        // Allow links inside row to work normally
+        if (event.target.closest('a, button')) return;
+        window.location.href = `/booking/${id}/details`;
     }
 
     function getBadge(days) {
@@ -356,7 +346,7 @@
             if (filter !== 'all') return match && b.status === filter;
             return match;
         });
-        document.getElementById('bookingsTableBody').innerHTML = filtered.length ? filtered.map(buildRow).join('') : '<tr><td colspan="6" class="p-10 text-center text-gray-400">لا توجد نتائج مطابقة</td></tr>';
+        document.getElementById('bookingsTableBody').innerHTML = filtered.length ? filtered.map(buildRow).join('') : '<tr><td colspan="4" class="py-5 text-center text-muted"><i class="fas fa-inbox fa-2x mb-2 d-block opacity-25"></i> لا توجد نتائج مطابقة</td></tr>';
     }
 
     function filterByCard(s) { document.getElementById('statusFilter').value = s; renderTable(); }

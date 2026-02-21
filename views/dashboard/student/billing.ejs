@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>منصة انطلق - إدارة الرصيد والدفع</title>
+    <title><%= settings.academyName %> - إدارة الرصيد والدفع</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     
     <!-- Favicon -->
@@ -244,9 +244,12 @@
                                     <i class="fa fa-sync"></i>
                                 </div>
                                 <div>
-                                    <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.1rem;"><%= new Date(activePlan.renewalDate).toLocaleDateString('ar-EG') %></h3>
+                                    <h3 class="mb-0 fw-900 outfit-font lh-1" style="font-size: 1.1rem;">
+                                     <%= new Date(activePlan.renewalDate).toLocaleDateString('ar-EG') %>
+                                    </h3>
                                     <small class="text-muted fw-bold" style="font-size: 0.7rem;">تاريخ التجديد</small>
                                 </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -320,7 +323,7 @@
         </div>
 
         <footer class="mt-5 py-4 text-center text-muted border-top">
-            <small>&copy; منصة كيدر التعليمية 2024 - جميع الحقوق محفوظة</small>
+            <small>&copy; منصة انطلق التعليمية 2024 - جميع الحقوق محفوظة</small>
         </footer>
     </div>
 

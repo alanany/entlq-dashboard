@@ -168,8 +168,39 @@
                             <input type="text" name="academyPhone" value="<%= settings.academyPhone %>" class="form-control form-control-custom" dir="ltr">
                         </div>
                         <div class="col-md-6 text-end">
-                            <label class="form-label-custom">العملة المفترضة</label>
-                            <input type="text" name="currency" value="<%= settings.currency %>" class="form-control form-control-custom" placeholder="مثال: ر.س">
+                            <label class="form-label-custom"><i class="fas fa-coins me-1 text-primary"></i> عملة المنصة</label>
+                            <select name="currencyCode" id="currencyCodeSelect" class="form-select form-control-custom text-end" onchange="onCurrencyChange(this)">
+                                <% const currencies = [
+                                    { code: 'SAR', symbol: 'ر.س', name: 'ريال سعودي', position: 'after'  },
+                                    { code: 'EGP', symbol: 'ج.م', name: 'جنيه مصري', position: 'after'  },
+                                    { code: 'USD', symbol: '$',    name: 'دولار أمريكي', position: 'before' },
+                                    { code: 'EUR', symbol: '€',    name: 'يورو',             position: 'before' },
+                                    { code: 'GBP', symbol: '£',    name: 'جنيه إسترليني', position: 'before' },
+                                    { code: 'AED', symbol: 'د.إ', name: 'درهم إماراتي', position: 'after'  },
+                                    { code: 'KWD', symbol: 'د.ك', name: 'دينار كويتي', position: 'after'  },
+                                    { code: 'QAR', symbol: 'ر.ق', name: 'ريال قطري',  position: 'after'  },
+                                    { code: 'BHD', symbol: 'د.ب', name: 'دينار بحريني', position: 'after'  },
+                                    { code: 'OMR', symbol: 'ر.ع', name: 'ريال عُماني',  position: 'after'  },
+                                    { code: 'JOD', symbol: 'د.أ', name: 'دينار أردني', position: 'after'  },
+                                    { code: 'MAD', symbol: 'د.م', name: 'درهم مغربي', position: 'after'  },
+                                    { code: 'TRY', symbol: '₺',    name: 'ليرة تركية',  position: 'before' },
+                                ]; %>
+                                <% currencies.forEach(c => { %>
+                                    <option value="<%= c.code %>"
+                                            data-symbol="<%= c.symbol %>"
+                                            data-position="<%= c.position %>"
+                                            <%= (settings.currencyCode || 'SAR') === c.code ? 'selected' : '' %>>
+                                        <%= c.symbol %> &nbsp;&mdash;&nbsp; <%= c.name %> (<%= c.code %>)
+                                    </option>
+                                <% }) %>
+                            </select>
+                            <!-- Preview -->
+                            <small class="text-muted mt-1 d-block" id="currencyPreview">
+                                معاينة: <span class="fw-bold text-primary" id="previewText"></span>
+                            </small>
+                            <!-- hidden inputs -->
+                            <input type="hidden" name="currencySymbol" id="currencySymbol" value="<%= settings.currencySymbol || 'ر.س' %>">
+                            <input type="hidden" name="currencyPosition" id="currencyPosition" value="<%= settings.currencyPosition || 'after' %>">
                         </div>
 
                         <!-- General Settings -->
@@ -263,6 +294,24 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // ====== دالة تحديث العملة عند التغيير ======
+        function onCurrencyChange(select) {
+            const opt = select.options[select.selectedIndex];
+            const symbol   = opt.dataset.symbol;
+            const position = opt.dataset.position;
+            document.getElementById('currencySymbol').value   = symbol;
+            document.getElementById('currencyPosition').value = position;
+            // معاينة
+            const sample = position === 'before' ? `${symbol}١٢٣٠` : `١٢٣٠ ${symbol}`;
+            document.getElementById('previewText').textContent = sample;
+        }
+
+        // تشغيل المعاينة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            const sel = document.getElementById('currencyCodeSelect');
+            if (sel) onCurrencyChange(sel);
+        });
+
         async function handleSettingsUpdate(event) {
             event.preventDefault();
             const form = event.target;
@@ -271,7 +320,11 @@
                 academyName: formData.get('academyName'),
                 academyEmail: formData.get('academyEmail'),
                 academyPhone: formData.get('academyPhone'),
-                currency: formData.get('currency'),
+                currencyCode: formData.get('currencyCode'),
+                currencySymbol: formData.get('currencySymbol'),
+                currencyPosition: formData.get('currencyPosition'),
+                // للتوافق الرجعي
+                currency: formData.get('currencySymbol'),
                 address: formData.get('address'),
                 taxPercentage: formData.get('taxPercentage'),
                 registrationStatus: formData.get('registrationStatus') === 'true',

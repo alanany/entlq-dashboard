@@ -147,5 +147,5 @@ module.exports.logout_get = (req, res) => {
 }
 module.exports.student_logout_get = (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 });
-  res.redirect('/home');
+  res.redirect('/landing');
 }

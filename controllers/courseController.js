@@ -23,10 +23,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const getAdminDashboard = async (req, res) => {
-    console.log("admin dashboard at courseController");
-    const stats = await getDashboardStats(req.user.academyId);
-    console.log(stats,'stats'); 
-    // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
+    const academyId = (req.user.academyId?._id || req.user.academyId)?.toString();
+    const stats = await getDashboardStats(academyId);
+
     res.render('dashboard/index', { 
         title: 'لوحة تحكم الأدمن',
         stats: stats,
@@ -47,7 +46,7 @@ const getAllCourses = async (req, res) => {
     });    
 }
 const getAddCourse = async (req, res) => {
-     const categories = await Category.find({})
+     const categories = await Category.find({ academyId: req.user.academyId })
                                          .select('name _id') // نختار الاسم والمعرّف فقط
                                          .lean();
     // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
@@ -139,7 +138,7 @@ const updateCoursePost = async (req, res) => {
         const courseId = req.params.id;
         
         // فك تشفير البيانات المرسلة كـ Strings
-        let { title, description, level, category, pricingOptions, curriculum } = req.body;
+        let { title, description, level, category, pricingOptions, curriculum, isPublished } = req.body;
         if (pricingOptions) pricingOptions = JSON.parse(pricingOptions);
         if (curriculum) curriculum = JSON.parse(curriculum);
 
@@ -152,6 +151,11 @@ const updateCoursePost = async (req, res) => {
             pricingOptions,
             curriculum
         };
+
+        // حالة النشر
+        if (isPublished !== undefined) {
+            updatedData.isPublished = isPublished === 'true';
+        }
 
         // إذا تم رفع صورة جديدة
         if (req.file) {
@@ -207,21 +211,22 @@ const deleteCourse = async (req, res) => {
 
 const home_website_get = async(req, res) => {
     try {
-        const sectionsFilter = req.user && req.user.academyId 
-            ? { academyId: req.user.academyId } 
-            : {};
-        // If guest, find latest sections or default
+        const BlogPost = require('../models/blogPost');
+        const WebsiteSection = require('../models/WebsiteSection');
+
+        // تحديد الأكاديمية الحالية (عن طريق المستخدم المسجل أو الإعدادات العامة)
+        const academyId = req.user?.academyId?._id || req.user?.academyId || res.locals.settings?.academyId;
+
+        const sectionsFilter = academyId ? { academyId } : {};
         const sections = await WebsiteSection.find(sectionsFilter);
 
-        const blogPostsFilter = req.user && req.user.academyId 
-            ? { isPublished: true, academyId: req.user.academyId } 
+        const blogPostsFilter = academyId 
+            ? { isPublished: true, academyId } 
             : { isPublished: true };
         const blogPosts = await BlogPost.find(blogPostsFilter).sort({ createdAt: -1 }).limit(3);
 
-        const coursesFilter = req.user && req.user.academyId 
-            ? { academyId: req.user.academyId } 
-            : {};
-        const courses = await Course.find(coursesFilter);
+        const coursesFilter = academyId ? { academyId, isPublished: true } : { isPublished: true };
+        const courses = await Course.find(coursesFilter).limit(6);
         
         // Convert sections array to object for easier access in template
         const sectionsMap = {};
@@ -247,9 +252,50 @@ const getLandingPage = (req, res) => {
         user: req.user
     });
 };
+
+
+const getLandingPageForDashboard = (req, res) => {
+   
+    res.render('../views/website/landing', {
+        user: req.user
+    });
+};
 const allCourses_website_get = async(req, res) => {
-  const courses = await Course.find();  console.log(courses);
-  res.render('../views/website/course-list', { title: 'كورسات الموقع', courses: courses});
+    try {
+        const Category = require('../models/category_model.js');
+        
+        // تحديد الأكاديمية الحالية (عن طريق المستخدم المسجل أو الإعدادات العامة)
+        const academyId = req.user?.academyId?._id || req.user?.academyId || res.locals.settings?.academyId;
+        
+        const coursesFilter = academyId 
+            ? { academyId, isPublished: true } 
+            : { isPublished: true };
+            
+        const courses = await Course.find(coursesFilter).populate('category').lean();
+        
+        // جلب الأقسام الموجودة في هذه الأكاديمية فقط
+        const categories = await Category.find({ academyId }).lean();
+        
+        // حساب عدد الكورسات لكل قسم (للفلتر الجانبي)
+        const categoriesWithCount = await Promise.all(categories.map(async (cat) => {
+            const count = await Course.countDocuments({ category: cat._id, academyId, isPublished: true });
+            return { 
+                ...cat, 
+                count: count,
+                slug: cat.slug || cat.name.replace(/\s+/g, '-').toLowerCase() // التأكد من وجود slug
+            };
+        }));
+
+        res.render('../views/website/course-list', { 
+            title: 'كورسات الموقع', 
+            courses: courses,
+            categories: categoriesWithCount,
+            user: req.user
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
 }
  const getCourseDetails = async (req, res) => {
     try {
@@ -258,11 +304,18 @@ const allCourses_website_get = async(req, res) => {
         // 1. البحث عن الكورس في قاعدة البيانات
         // استخدام .lean() لتحسين الأداء عند جلب البيانات للعرض فقط
         const course = await Course.findById(courseId).lean().populate('category');
-const courses=await Course.find().lean().populate('category');
+        
         if (!course) {
             // إذا لم يتم العثور على الكورس
             return res.status(404).render('404', { message: 'عذراً، لم يتم العثور على هذا الكورس.' });
         }
+
+        // جلب الكورسات الشهيرة/المرتبطة من نفس الأكاديمية فقط مع استبعاد الكورس الحالي
+        const courses = await Course.find({ 
+            academyId: course.academyId, 
+            _id: { $ne: courseId },
+            isPublished: true 
+        }).limit(6).lean().populate('category');
 
         // 2. تحضير بعض البيانات الإضافية إذا لزم الأمر
         // (يمكنك هنا إضافة منطق لحساب التقييمات، أو جلب بيانات المعلم)
@@ -292,6 +345,7 @@ const checkout = async (req, res) => {
         selectedPriceOption, 
         studentId,
         totalAmount, 
+        academyId,
         renewFromId // 🟢 ID الاشتراك القديم (إن وجد)
     } = req.body; 
 
@@ -388,6 +442,7 @@ const checkout = async (req, res) => {
             numberOfSessionsPerMonth,
             selectedPriceOption,
             studentId,
+            academyId,
             totalAmount,
             ...additionalFields
         });
@@ -498,12 +553,27 @@ const confirmBookingPayment = async (req, res) => {
       status: paymentStatus,
       teacherId,
       teacherHourlyRate: Number(teacherHourlyRate) || 0,
-      adminNotes: adminNotes || ''
+      adminNotes: adminNotes || '',
+      confirmedBy: req.user.name // تسجيل اسم المشرف أو الأدمن الذي قام بالإجراء
     };
+
+    // إضافة صورة التحويل إذا تم رفعها
+    if (req.file) {
+      updateData.paymentScreenshot = `/uploads/${req.file.filename}`;
+    }
 
     // إضافة تاريخ التأكيد فقط عند التأكيد
     if (paymentStatus === 'confirmed') {
       updateData.confirmedAt = new Date();
+    }
+
+    // ✅ التحقق من أن المعلم ينتمي لنفس الأكاديمية
+    const teacher = await User.findOne({ _id: teacherId, role: 'teacher', academyId: req.user.academyId });
+    if (!teacher) {
+        return res.status(400).json({
+            success: false,
+            message: 'المعلم المختار غير تابع لهذه الأكاديمية'
+        });
     }
 
     // ✅ التحديث
@@ -558,12 +628,41 @@ const confirmBookingPayment = async (req, res) => {
 };
 
 
+const getSubscriptionDetails = async (req, res) => {
+    try {
+        const booking = await Subscription.findOne({ _id: req.params.id, academyId: req.user.academyId })
+            .populate('studentId')
+            .populate('courseId')
+            .populate('teacherId');
+            
+        if (!booking) {
+            return res.status(404).render('404'); 
+        }
+
+        res.render('dashboard/subscription_details', { 
+            booking: booking, 
+            user: req.user,
+            title: 'تفاصيل الاشتراك'
+        }); 
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+};
+
 const getManagePayment = async (req, res) => {
     try {
-        const booking = await Subscription.findById(req.params.id)
+        const booking = await Subscription.findOne({ _id: req.params.id, academyId: req.user.academyId })
             .populate('studentId') // تأكد من populate للطالب
             .populate('courseId'); // تأكد من populate للكورس
-           const teachers = await User.find({ role: 'teacher', status: 'active' }); 
+            
+        const teachers = await User.find({ 
+            role: 'teacher', 
+            status: 'active', 
+            academyId: req.user.academyId 
+        }); 
+
         if (!booking) {
             return res.status(404).render('404'); 
         }
@@ -585,10 +684,10 @@ const getManagePayment = async (req, res) => {
 const getScheduleSessions = async (req, res) => {
     try {
         const bookingId = req.params.id;
-        const booking = await Subscription.findById(bookingId)
+        const booking = await Subscription.findOne({ _id: bookingId, academyId: req.user.academyId })
             .populate('studentId') 
             .populate('courseId').populate('teacherId');
-console.log(booking);
+            
         if (!booking) {
             return res.status(404).send('Booking not found.');
         }
@@ -707,7 +806,7 @@ const getManageSessionsLinks = async (req, res) => {
     try {
         const bookingId = req.params.id;
         // 💡 تأكد من جلب بيانات studentId و courseId و sessions
-        const booking = await Subscription.findById(bookingId)
+        const booking = await Subscription.findOne({ _id: bookingId, academyId: req.user.academyId })
             .populate('studentId') 
             .populate('courseId');
 
@@ -776,8 +875,8 @@ const markSessionAsComplete = async (req, res, next) => {
     try {
         const { bookingId, sessionId } = req.params;
 
-        // 1. البحث عن الطلب بناءً على الـ ID
-        const booking = await Subscription.findById(bookingId);
+        // 1. البحث عن الطلب بناءً على الـ ID مع التحقق من الأكاديمية
+        const booking = await Subscription.findOne({ _id: bookingId, academyId: req.user.academyId });
 
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found.' });
@@ -808,7 +907,7 @@ const markSessionAsComplete = async (req, res, next) => {
  const adminReportPage = async(req, res) => {
     try {
         const mongoose = require('mongoose');
-        const academyId = req.user.academyId;
+        const academyId = (req.user.academyId?._id || req.user.academyId)?.toString();
         const academyObjectId = new mongoose.Types.ObjectId(academyId);
 
         // استخراج فلاتر البحث من Query Parameters
@@ -1076,36 +1175,46 @@ const checkConflict = async (req, res) => {
     }
 }
 
-const getDashboardStats=  async (academyId) => {
+const getDashboardStats = async (academyId) => {
     const mongoose = require('mongoose');
-    if (!academyId) {
-        return {
-            summary: { students: 0, teachers: 0, courses: 0, revenue: 0 },
-            popularCourses: [],
-            recentRegistrations: []
-        };
-    }
-
+    
     try {
+        if (!academyId || !mongoose.Types.ObjectId.isValid(academyId)) {
+            return {
+                summary: { students: 0, teachers: 0, courses: 0, revenue: 0 },
+                popularCourses: [],
+                recentRegistrations: []
+            };
+        }
+
         const academyObjectId = new mongoose.Types.ObjectId(academyId);
         const filter = { academyId: academyObjectId };
-        
+        const academyMatch = { academyId: academyObjectId };
+
         const [
             totalStudents,
             totalTeachers,
             activeCourses,
             revenueData,
-            popularCourses,
+            popularCoursesData,
             recentSubscriptions
         ] = await Promise.all([
             User.countDocuments({ role: 'student', ...filter }),
             User.countDocuments({ role: 'teacher', ...filter }),
             Course.countDocuments(filter),
             Subscription.aggregate([
-                { $match: { academyId: academyObjectId, status: 'confirmed' } },
+                { $match: { ...academyMatch, status: 'confirmed' } },
                 { $group: { _id: null, total: { $sum: "$totalAmount" } } }
             ]),
-            Course.find(filter).sort({ studentsCount: -1 }).limit(5), 
+            Subscription.aggregate([
+                { $match: { ...academyMatch, status: 'confirmed' } },
+                { $group: { _id: "$courseId", studentsCount: { $sum: 1 } } },
+                { $sort: { studentsCount: -1 } },
+                { $limit: 5 },
+                { $lookup: { from: 'courses', localField: '_id', foreignField: '_id', as: 'course' } },
+                { $unwind: "$course" },
+                { $project: { _id: 0, title: "$course.title", level: "$course.level", studentsCount: 1 } }
+            ]),
             Subscription.find(filter)
                 .sort({ createdAt: -1 })
                 .limit(6)
@@ -1120,18 +1229,18 @@ const getDashboardStats=  async (academyId) => {
                 courses: activeCourses,
                 revenue: revenueData[0]?.total || 0
             },
-            popularCourses,
-            recentRegistrations: recentSubscriptions
+            popularCourses: popularCoursesData || [],
+            recentRegistrations: recentSubscriptions || []
         };
     } catch (error) {
-        console.log(error);
-    return {
-        summary: { students: 0, teachers: 0, courses: 0, revenue: 0 },
-        popularCourses: [],
-        recentRegistrations: []
-    };
+        console.error("Error in getDashboardStats:", error);
+        return {
+            summary: { students: 0, teachers: 0, courses: 0, revenue: 0 },
+            popularCourses: [],
+            recentRegistrations: []
+        };
     }
-}
+};
 
 
 
@@ -1342,6 +1451,7 @@ const deleteSupervisor = async (req, res) => {
 };
 
 module.exports = {
+    getLandingPageForDashboard,
     getDashboardStats,
     checkConflict,
     adminReportPage,getAdminDashboard,getAdminSubscription,addTeacher,
@@ -1355,6 +1465,7 @@ module.exports = {
     getLandingPage,
     allCourses_website_get,
     getCourseDetails,checkout,confirmBookingPayment,
+    getSubscriptionDetails,
     getScheduleSessions,
     postUpdateSessions,
     getManageSessionsLinks,

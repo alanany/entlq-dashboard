@@ -37,7 +37,8 @@ dashboardRoutes.post('/create-category',requireAuth,checkUser, categoryControlle
 dashboardRoutes.delete('/category/:id',requireAuth,checkUser, categoryController.deleteCategory);
 dashboardRoutes.get('/subscriptions',requireAuth,checkUser, courseController.getAdminSubscription);
 dashboardRoutes.get('/booking/:id/manage-payment',requireAuth,checkUser, courseController.getManagePayment);
-dashboardRoutes.post('/booking/:id/confirm-payment',requireAuth,checkUser, courseController.confirmBookingPayment);
+dashboardRoutes.get('/booking/:id/details',requireAuth,checkUser, courseController.getSubscriptionDetails);
+dashboardRoutes.post('/booking/:id/confirm-payment',requireAuth,checkUser, upload.single('paymentScreenshot'), courseController.confirmBookingPayment);
 // مسار عرض صفحة الجدولة (GET)
 dashboardRoutes.get('/booking/:id/schedule', requireAuth, checkUser, requireAdmin, courseController.getScheduleSessions); 
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
@@ -126,12 +126,12 @@
                         <% if (teacher.hourly_rates && teacher.hourly_rates.length > 0) { %>
                             <% teacher.hourly_rates.forEach(r => { %>
                                 <span class="badge bg-primary text-white rounded-pill px-2 py-1 small">
-                                    <%= r.label %>: <%= r.rate %> ر.س
+                                    <%= r.label %>: <%= r.rate%>  <%= currencySymbol %>
                                 </span>
                             <% }) %>
                         <% } else { %>
                             <span class="badge bg-primary text-white rounded-pill px-3 py-2">
-                                <i class="fas fa-money-bill me-1"></i> سعر الساعة: <%= teacher.hour_rate || 0 %> ر.س
+                                <i class="fas fa-money-bill me-1"></i> سعر الساعة: <%= teacher.hour_rate || 0 %>  <%= currencySymbol %>
                             </span>
                         <% } %>
                     </div>
@@ -171,7 +171,7 @@
                         </div>
                         <div>
                             <p class="small text-white opacity-75 mb-0">المستحقات المعلقة</p>
-                            <h3 class="fw-bold mb-0 text-white outfit-font"><%= stats.totalEarnings %> <small class="fw-normal">ر.س</small></h3>
+                            <h3 class="fw-bold mb-0 text-white outfit-font"><%= formatCurrency(stats.totalEarnings) %></h3>
                         </div>
                     </div>
                 </div>

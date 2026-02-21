@@ -19,7 +19,7 @@
         border-bottom: 1px solid #f1f1f1;
     }
 
-    .nav-link-admin {
+    .nav-link-teacher {
         color: #6c757d;
         padding: 0.75rem 1.25rem;
         border-radius: 0.75rem;
@@ -32,21 +32,21 @@
         text-decoration: none;
     }
 
-    .nav-link-admin i { 
+    .nav-link-teacher i { 
         margin-left: 1rem; 
         font-size: 1rem;
         width: 20px;
         text-align: center;
     }
 
-    .nav-link-admin:hover, .nav-link-admin.active { 
+    .nav-link-teacher:hover, .nav-link-teacher.active { 
         color: var(--primary); 
         background-color: var(--secondary); 
     }
 
-    .nav-link-admin.active { font-weight: 700; }
+    .nav-link-teacher.active { font-weight: 700; }
 
-    .group-label-admin {
+    .group-label-teacher {
         font-size: 0.7rem;
         font-weight: 800;
         color: #adb5bd;
@@ -56,7 +56,7 @@
         padding-right: 1.25rem;
     }
 
-    .admin-profile-footer {
+    .teacher-profile-footer {
         padding: 1.25rem;
         border-top: 1px solid #f1f1f1;
         background: #fafbfc;
@@ -132,55 +132,57 @@
     </button>
     <div class="sidebar-header">
         <h3 class="m-0 text-primary lobster-font" style="font-size: 1.8rem;">
-            <i class="fas fa-user-shield me-2"></i>لوحة المشرف
+            <a href="/landing" class="text-decoration-none text-primary">
+                <i class="fas fa-chalkboard-teacher me-2"></i><%= user.academyId.name%>
+            </a>
         </h3>
-        <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">Supervisor Panel</small>
     </div>
     
     <div class="sidebar-menu">
-        <a href="/supervisor" class="nav-link-admin <%= currentPage === 'home' ? 'active' : '' %>">
+        <a href="/teacher/home" class="nav-link-teacher <%= currentPage === 'home' ? 'active' : '' %>">
             <i class="fas fa-home"></i>
             <span>الرئيسية</span>
         </a>
         
-        <div class="group-label-admin">الإدارة</div>
+        <div class="group-label-teacher">التعليم</div>
         
-        <a href="/supervisor/teachers" class="nav-link-admin <%= currentPage === 'teachers' ? 'active' : '' %>">
-            <i class="fas fa-user-tie"></i>
-            <span>المعلمون</span>
-        </a>
-        
-        <a href="/supervisor/students" class="nav-link-admin <%= currentPage === 'students' ? 'active' : '' %>">
+        <a href="/teacher/students" class="nav-link-teacher <%= currentPage === 'students' ? 'active' : '' %>">
             <i class="fas fa-users"></i>
-            <span>الطلاب</span>
+            <span>طلابي</span>
         </a>
         
-        <a href="/supervisor/sessions" class="nav-link-admin <%= currentPage === 'sessions' ? 'active' : '' %>">
+        <a href="/teacher/schedule" class="nav-link-teacher <%= currentPage === 'schedule' ? 'active' : '' %>">
             <i class="fas fa-calendar-alt"></i>
-            <span>الجلسات القادمة</span>
+            <span>الجدول الدراسي</span>
         </a>
         
-        <a href="/supervisor/messages" class="nav-link-admin <%= currentPage === 'messages' ? 'active' : '' %>">
+        <a href="/teacher/finanical_page" class="nav-link-teacher <%= currentPage === 'financial' ? 'active' : '' %>">
+            <i class="fas fa-wallet"></i>
+            <span>المحفظة المالية</span>
+        </a>
+        
+        <a href="/chat" class="nav-link-teacher <%= currentPage === 'chat' ? 'active' : '' %>">
             <i class="fas fa-comments"></i>
             <span>الرسائل</span>
         </a>
-        
-        <div class="group-label-admin">النظام</div>
-        
-        <a href="/supervisor/settings" class="nav-link-admin <%= currentPage === 'settings' ? 'active' : '' %>">
+
+        <div class="group-label-teacher">الحساب</div>
+
+        <a href="/teacher/settings" class="nav-link-teacher <%= currentPage === 'settings' ? 'active' : '' %>">
             <i class="fas fa-cog"></i>
             <span>الإعدادات</span>
         </a>
         
-    
+       
+    </div>
 
-    <div class="admin-profile-footer">
+    <div class="teacher-profile-footer">
         <div class="d-flex align-items-center gap-3 mb-3">
             <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold outfit-font" style="width: 38px; height: 38px; font-size: 0.9rem;">
                 <%= user.name.charAt(0).toUpperCase() %>
             </div>
             <div class="overflow-hidden">
-                <p class="text-sm fw-bold text-dark mb-0 text-truncate" style="font-size: 0.85rem;"> <%= user.name %> </p>
+                <p class="text-sm fw-bold text-dark mb-0 text-truncate" style="font-size: 0.85rem;"><%= user.name %></p>
                 <p class="text-muted mb-0 text-truncate" style="font-size: 0.7rem;"><%= user.email %></p>
             </div>
         </div>
@@ -230,8 +232,16 @@
             document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
         }
 
-        if (sidebarCollapse) sidebarCollapse.addEventListener('click', toggleSidebar);
-        if (overlay) overlay.addEventListener('click', toggleSidebar);
-        if (closeBtn) closeBtn.addEventListener('click', toggleSidebar);
+        if (sidebarCollapse) {
+            sidebarCollapse.addEventListener('click', toggleSidebar);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', toggleSidebar);
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', toggleSidebar);
+        }
     });
 </script>

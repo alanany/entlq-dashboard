@@ -26,6 +26,9 @@
     <!-- Template Stylesheet -->
     <link href="/css/style.css" rel="stylesheet">
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         :root {
             --primary: #FE5D37;
@@ -261,6 +264,7 @@
             startLoading(addBtn, addSpinner, originalAddButtonText);
 
             try {
+                console.log('Sending request to create category:', categoryName);
                 const response = await fetch('/create-category', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -268,14 +272,20 @@
                 });
 
                 const data = await response.json();
+                console.log('Server response:', data);
 
                 if (!response.ok) throw new Error(data.message || 'فشل في إضافة القسم.');
 
-                appendNewCategoryRow(data.category);
-                showToast(`تم إضافة القسم "${data.category.name}" بنجاح.`, 'success');
-                form.reset();
+                if (data.category) {
+                    appendNewCategoryRow(data.category);
+                    showToast(`تم إضافة القسم "${data.category.name}" بنجاح.`, 'success');
+                    form.reset();
+                } else {
+                    throw new Error('لم يتم استلام بيانات القسم من السيرفر.');
+                }
 
             } catch (error) {
+                console.error('Error adding category:', error);
                 showToast(error.message || 'حدث خطأ أثناء إضافة القسم.', 'error');
             } finally {
                 stopLoading(addBtn, addSpinner, originalAddButtonText);

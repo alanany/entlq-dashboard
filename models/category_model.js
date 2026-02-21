@@ -5,12 +5,10 @@ const CategorySchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'اسم القسم مطلوب'],
-        unique: true,
         trim: true
     },
     slug: { // يمكن استخدامه لعناوين URL النظيفة
         type: String,
-        unique: true,
         lowercase: true
     },
     // يمكن إضافة حقول أخرى مثل creator أو dateCreated
@@ -20,6 +18,10 @@ const CategorySchema = new mongoose.Schema({
         required: true
     }
 });
+
+// إضافة فهارس فريدة لكل أكاديمية
+CategorySchema.index({ name: 1, academyId: 1 }, { unique: true });
+CategorySchema.index({ slug: 1, academyId: 1 }, { unique: true });
 
 // 💡 يمكنك إضافة منطق لإنشاء الـ slug قبل الحفظ
 CategorySchema.pre('save', function(next) {

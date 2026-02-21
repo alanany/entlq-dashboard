@@ -132,6 +132,7 @@ const supervisorStudents = async (req, res) => {
                 };
             }
             studentMap[sid].subscriptions.push({
+                id: sub._id, // إضافة معرّف الاشتراك
                 courseTitle: sub.courseId ? sub.courseId.title : 'غير معروف',
                 teacherName: sub.teacherId ? sub.teacherId.name : 'غير محدد',
                 status: sub.status,

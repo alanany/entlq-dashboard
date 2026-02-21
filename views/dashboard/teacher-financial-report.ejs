@@ -167,10 +167,10 @@
                         أسعار الساعة: 
                         <% if (teacher.hourly_rates && teacher.hourly_rates.length > 0) { %>
                             <% teacher.hourly_rates.forEach((r, idx) => { %>
-                                <span class="fw-bold text-primary"><%= r.label %>: <%= r.rate %> ر.س</span><%= idx < teacher.hourly_rates.length - 1 ? ' | ' : '' %>
+                                <span class="fw-bold text-primary"><%= r.label %>: <%= formatCurrency(r.rate) %></span><%= idx < teacher.hourly_rates.length - 1 ? ' | ' : '' %>
                             <% }) %>
                         <% } else { %>
-                            <span class="fw-bold text-primary"><%= teacher.hour_rate || 0 %> ر.س</span>
+                            <span class="fw-bold text-primary"><%= formatCurrency(teacher.hour_rate || 0) %></span>
                         <% } %>
                     </p>
                 </div>
@@ -195,7 +195,7 @@
                     <div class="pending-card h-100">
                         <div class="position-relative">
                             <p class="small opacity-75 mb-2 text-uppercase fw-bold" style="letter-spacing: 2px;">إجمالي المبلغ المعلق</p>
-                            <h2 class="display-5 fw-bold mb-0 outfit-font"><%= totalUnpaid %> <small class="fs-6 fw-normal opacity-75">ر.س</small></h2>
+                            <h2 class="display-5 fw-bold mb-0 outfit-font"><%= formatCurrency(totalUnpaid) %></h2>
                             <div class="mt-3 d-flex align-items-center gap-2">
                                 <i class="fas fa-clock opacity-50"></i>
                                 <span class="small opacity-75">في انتظار المراجعة والدفع</span>
@@ -222,7 +222,7 @@
                             </div>
                         </div>
                         
-                        <h3 class="fw-bold text-dark mb-4 outfit-font"><%= stat.total.toFixed(2) %> <small class="text-muted fw-normal fs-6">ر.س</small></h3>
+                        <h3 class="fw-bold text-dark mb-4 outfit-font"><%= formatCurrency(stat.total) %></h3>
                         
                         <button onclick="paySalary('<%= teacher._id %>', '<%= stat.key %>', '<%= stat.total.toFixed(2) %>')" 
                                 class="btn btn-dark w-100 rounded-3 py-2 fw-bold">
@@ -272,7 +272,7 @@
                                     <div class="flex-grow-1">
                                         <span class="fw-bold">شهر <%= monthData.name %></span>
                                         <span class="badge bg-success rounded-pill ms-2">
-                                            تم الدفع: <%= monthData.totalPaidInMonth.toFixed(2) %> ر.س
+                                            تم الدفع: <%= formatCurrency(monthData.totalPaidInMonth) %>
                                         </span>
                                     </div>
                                     <span class="small text-muted me-3">
@@ -300,7 +300,7 @@
                                                 <td class="fw-bold text-dark"><%= s.studentName %></td>
                                                 <td class="text-muted small"><%= s.courseTitle %></td>
                                                 <td class="text-center fw-bold text-success">
-                                                    <%= s.price %> <small class="text-muted">ر.س</small>
+                                                    <%= formatCurrency(s.price) %>
                                                 </td>
                                             </tr>
                                             <% }) %>
@@ -328,7 +328,7 @@
         async function paySalary(teacherId, monthKey, amount) {
             const result = await Swal.fire({
                 title: 'تأكيد عملية الدفع',
-                html: `<p class="mb-2">هل تم تحويل مبلغ <strong class="text-primary">${amount} ر.س</strong> للأستاذ/ة بنجاح؟</p>
+                html: `<p class="mb-2">هل تم تحويل مبلغ <strong class="text-primary">${amount} <%= currencySymbol %></strong> للأستاذ/ة بنجاح؟</p>
                        <p class="small text-muted">سيتم تسجيل هذه العملية وأرشفة الحصص المرتبطة</p>`,
                 icon: 'warning',
                 showCancelButton: true,

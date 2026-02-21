@@ -101,41 +101,41 @@
             box-shadow: 0 0 0 0.25rem rgba(254, 93, 55, 0.1);
         }
 
-        .image-edit-wrapper {
+        .image-upload-wrapper {
             position: relative;
             border: 2px dashed #eef0f2;
             border-radius: 1.5rem;
-            padding: 1rem;
+            padding: 2rem;
             text-align: center;
             transition: all 0.3s;
             cursor: pointer;
+            overflow: hidden;
             background: #f8fafc;
         }
 
-        .image-edit-wrapper:hover {
+        .image-upload-wrapper:hover {
             border-color: var(--primary);
             background: #fffcfb;
         }
 
         .img-preview {
             width: 100%;
-            height: 180px;
+            height: 200px;
             object-fit: cover;
             border-radius: 1rem;
-            margin-bottom: 1rem;
         }
 
         .section-item {
             background: #fafbfc;
             border-radius: 1.25rem;
             padding: 1.25rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             border: 1px solid #f1f1f1;
         }
 
         .lesson-item {
             background: #fff;
-            border-radius: 0.85rem;
+            border-radius: 0.75rem;
             padding: 0.75rem 1rem;
             margin-bottom: 0.5rem;
             border: 1px solid #f1f1f1;
@@ -154,6 +154,11 @@
         }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .input-group-text {
+            border: 1px solid #eef0f2;
+            background: #f8fafc;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -175,9 +180,7 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
-                    <button onclick="history.back()" class="btn btn-light rounded-circle p-2 text-muted" title="رجوع">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
+                    <button onclick="history.back()" class="btn btn-light rounded-pill px-3 py-2 text-muted small fw-bold d-none d-sm-block">رجوع</button>
                     <button id="updateBtn" type="submit" form="courseForm" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2">
                         <span>تحديث البيانات</span>
                         <div id="spinner" class="spinner d-none"></div>
@@ -198,16 +201,54 @@
                         <!-- Basic Info -->
                         <div class="card-custom">
                             <h5 class="fw-900 text-dark mb-4 d-flex align-items-center">
-                                <i class="fas fa-edit text-primary me-2 ms-1"></i> المعلومات الأساسية
+                                <i class="fas fa-info-circle text-primary me-2 ms-2"></i> المعلومات الأساسية
                             </h5>
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label-custom">عنوان الدورة</label>
-                                    <input type="text" id="title" required class="form-control" value="<%= course.title %>">
+                                    <input type="text" id="title" name="title" required class="form-control" 
+                                           value="<%= course.title %>" placeholder="مثال: تعلم التصميم الجرافيكي من الصفر">
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label-custom">الوصف</label>
-                                    <textarea id="description" rows="5" required class="form-control"><%= course.description %></textarea>
+                                    <label class="form-label-custom">وصف الدورة</label>
+                                    <textarea id="description" name="description" rows="5" required class="form-control" 
+                                              placeholder="اكتب نبذة مختصرة تجذب الطلاب..."><%= course.description %></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pricing -->
+                        <div class="card-custom">
+                            <h5 class="fw-900 text-dark mb-4 d-flex align-items-center">
+                                <i class="fas fa-tags text-primary me-2 ms-2"></i> تفاصيل التسعير (SAR)
+                            </h5>
+                            <div class="alert alert-primary bg-primary bg-opacity-10 border-0 rounded-4 p-3 mb-4">
+                                <p class="small mb-0 text-primary fw-bold"><i class="fas fa-lightbulb me-2"></i> حدد سعر الحصة الواحدة لكل مدة زمنية:</p>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label-custom">30 دقيقة</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0 rounded-start-4"><i class="fas fa-clock text-muted"></i></span>
+                                        <input type="number" id="price30" name="price30min" required min="0" class="form-control border-start-0 rounded-end-4" 
+                                               value="<%= course.pricingOptions && course.pricingOptions[0] ? course.pricingOptions[0].price : '' %>">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-custom">40 دقيقة</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0 rounded-start-4"><i class="fas fa-clock text-muted"></i></span>
+                                        <input type="number" id="price40" name="price40min" required min="0" class="form-control border-start-0 rounded-end-4" 
+                                               value="<%= course.pricingOptions && course.pricingOptions[1] ? course.pricingOptions[1].price : '' %>">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-custom">60 دقيقة</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0 rounded-start-4"><i class="fas fa-clock text-muted"></i></span>
+                                        <input type="number" id="price60" name="price60min" required min="0" class="form-control border-start-0 rounded-end-4" 
+                                               value="<%= course.pricingOptions && course.pricingOptions[2] ? course.pricingOptions[2].price : '' %>">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -216,7 +257,7 @@
                         <div class="card-custom">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h5 class="fw-900 text-dark mb-0 d-flex align-items-center">
-                                    <i class="fas fa-list-ul text-primary me-2 ms-1"></i> المنهج الدراسي
+                                    <i class="fas fa-layer-group text-primary me-2 ms-2"></i> المنهج الدراسي
                                 </h5>
                                 <button type="button" onclick="addSection()" class="btn btn-outline-primary btn-sm rounded-pill fw-bold">
                                     <i class="fas fa-plus-circle me-1"></i> إضافة قسم
@@ -228,21 +269,21 @@
                                         <div class="section-item animate__animated animate__fadeIn">
                                             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-light">
                                                 <div class="d-flex align-items-center flex-grow-1">
-                                                    <i class="fas fa-folder text-primary me-2 ms-1"></i>
+                                                    <i class="fas fa-folder text-primary me-2 ms-2"></i>
                                                     <input type="text" placeholder="عنوان القسم" class="fw-bold text-dark bg-transparent border-0 outline-none flex-grow-1" value="<%= section.title %>">
                                                 </div>
-                                                <button type="button" onclick="this.closest('.section-item').remove()" class="btn btn-light btn-sm rounded-circle p-1 text-danger">
+                                                <button type="button" onclick="removeElement(this)" class="btn btn-light btn-sm rounded-circle p-1 text-danger">
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </div>
-                                            <div class="lessons-container ps-4 border-start border-2 border-primary border-opacity-25">
+                                            <div class="lessons-container ps-4 border-start border-2 border-light">
                                                 <% section.lessons.forEach((lesson) => { %>
-                                                    <div class="lesson-item">
+                                                    <div class="lesson-item animate__animated animate__fadeIn">
                                                         <div class="d-flex align-items-center flex-grow-1">
-                                                            <i class="fas fa-file-alt text-muted me-2 ms-1 small"></i>
+                                                            <i class="fas fa-file-alt text-muted me-2 ms-2 small"></i>
                                                             <input type="text" class="text-dark small bg-transparent border-0 outline-none flex-grow-1" value="<%= lesson.title %>">
                                                         </div>
-                                                        <button type="button" onclick="this.parentElement.remove()" class="btn btn-link btn-sm text-danger p-0">
+                                                        <button type="button" onclick="removeElement(this)" class="btn btn-link btn-sm text-danger p-0">
                                                             <i class="fas fa-trash-alt small"></i>
                                                         </button>
                                                     </div>
@@ -260,38 +301,68 @@
 
                     <div class="col-lg-4 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
                         <!-- Cover Image -->
-                        <div class="card-custom text-center">
+                        <div class="card-custom">
                             <h6 class="fw-bold text-dark mb-3">صورة الغلاف</h6>
-                            <div class="image-edit-wrapper group">
+                            <div class="image-upload-wrapper" id="imagePreviewContainer">
                                 <% if (course.coverImage) { %>
                                     <img id="previewImg" src="<%= getImageUrl(course.coverImage) %>" class="img-preview">
+                                    <div id="uploadPlaceholder" class="d-none mt-2">
                                 <% } else { %>
-                                    <div id="placeholder" class="py-5"><i class="fas fa-image fs-1 text-light mb-2"></i></div>
+                                    <div id="uploadPlaceholder">
+                                        <i class="fas fa-cloud-upload-alt fs-1 text-primary mb-3"></i>
+                                        <p class="small text-muted mb-0 fw-bold">اسحب الصورة هنا أو اضغط للرفع</p>
                                 <% } %>
-                                <div class="p-2">
-                                    <span class="btn btn-light btn-sm rounded-pill fw-bold text-primary w-100">
-                                        <i class="fas fa-camera me-1"></i> تغيير الصورة
-                                    </span>
-                                </div>
-                                <input type="file" id="coverImage" accept="image/*" onchange="previewFile()" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer">
+                                    </div>
+                                <input type="file" id="coverImage" name="coverImage" accept="image/*" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer">
+                            </div>
+                            <% if (course.coverImage) { %>
+                            <p class="text-muted small text-center mt-2 mb-0"><i class="fas fa-camera me-1"></i> انقر لتغيير الصورة</p>
+                            <% } %>
+                        </div>
+
+                        <!-- Category & Level -->
+                        <div class="card-custom">
+                            <h6 class="fw-bold text-dark mb-3">التصنيف والمستوى</h6>
+                            <div class="mb-4">
+                                <label class="form-label-custom">المستوى التعليمي</label>
+                                <select id="level" name="level" required class="form-select">
+                                    <option value="beginner" <%= course.level === 'beginner' ? 'selected' : '' %>>مبتدئ (Beginner)</option>
+                                    <option value="intermediate" <%= course.level === 'intermediate' ? 'selected' : '' %>>متوسط (Intermediate)</option>
+                                    <option value="advanced" <%= course.level === 'advanced' ? 'selected' : '' %>>متقدم (Advanced)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label-custom">القسم الرئيسي</label>
+                                <select id="category" name="category" required class="form-select">
+                                    <option value="" disabled>-- اختر قسماً --</option>
+                                    <% if (locals.categories && categories.length > 0) { %>
+                                        <% categories.forEach(cat => { %>
+                                            <option value="<%= cat._id %>" <%= course.category && course.category.toString() === cat._id.toString() ? 'selected' : '' %>>
+                                                <%= cat.name %>
+                                            </option>
+                                        <% }); %>
+                                    <% } %>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Pricing -->
+                        <!-- Status -->
                         <div class="card-custom">
-                            <h6 class="fw-bold text-dark mb-4">خيارات التسعير (SAR)</h6>
-                            <div class="space-y-4">
-                                <div class="mb-3">
-                                    <label class="form-label-custom small">30 دقيقة</label>
-                                    <input type="number" id="price30" class="form-control" value="<%= course.pricingOptions[0]?.price %>">
+                            <h6 class="fw-bold text-dark mb-3">حالة النشر</h6>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="isPublished" id="statusPublished" value="true" 
+                                           <%= course.isPublished ? 'checked' : '' %>>
+                                    <label class="form-check-label fw-bold text-success" for="statusPublished">
+                                        <i class="fas fa-eye me-1"></i> منشور
+                                    </label>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label-custom small">40 دقيقة</label>
-                                    <input type="number" id="price40" class="form-control" value="<%= course.pricingOptions[1]?.price %>">
-                                </div>
-                                <div class="mb-0">
-                                    <label class="form-label-custom small">60 دقيقة</label>
-                                    <input type="number" id="price60" class="form-control" value="<%= course.pricingOptions[2]?.price %>">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="isPublished" id="statusDraft" value="false"
+                                           <%= !course.isPublished ? 'checked' : '' %>>
+                                    <label class="form-check-label fw-bold text-muted" for="statusDraft">
+                                        <i class="fas fa-eye-slash me-1"></i> مسودة
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -305,40 +376,81 @@
         </footer>
     </div>
 
+    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-4" style="z-index: 1060;"></div>
+
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        function previewFile() {
-            const preview = document.getElementById('previewImg') || document.createElement('img');
-            const file = document.getElementById('coverImage').files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                preview.src = reader.result;
-                preview.className = "img-preview";
-                if(!document.getElementById('previewImg')) {
-                    const placeholder = document.getElementById('placeholder');
-                    if(placeholder) placeholder.replaceWith(preview);
-                    preview.id = "previewImg";
-                }
+        // معاينة الصورة
+        document.getElementById('coverImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const container = document.getElementById('imagePreviewContainer');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const placeholder = document.getElementById('uploadPlaceholder');
+                    if (placeholder) placeholder.classList.add('d-none');
+                    let preview = document.getElementById('previewImg');
+                    if (!preview) {
+                        preview = document.createElement('img');
+                        preview.id = 'previewImg';
+                        preview.className = 'img-preview';
+                        container.insertBefore(preview, container.querySelector('input'));
+                    }
+                    preview.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
             }
-            if (file) reader.readAsDataURL(file);
+        });
+
+        let sectionCounter = <%= course.curriculum ? course.curriculum.length : 0 %>;
+        const updateBtn = document.getElementById("updateBtn");
+        const spinner = document.getElementById("spinner");
+
+        function startLoading() {
+            updateBtn.disabled = true;
+            spinner.classList.remove('d-none');
+            updateBtn.querySelector('span').innerText = 'جاري التحديث...';
+        }
+
+        function stopLoading() {
+            updateBtn.disabled = false;
+            spinner.classList.add('d-none');
+            updateBtn.querySelector('span').innerText = 'تحديث البيانات';
+        }
+
+        function showToast(message, type = 'primary') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'primary'} shadow-lg border-0 rounded-4 animate__animated animate__fadeInUp mb-2 d-flex align-items-center gap-3`;
+            toast.style.minWidth = "250px";
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} fs-5"></i>
+                <span class="fw-bold small">${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.replace('animate__fadeInUp', 'animate__fadeOutDown');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
         }
 
         function addSection() {
+            sectionCounter++;
             const html = `
                 <div class="section-item animate__animated animate__fadeIn">
                     <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-light">
                         <div class="d-flex align-items-center flex-grow-1">
-                            <i class="fas fa-folder text-primary me-2 ms-1"></i>
-                            <input type="text" placeholder="عنوان القسم الجديد" class="fw-bold text-dark bg-transparent border-0 outline-none flex-grow-1">
+                            <i class="fas fa-folder text-primary me-2 ms-2"></i>
+                            <input type="text" placeholder="عنوان القسم ${sectionCounter}" class="fw-bold text-dark bg-transparent border-0 outline-none flex-grow-1" value="القسم ${sectionCounter}:">
                         </div>
-                        <button type="button" onclick="this.closest('.section-item').remove()" class="btn btn-light btn-sm rounded-circle p-1 text-danger">
+                        <button type="button" onclick="removeElement(this)" class="btn btn-light btn-sm rounded-circle p-1 text-danger">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    <div class="lessons-container ps-4 border-start border-2 border-primary border-opacity-25">
+                    <div class="lessons-container ps-4 border-start border-2 border-light">
                         <button type="button" onclick="addLesson(this)" class="btn btn-light btn-sm rounded-pill w-100 py-2 mt-2 fw-bold text-muted border-dashed border-2">
                             <i class="fas fa-plus-circle me-1 small"></i> إضافة درس
                         </button>
@@ -348,45 +460,48 @@
         }
 
         function addLesson(btn) {
-            const html = `
+            const template = `
                 <div class="lesson-item animate__animated animate__slideInLeft">
                     <div class="d-flex align-items-center flex-grow-1">
-                        <i class="fas fa-file-alt text-muted me-2 ms-1 small"></i>
+                        <i class="fas fa-file-alt text-muted me-2 ms-2 small"></i>
                         <input type="text" placeholder="عنوان الدرس" class="text-dark small bg-transparent border-0 outline-none flex-grow-1">
                     </div>
-                    <button type="button" onclick="this.parentElement.remove()" class="btn btn-link btn-sm text-danger p-0">
+                    <button type="button" onclick="removeElement(this)" class="btn btn-link btn-sm text-danger p-0">
                         <i class="fas fa-trash-alt small"></i>
                     </button>
                 </div>`;
-            btn.insertAdjacentHTML('beforebegin', html);
+            btn.insertAdjacentHTML('beforebegin', template);
+        }
+
+        function removeElement(btn) {
+            (btn.closest('.section-item') || btn.closest('.lesson-item')).remove();
         }
 
         async function handleSubmit(e) {
             e.preventDefault();
-            const btn = document.getElementById('updateBtn');
-            const spinner = document.getElementById('spinner');
-            btn.disabled = true; spinner.classList.remove('d-none');
-            const btnSpan = btn.querySelector('span');
-            btnSpan.innerText = 'جاري التحديث...';
+            startLoading();
 
             const formData = new FormData();
             formData.append('title', document.getElementById('title').value);
             formData.append('description', document.getElementById('description').value);
-            formData.append('level', '<%= course.level %>');
-            formData.append('category', '<%= course.category %>');
+            formData.append('level', document.getElementById('level').value);
+            formData.append('category', document.getElementById('category').value);
+
+            const isPublished = document.querySelector('input[name="isPublished"]:checked');
+            if (isPublished) formData.append('isPublished', isPublished.value);
 
             const pricing = [
-                { duration: 30, price: document.getElementById('price30').value },
-                { duration: 40, price: document.getElementById('price40').value },
-                { duration: 60, price: document.getElementById('price60').value }
+                { duration: 30, price: parseFloat(document.getElementById('price30').value) || 0 },
+                { duration: 40, price: parseFloat(document.getElementById('price40').value) || 0 },
+                { duration: 60, price: parseFloat(document.getElementById('price60').value) || 0 }
             ];
             formData.append('pricingOptions', JSON.stringify(pricing));
 
             const curriculum = [];
             document.querySelectorAll('.section-item').forEach(sec => {
-                const section = { title: sec.querySelector('input').value, lessons: [] };
+                const section = { title: sec.querySelector('input[type="text"]').value, lessons: [] };
                 sec.querySelectorAll('.lesson-item input').forEach(inp => {
-                    if(inp.value.trim()) section.lessons.push({ title: inp.value.trim() });
+                    if (inp.value.trim()) section.lessons.push({ title: inp.value.trim() });
                 });
                 curriculum.push(section);
             });
@@ -397,19 +512,14 @@
 
             try {
                 const res = await fetch(`/edit-course/<%= course._id %>`, { method: 'POST', body: formData });
-                if (res.ok) {
-                    alert('تم تحديث بيانات الدورة بنجاح!');
-                    window.location.href = '/courses';
-                } else {
-                    const err = await res.json();
-                    alert(err.message || 'فشل التحديث');
-                }
+                const result = await res.json();
+                if (!res.ok) throw result;
+                showToast('تم تحديث بيانات الدورة بنجاح!', 'success');
+                setTimeout(() => location.href = '/courses', 1500);
             } catch (err) {
                 console.error(err);
-                alert('حدث خطأ في الاتصال بالسيرفر');
-            } finally {
-                btn.disabled = false; spinner.classList.add('d-none');
-                btnSpan.innerText = 'تحديث البيانات';
+                stopLoading();
+                showToast(err.message || 'فشل التحديث، حاول مرة أخرى.', 'error');
             }
         }
     </script>

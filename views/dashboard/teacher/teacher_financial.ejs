@@ -1,172 +1,267 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="<%= currentLang %>" dir="<%= dir %>">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المحفظة المالية | <%= teacherName %></title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+    <meta charset="utf-8">
+    <title><%= settings.academyName %> - المحفظة المالية</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&family=Alexandria:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="/css/style.css" rel="stylesheet">
+
     <style>
         :root {
             --primary: #FE5D37;
-            --primary-light: #FFF0ED;
-            --accent: #000B1C;
+            --secondary: #FFF0ED;
+            --light: #F8F9FA;
+            --dark: #000B1C;
         }
 
-        body { 
-            font-family: 'Cairo', sans-serif; 
-            background: #f7f9fc;
-            color: #1F2937;
-            min-height: 100vh;
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f7f9fc;
+            font-size: 0.9rem;
         }
 
+        .lobster-font { font-family: 'Lobster Two', cursive; }
         .outfit-font { font-family: 'Outfit', sans-serif; }
 
-        .glass-card {
-            background: white;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+            transition: all 0.3s;
         }
 
-        .gradient-card {
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
+        }
+
+        .top-nav {
+            background: #fff;
+            padding: 1rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .section-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .balance-card {
             background: linear-gradient(135deg, #FE5D37 0%, #FF8a6c 100%);
+            border-radius: 2rem;
+            padding: 2.5rem;
+            color: #fff;
+            box-shadow: 0 1rem 2rem rgba(254, 93, 55, 0.2);
+            position: relative;
+            overflow: hidden;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        .balance-card::after {
+            content: '\f155';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            bottom: -20px;
+            left: -10px;
+            font-size: 8rem;
+            opacity: 0.05;
+            transform: rotate(12deg);
         }
 
-        .slide-up { animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .month-card {
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .month-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+            border-color: rgba(254, 93, 55, 0.3);
+        }
+
+        .table-custom thead th {
+            background-color: #f8f9fa;
+            border-bottom: none;
+            color: #6c757d;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-custom tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.8rem;
+        }
+
+        .btn-kider {
+            background-color: var(--primary);
+            color: #fff;
+            border-radius: 0.75rem;
+            padding: 0.5rem 1.5rem;
+            font-weight: 700;
+            border: none;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .btn-kider:hover { background-color: #e44d2d; transform: translateY(-2px); box-shadow: 0 0.5rem 1rem rgba(254, 93, 55, 0.2); color: #fff; }
     </style>
 </head>
-<body class="p-6 md:p-10 pb-20">
 
-    <div class="max-w-6xl mx-auto space-y-10">
-        
-        <!-- Header Section -->
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 slide-up">
-            <div class="flex items-center gap-5">
-                <button onclick="history.back()" class="flex items-center justify-center w-12 h-12 bg-white rounded-xl text-gray-500 shadow-sm border border-gray-100 hover:bg-[#FE5D37] hover:text-white transition-all transform active:scale-90 group">
-                    <i data-feather="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
-                </button>
-                <div>
-                    <h1 class="text-2xl font-black text-gray-900 tracking-tight">إحصائيات المحفظة</h1>
-                    <p class="text-[10px] text-gray-400 font-bold outfit-font uppercase tracking-widest mt-1">Total Earnings & Financial Overview</p>
+<body>
+    <%- include('./_teacher_sidebar.ejs', { currentPage: 'financial', user: user }) %>
+
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="top-nav px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fas fa-bars fs-5"></i>
+                    </button>
+                    <div>
+                        <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2em;">المحفظة المالية</h4>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Total Earnings & Financial Overview</small>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-none d-md-flex align-items-center gap-2 px-3 py-2 bg-light rounded-pill">
+                        <span class="badge bg-primary rounded-circle p-1" style="width: 8px; height: 8px;"></span>
+                        <span class="text-muted outfit-font fw-bold" style="font-size: 0.7rem;">Rate:</span>
+                        <span class="text-primary outfit-font fw-bold" style="font-size: 0.85rem;"><%= hourlyRate %> <span class="text-muted" style="font-size: 0.6rem;">SAR</span></span>
+                    </div>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-4 bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm">
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-[#FE5D37]"></span>
-                    <span class="text-[10px] font-black text-gray-400 uppercase outfit-font">Rate:</span>
-                </div>
-                <span class="text-md font-black text-[#FE5D37] outfit-font tracking-tighter"><%= hourlyRate %> <span class="text-[10px] font-bold text-gray-300">SAR</span></span>
-            </div>
-        </header>
+        </div>
 
         <!-- Balance Card -->
-        <div class="gradient-card p-10 rounded-[2.5rem] text-white shadow-xl shadow-[#FE5D37]/20 slide-up relative overflow-hidden group" style="animation-delay: 0.1s;">
-            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-10">
-                <div class="text-center md:text-right">
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-full border border-white/10 mb-4">
-                        <i data-feather="clock" class="w-3.5 h-3.5 text-white/80"></i>
-                        <span class="text-[9px] font-black uppercase tracking-widest">المستحقات المعلقة</span>
+        <div class="balance-card mb-4 animate__animated animate__fadeInUp">
+            <div class="row align-items-center">
+                <div class="col-md-8 text-center text-md-end">
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.1);">
+                        <i class="fas fa-clock" style="font-size: 0.7rem;"></i>
+                        <span style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">المستحقات المعلقة</span>
                     </div>
-                    <div class="flex items-baseline justify-center md:justify-start gap-3">
-                        <h2 class="text-6xl font-black outfit-font"><%= totalEarnings %></h2>
-                        <span class="text-xl font-bold opacity-60 outfit-font">SAR</span>
+                    <div class="d-flex align-items-baseline justify-content-center justify-content-md-start gap-2">
+                        <h2 class="mb-0 outfit-font fw-900" style="font-size: 3.5rem;"><%= totalEarnings %></h2>
+                        <span class="outfit-font fw-bold" style="font-size: 1.2rem; opacity: 0.6;">SAR</span>
                     </div>
                 </div>
-                
-                <div class="flex flex-col items-center gap-4">
-                    <button class="bg-white text-[#FE5D37] px-12 py-4 rounded-2xl font-black text-sm shadow-lg hover:bg-[#000B1C] hover:text-white transition-all transform active:scale-95 flex items-center gap-3 group/btn">
-                        <i data-feather="file-text" class="w-5 h-5"></i>
-                        طلب كشف حساب
+                <div class="col-md-4 text-center mt-4 mt-md-0">
+                    <button class="btn bg-white text-primary fw-bold rounded-3 px-4 py-3 shadow" style="font-size: 0.8rem;">
+                        <i class="fas fa-file-alt me-2"></i> طلب كشف حساب
                     </button>
                 </div>
             </div>
-            <i data-feather="dollar-sign" class="absolute -bottom-10 -left-10 w-48 h-48 text-white/5 pointer-events-none rotate-12"></i>
         </div>
 
         <!-- Monthly Cards Grid -->
-        <section class="slide-up" style="animation-delay: 0.2s;">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <% Object.keys(monthlyStats).forEach((key, index) => { %>
-                    <div class="glass-card p-6 rounded-2xl group hover:border-[#FE5D37]/30 transition-all cursor-pointer overflow-hidden relative" onclick="filterByMonth('<%= key %>')">
-                        <div class="flex justify-between items-start mb-6">
-                            <span class="text-[10px] font-black text-gray-400 bg-gray-50 border border-gray-100 px-3 py-1 rounded-full outfit-font tracking-widest"><%= key %></span>
+        <div class="row g-3 mb-4 animate__animated animate__fadeInUp">
+            <% Object.keys(monthlyStats).forEach((key, index) => { %>
+                <div class="col-md-6 col-lg-4">
+                    <div class="month-card" onclick="filterByMonth('<%= key %>')">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-light text-muted rounded-pill px-3 py-1 outfit-font fw-bold" style="font-size: 0.65rem;"><%= key %></span>
                             <% if (monthlyStats[key].isPaid) { %>
-                                <span class="text-emerald-500 text-[9px] font-black bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 italic">مدفوع</span>
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1" style="font-size: 0.6rem;">مدفوع</span>
                             <% } else { %>
-                                <span class="text-amber-500 text-[9px] font-black bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 italic">معلق</span>
+                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-1" style="font-size: 0.6rem;">معلق</span>
                             <% } %>
                         </div>
                         
-                        <div class="relative z-10">
-                            <h4 class="text-sm font-bold text-gray-500 mb-1"><%= monthlyStats[key].name %></h4>
-                            <p class="text-3xl font-black text-gray-900 outfit-font">
-                                <%= monthlyStats[key].total.toFixed(2) %> 
-                                <span class="text-xs font-bold text-gray-300 mr-1 italic">SAR</span>
-                            </p>
-                        </div>
+                        <h6 class="fw-bold text-muted small mb-1"><%= monthlyStats[key].name %></h6>
+                        <p class="fw-900 outfit-font mb-0" style="font-size: 1.5rem;">
+                            <%= monthlyStats[key].total.toFixed(2) %> 
+                            <span class="text-muted" style="font-size: 0.7rem;">SAR</span>
+                        </p>
 
-                        <div class="mt-6 pt-5 border-t border-gray-50 flex justify-between items-center relative z-10">
-                            <span class="text-[10px] font-bold text-gray-400"><%= monthlyStats[key].count %> حصص منجزة</span>
-                            <div class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-300 group-hover:bg-[#FE5D37] group-hover:text-white transition-all">
-                                <i data-feather="chevron-left" class="w-4 h-4"></i>
-                            </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                            <span class="text-muted fw-bold" style="font-size: 0.7rem;"><%= monthlyStats[key].count %> حصص منجزة</span>
+                            <i class="fas fa-chevron-left text-muted small"></i>
                         </div>
                     </div>
-                <% }) %>
-            </div>
-        </section>
-
-        <!-- Detailed List Table -->
-        <section class="glass-card rounded-2xl overflow-hidden slide-up" style="animation-delay: 0.3s;">
-            <div class="p-6 border-b border-gray-50 flex items-center justify-between">
-                <div>
-                    <h3 class="text-lg font-black text-gray-900">سجل الحصص المنفذة</h3>
-                    <p class="text-[10px] text-gray-400 font-bold outfit-font uppercase tracking-widest">Detailed Transaction History</p>
                 </div>
-                <select id="monthSelect" class="bg-gray-50 border-none rounded-xl px-4 py-2 text-xs font-black text-gray-600 outline-none ring-1 ring-gray-100 appearance-none cursor-pointer">
+            <% }) %>
+        </div>
+
+        <!-- Detailed Sessions Table -->
+        <div class="section-card p-0 overflow-hidden animate__animated animate__fadeInUp">
+            <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-0">سجل الحصص المنفذة</h5>
+                    <small class="text-muted outfit-font" style="font-size: 0.65rem;">Detailed Transaction History</small>
+                </div>
+                <select id="monthSelect" class="form-select form-select-sm w-auto border-0 bg-light rounded-pill px-3 fw-bold" style="font-size: 0.75rem;">
                     <option value="all">كل الشهور</option>
                     <% Object.keys(monthlyStats).forEach(key => { %>
                         <option value="<%= key %>"><%= monthlyStats[key].name %></option>
                     <% }) %>
                 </select>
             </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-right">
-                    <thead class="bg-gray-50 text-[10px] font-black text-gray-400 tracking-widest uppercase outfit-font">
+            <div class="table-responsive">
+                <table class="table table-custom mb-0">
+                    <thead>
                         <tr>
-                            <th class="px-8 py-5">Course / Student</th>
-                            <th class="px-8 py-5 text-center">Duration</th>
-                            <th class="px-8 py-5">Date</th>
-                            <th class="px-8 py-5 text-left">Amount</th>
+                            <th class="ps-4">الكورس / الطالب</th>
+                            <th class="text-center">المدة</th>
+                            <th>التاريخ</th>
+                            <th>المبلغ</th>
                         </tr>
                     </thead>
-                    <tbody id="sessionsTable" class="divide-y divide-gray-50">
+                    <tbody id="sessionsTable">
                         <% completedSessions.forEach(session => { %>
-                            <tr class="session-row hover:bg-gray-50/50 transition-colors" data-month="<%= session.monthKey %>">
-                                <td class="px-8 py-5">
-                                    <p class="text-sm font-black text-gray-900 mb-0.5"><%= session.courseTitle %></p>
-                                    <p class="text-[10px] text-[#FE5D37] font-bold">طالب: <%= session.studentName %></p>
+                            <tr class="session-row" data-month="<%= session.monthKey %>">
+                                <td class="ps-4">
+                                    <p class="fw-bold text-dark mb-0 small"><%= session.courseTitle %></p>
+                                    <p class="text-primary mb-0" style="font-size: 0.65rem;">طالب: <%= session.studentName %></p>
                                 </td>
-                                <td class="px-8 py-5 text-center">
-                                    <span class="text-[10px] font-black text-gray-500 bg-gray-100 px-2 py-1 rounded-md outfit-font"><%= session.duration %>m</span>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-muted rounded-pill px-2 py-1 outfit-font fw-bold" style="font-size: 0.65rem;"><%= session.sessionDuration %>m</span>
                                 </td>
-                                <td class="px-8 py-5">
-                                    <p class="text-xs font-bold text-gray-700 outfit-font"><%= new Date(session.date).toLocaleDateString('en-GB') %></p>
+                                <td>
+                                    <span class="outfit-font fw-bold small"><%= new Date(session.date).toLocaleDateString('en-GB') %></span>
                                 </td>
-                                <td class="px-8 py-5 text-left">
-                                    <p class="text-sm font-black text-gray-900 outfit-font">+<%= session.price.toFixed(2) %></p>
+                                <td>
+                                    <span class="fw-bold outfit-font">+<%= session.price %></span>
                                     <% if (session.isPaid) { %>
-                                        <span class="text-[8px] font-black text-emerald-500 uppercase italic">Paid</span>
+                                        <span class="badge bg-success bg-opacity-10 text-white rounded-pill ms-1" style="font-size: 0.55rem;">Paid</span>
                                     <% } else { %>
-                                        <span class="text-[8px] font-black text-gray-300 uppercase italic">Pending</span>
+                                        <span class="badge bg-secondary bg-opacity-10 text-white rounded-pill ms-1" style="font-size: 0.55rem;">Pending</span>
                                     <% } %>
                                 </td>
                             </tr>
@@ -174,19 +269,50 @@
                     </tbody>
                 </table>
             </div>
-        </section>
+        </div>
 
-        <!-- Footer -->
-        <footer class="py-10 text-center text-gray-400">
-            <p class="text-[10px] font-bold uppercase tracking-widest outfit-font opacity-60">
-                &copy; <%= new Date().getFullYear() %> <%= settings.academyName %> &bull; Financial Portal
-            </p>
+        <!-- Payment History -->
+        <% if (paymentHistory && paymentHistory.length > 0) { %>
+        <div class="section-card p-0 overflow-hidden animate__animated animate__fadeInUp">
+            <div class="px-4 py-3 border-bottom">
+                <h5 class="fw-bold mb-0">سجل الحوالات المستلمة</h5>
+                <small class="text-muted outfit-font" style="font-size: 0.65rem;">Payment Transfer History</small>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">التاريخ</th>
+                            <th>المبلغ</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% paymentHistory.forEach(payment => { %>
+                            <tr>
+                                <td class="ps-4 outfit-font fw-bold small"><%= new Date(payment.paymentDate).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' }) %></td>
+                                <td class="fw-bold text-success outfit-font"><%= payment.amount %> SAR</td>
+                                <td>
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1" style="font-size: 0.65rem;">مكتمل</span>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <% } %>
+
+        <footer class="mt-auto py-4 text-center text-muted border-top">
+            <small>&copy; <%= settings.academyName %> <%= new Date().getFullYear() %> - Financial Portal</small>
         </footer>
     </div>
 
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        feather.replace();
-
         function filterByMonth(month) {
             document.getElementById('monthSelect').value = month;
             updateTable(month);

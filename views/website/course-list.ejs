@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title || 'جميع الكورسات المتاحة' %> - انطلق</title>
+    <title><%= title || 'جميع الكورسات المتاحة' %> - <%= t('brand_name') %></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
@@ -25,7 +25,7 @@
     <header class="bg-white border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
             <a href="/" class="text-2xl font-extrabold text-indigo-600">
-                <i data-feather="grid" class="ml-2 w-6 h-6 inline-block"></i> انطلق للكورسات
+                <i data-feather="grid" class="ml-2 w-6 h-6 inline-block"></i> <%= t('brand_name') %> للكورسات
             </a>
             <a href="/student/login" class="text-sm font-semibold text-gray-700 hover:text-indigo-600 transition">
                 تسجيل الدخول
@@ -136,7 +136,7 @@
     
     <footer class="bg-gray-100 text-gray-600 py-6 mt-12">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-sm">&copy; 2025 انطلق. جميع الحقوق محفوظة.</p>
+            <p class="text-sm">&copy; <%= new Date().getFullYear() %> <%= t('brand_name') %>. جميع الحقوق محفوظة.</p>
         </div>
     </footer>
 

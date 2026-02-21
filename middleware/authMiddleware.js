@@ -34,7 +34,7 @@ const checkUser = (req, res, next) => {
                 res.locals.user = null;
                 next();
             } else {
-                let user = await User.findById(decodedToken.id);
+                let user = await User.findById(decodedToken.id).populate('academyId');
                 res.locals.user = user;
                 
                 // جلب إعدادات النظام وتوفيرها عالمياً للأكاديمية الحالية
@@ -42,7 +42,7 @@ const checkUser = (req, res, next) => {
                 if (!settings && user.academyId) {
                     settings = await SystemSettings.create({ 
                         academyId: user.academyId,
-                        academyName: 'أكاديمية التعليم'
+                        academyName: user.academyId.name
                     });
                 }
                 res.locals.settings = settings || {};
@@ -51,11 +51,30 @@ const checkUser = (req, res, next) => {
                 res.locals.getImageUrl = (imagePath, fallback = '/img/classes-1.jpg') => {
                     if (!imagePath || imagePath.trim() === '') return fallback;
                     if (imagePath.startsWith('http')) return imagePath;
-                    // Prepend domain if it's an upload path (useful for local dev or when files are moved)
-                    // The user explicitly requested to use entlqsa.com
-                    const domain = 'https://entlqsa.com';
+                    const protocol = req.protocol;
+                    const host = req.get('host');
+                    const domain = `${protocol}://${host}`;
                     return imagePath.startsWith('/') ? `${domain}${imagePath}` : `${domain}/${imagePath}`;
                 };
+
+                // ====== Helper لتنسيق العملة ======
+                // الاستخدام في EJS: <%= formatCurrency(booking.totalAmount) %>
+                res.locals.formatCurrency = (amount, opts = {}) => {
+                    const s = settings || {};
+                    const symbol   = opts.symbol   || s.currencySymbol  || s.currency || 'ر.س';
+                    const position = opts.position || s.currencyPosition || 'after';
+                    const decimals = opts.decimals !== undefined ? opts.decimals : 0;
+                    const num = Number(amount);
+                    if (isNaN(num)) return `- ${symbol}`;
+                    const formatted = num.toLocaleString('ar-EG', {
+                        minimumFractionDigits: decimals,
+                        maximumFractionDigits: decimals
+                    });
+                    return position === 'before' ? `${symbol}${formatted}` : `${formatted} ${symbol}`;
+                };
+
+                // رمز العملة فقط (للاستخدام السريع في القوالب)
+                res.locals.currencySymbol = settings?.currencySymbol || settings?.currency || 'ر.س';
 
                 console.log(res.locals.user);
                 req.user = res.locals.user;
@@ -75,13 +94,33 @@ const checkUser = (req, res, next) => {
             res.locals.getImageUrl = (imagePath, fallback = '/img/classes-1.jpg') => {
                 if (!imagePath || imagePath.trim() === '') return fallback;
                 if (imagePath.startsWith('http')) return imagePath;
-                const domain = 'https://entlqsa.com';
+                const protocol = req.protocol;
+                const host = req.get('host');
+                const domain = `${protocol}://${host}`;
                 return imagePath.startsWith('/') ? `${domain}${imagePath}` : `${domain}/${imagePath}`;
             };
+
+            // ====== Helper لتنسيق العملة (للزوار غير المسجلين) ======
+            res.locals.formatCurrency = (amount, opts = {}) => {
+                const s = settings || {};
+                const symbol   = opts.symbol   || s.currencySymbol  || s.currency || 'ر.س';
+                const position = opts.position || s.currencyPosition || 'after';
+                const decimals = opts.decimals !== undefined ? opts.decimals : 0;
+                const num = Number(amount);
+                if (isNaN(num)) return `- ${symbol}`;
+                const formatted = num.toLocaleString('ar-EG', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                });
+                return position === 'before' ? `${symbol}${formatted}` : `${formatted} ${symbol}`;
+            };
+            res.locals.currencySymbol = settings?.currencySymbol || settings?.currency || 'ر.س';
 
             next();
         }).catch(err => {
             res.locals.settings = {};
+            res.locals.formatCurrency = (amount) => `${Number(amount) || 0} ر.س`;
+            res.locals.currencySymbol = 'ر.س';
             next();
         });
         return;

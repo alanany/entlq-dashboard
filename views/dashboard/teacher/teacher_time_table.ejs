@@ -42,11 +42,14 @@
         .outfit-font { font-family: 'Outfit', sans-serif; }
 
         .main-content {
-            padding: 2rem;
+            margin-right: 260px;
+            padding: 1.5rem;
             min-height: 100vh;
-            max-width: 1400px;
-            margin: 0 auto;
             transition: all 0.3s;
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content { margin-right: 0; }
         }
 
         /* Tab Buttons */
@@ -189,12 +192,16 @@
     </style>
 </head>
 <body class="bg-light">
+    <%- include('./_teacher_sidebar.ejs', { currentPage: 'schedule', user: user }) %>
 
     <div class="main-content">
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-4 rounded-4 shadow-sm">
             <div class="d-flex align-items-center gap-3">
-                <a href="javascript:history.back()" class="btn btn-light rounded-circle p-2">
+                <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-3" id="sidebarCollapse">
+                    <i class="fas fa-bars fs-5"></i>
+                </button>
+                <a href="javascript:history.back()" class="btn btn-light rounded-circle p-2 d-none d-lg-flex">
                     <i class="fas fa-arrow-right"></i>
                 </a>
                 <div>
@@ -373,7 +380,7 @@
                 });
                 return;
             }
-            window.location.href = `/teacher/session/${el.dataset.bookingId}/${el.dataset.index}`;
+         if(session.report==null)   window.location.href = `/teacher/session/${el.dataset.bookingId}/${el.dataset.index}`;
         }
 
         async function fetchEvents() {

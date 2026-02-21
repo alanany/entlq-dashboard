@@ -1,36 +1,39 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="<%= currentLang %>" dir="<%= dir %>">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>جدول الحصص | <%= teacher.name %></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="utf-8">
+    <title><%= settings.academyName %> - الجدول الأسبوعي</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&family=Alexandria:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
+
     <style>
-        :root {
-            --primary: #FE5D37;
-            --primary-light: #FFF0ED;
-            --accent: #000B1C;
-        }
-
-        body { 
-            font-family: 'Cairo', sans-serif; 
-            background: #f7f9fc;
-            color: #1F2937;
-            min-height: 100vh;
-        }
-
+        :root { --primary: #FE5D37; --secondary: #FFF0ED; --light: #F8F9FA; --dark: #000B1C; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f7f9fc; font-size: 0.9rem; }
+        .lobster-font { font-family: 'Lobster Two', cursive; }
         .outfit-font { font-family: 'Outfit', sans-serif; }
+        .main-content { margin-right: 260px; padding: 1.5rem; min-height: 100vh; transition: all 0.3s; }
+        @media (max-width: 991.98px) { .main-content { margin-right: 0; } }
 
-        .glass-card {
-            background: white;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+        .section-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
         }
 
-        /* FullCalendar Customization */
+        /* FullCalendar Overrides */
         .fc { 
             --fc-border-color: #f1f5f9;
             --fc-button-bg-color: #ffffff;
@@ -44,127 +47,76 @@
             --fc-event-border-color: #FE5D37;
             --fc-today-bg-color: rgba(254, 93, 55, 0.03);
         }
-
-        .fc .fc-toolbar-title {
-            font-size: 1.1rem;
-            font-weight: 900;
-            color: #1e293b;
-        }
-
-        .fc .fc-button {
-            border-radius: 0.75rem;
-            text-transform: capitalize;
-            font-weight: 700;
-            font-size: 0.8rem;
-            padding: 0.5rem 1rem;
-            transition: all 0.2s;
-        }
-
+        .fc .fc-toolbar-title { font-size: 1.1rem; font-weight: 900; color: #1e293b; }
+        .fc .fc-button { border-radius: 0.75rem; text-transform: capitalize; font-weight: 700; font-size: 0.8rem; padding: 0.5rem 1rem; transition: all 0.2s; }
         .fc .fc-button-primary:not(:disabled).fc-button-active, 
-        .fc .fc-button-primary:not(:disabled):active {
-            color: #FE5D37;
-            background-color: #FFF0ED;
-            border-color: #FE5D37;
-        }
-
-        .fc-col-header-cell {
-            padding: 0.75rem 0 !important;
-            background: #f8fafc;
-        }
-
-        .fc-col-header-cell-cushion {
-            font-size: 0.8rem;
-            font-weight: 800;
-            color: #64748b;
-            text-decoration: none !important;
-        }
-
-        .fc-event {
-            padding: 4px 8px !important;
-            border-radius: 0.75rem !important;
-            font-weight: 700;
-            font-size: 0.7rem;
-            border: none !important;
-            transition: all 0.3s;
-        }
-
-        .fc-event:hover {
-            transform: scale(1.02);
-            z-index: 10;
-        }
-
+        .fc .fc-button-primary:not(:disabled):active { color: #FE5D37; background-color: #FFF0ED; border-color: #FE5D37; }
+        .fc-col-header-cell { padding: 0.75rem 0 !important; background: #f8fafc; }
+        .fc-col-header-cell-cushion { font-size: 0.8rem; font-weight: 800; color: #64748b; text-decoration: none !important; }
+        .fc-event { padding: 4px 8px !important; border-radius: 0.75rem !important; font-weight: 700; font-size: 0.7rem; border: none !important; transition: all 0.3s; }
+        .fc-event:hover { transform: scale(1.02); z-index: 10; }
         .fc-timegrid-slot { height: 3.5rem !important; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
     </style>
 </head>
-<body class="p-4 md:p-10">
 
-    <div class="max-w-7xl mx-auto space-y-8">
-        
-        <!-- Header -->
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 fade-in">
-            <div class="flex items-center gap-5">
-                <button onclick="history.back()" class="flex items-center justify-center w-12 h-12 bg-white rounded-xl text-gray-500 shadow-sm border border-gray-100 hover:bg-[#FE5D37] hover:text-white transition-all transform active:scale-90 group">
-                    <i data-feather="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
-                </button>
-                <div>
-                    <h1 class="text-2xl font-black text-gray-900 tracking-tight">الجدول الأسبوعي</h1>
-                    <p class="text-[10px] text-gray-400 font-bold outfit-font uppercase tracking-widest mt-1">Academic Timetable & Sessions</p>
+<body>
+    <%- include('./_teacher_sidebar.ejs', { currentPage: 'schedule', user: user }) %>
+
+    <div class="main-content">
+        <!-- Top Nav -->
+        <div class="px-4 py-3 mb-4 rounded-4 shadow-sm bg-white border border-light animate__animated animate__fadeInDown">
+            <div class="container-fluid d-flex align-items-center justify-content-between p-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary border-0 rounded-3 d-lg-none me-4" id="sidebarCollapse">
+                        <i class="fas fa-bars fs-5"></i>
+                    </button>
+                    <div>
+                        <h4 class="mb-0 text-primary fw-900 lobster-font" style="font-size: 1.2em;">الجدول الأسبوعي</h4>
+                        <small class="text-muted outfit-font fw-600" style="font-size: 0.7rem;">Academic Timetable & Sessions</small>
+                    </div>
+                </div>
+
+                <div class="d-none d-md-flex align-items-center gap-2">
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2" style="font-size: 0.6rem;">
+                        <i class="fas fa-circle me-1" style="font-size: 0.35rem;"></i> Completed
+                    </span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2" style="font-size: 0.6rem;">
+                        <i class="fas fa-circle me-1" style="font-size: 0.35rem;"></i> Upcoming
+                    </span>
+                    <span class="badge bg-secondary bg-opacity-10 text-muted rounded-pill px-3 py-2" style="font-size: 0.6rem;">
+                        <i class="fas fa-circle me-1" style="font-size: 0.35rem;"></i> Cancelled
+                    </span>
                 </div>
             </div>
-            
-            <div class="hidden md:flex items-center gap-2">
-                <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-100 text-[9px] font-black uppercase outfit-font">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    Completed
-                </div>
-                <div class="flex items-center gap-2 px-3 py-1.5 bg-orange-50 text-[#FE5D37] rounded-lg border border-[#FFF0ED] text-[9px] font-black uppercase outfit-font">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#FE5D37]"></span>
-                    Upcoming
-                </div>
-                <div class="flex items-center gap-2 px-3 py-1.5 bg-gray-50 text-gray-400 rounded-lg border border-gray-100 text-[9px] font-black uppercase outfit-font">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                    Cancelled
-                </div>
-            </div>
-        </header>
+        </div>
 
-        <!-- Calendar Container -->
-        <div class="glass-card rounded-[2rem] p-4 md:p-8 fade-in shadow-sm" style="animation-delay: 0.1s;">
-            <div id="calendar" class="min-h-[600px]"></div>
+        <!-- Calendar -->
+        <div class="section-card animate__animated animate__fadeInUp">
+            <div id="calendar" style="min-height: 600px;"></div>
         </div>
 
         <!-- Tip Box -->
-        <div class="bg-[#000B1C] rounded-3xl p-6 text-white flex flex-col md:flex-row items-center justify-between gap-4 fade-in shadow-lg" style="animation-delay: 0.2s;">
-            <div class="flex items-center gap-4 text-center md:text-right">
-                <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
-                    <i data-feather="help-circle" class="w-6 h-6 text-[#FE5D37]"></i>
+        <div class="rounded-4 p-4 text-white d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 mb-4 shadow animate__animated animate__fadeInUp" style="background: var(--dark);">
+            <div class="d-flex align-items-center gap-3 text-center text-md-end">
+                <div class="bg-white bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; border: 1px solid rgba(255,255,255,0.1);">
+                    <i class="fas fa-question-circle text-primary"></i>
                 </div>
                 <div>
-                    <h4 class="text-md font-black leading-tight">إدارة الجدول ⚡</h4>
-                    <p class="text-gray-400 text-xs font-bold mt-1">تتبع مواعيد الحصص المباشرة مع الطلاب بدقة عالية.</p>
+                    <h6 class="fw-bold mb-0">إدارة الجدول ⚡</h6>
+                    <small class="text-muted">تتبع مواعيد الحصص المباشرة مع الطلاب بدقة عالية.</small>
                 </div>
             </div>
-            <button class="px-6 py-3 bg-[#FE5D37] text-white rounded-xl font-black text-xs hover:bg-white hover:text-black transition-all active:scale-95 whitespace-nowrap">طلب مساعدة</button>
+            <button class="btn btn-primary rounded-3 px-4 py-2 fw-bold" style="font-size: 0.8rem; white-space: nowrap;">طلب مساعدة</button>
         </div>
 
-        <!-- Footer -->
-        <footer class="py-8 text-center text-gray-400">
-            <p class="text-[10px] font-bold uppercase tracking-widest outfit-font opacity-60">
-                &copy; <%= new Date().getFullYear() %> <%= settings.academyName %> &bull; Smart Scheduling System
-            </p>
+        <footer class="mt-auto py-4 text-center text-muted border-top">
+            <small>&copy; <%= settings.academyName %> <%= new Date().getFullYear() %></small>
         </footer>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        feather.replace();
-
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -181,11 +133,7 @@
                     center: 'title',
                     right: 'timeGridWeek,timeGridDay'
                 },
-                buttonText: {
-                    today: 'اليوم',
-                    week: 'أسبوع',
-                    day: 'يوم'
-                },
+                buttonText: { today: 'اليوم', week: 'أسبوع', day: 'يوم' },
                 
                 eventSources: [{
                     url: '/teacher/events/<%= teacher._id %>',
@@ -212,7 +160,7 @@
                     const titleEl = info.el.querySelector('.fc-event-title');
                     if(titleEl) {
                         let dot = document.createElement('span');
-                        dot.className = "inline-block w-1.5 h-1.5 rounded-full ml-1.5 shrink-0 bg-current opacity-60";
+                        dot.style.cssText = 'display:inline-block; width:6px; height:6px; border-radius:50%; margin-left:6px; background:currentColor; opacity:0.6;';
                         titleEl.prepend(dot);
                         titleEl.style.display = 'flex';
                         titleEl.style.alignItems = 'center';

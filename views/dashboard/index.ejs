@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="<%= currentLang %>" dir="<%= dir %>">
 
 <head>
@@ -334,7 +334,7 @@
                                     <td class="ps-4 fw-bold"><%= sub.studentId ? sub.studentId.name : 'مستخدم غير معروف' %></td>
                                     <td><%= sub.courseId ? sub.courseId.title : 'كورس محذوف' %></td>
                                     <td class="outfit-font"><%= new Date(sub.createdAt).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' }) %></td>
-                                    <td class="fw-bold text-success"><%= sub.totalAmount %> ر.س</td>
+                                    <td class="fw-bold text-success"><%= formatCurrency(sub.totalAmount) %></td>
                                     <td>
                                         <% if (sub.status === 'confirmed') { %>
                                             <span class="badge rounded-pill bg-success text-white small px-3 py-2">مؤكد</span>

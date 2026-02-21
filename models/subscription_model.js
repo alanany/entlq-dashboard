@@ -73,7 +73,9 @@ const bookingSchema = new mongoose.Schema({
     paymentDetails: {
         transactionId: String,
         method: String
-    }
+    },
+    confirmedBy: { type: String }, // اسم المشرف أو الأدمن الذي قام بالتأكيد
+    paymentScreenshot: { type: String } // مسار صورة التحويل
 }, { timestamps: true });
 const Subscription = mongoose.model('Subscription', bookingSchema);
 module.exports = Subscription;

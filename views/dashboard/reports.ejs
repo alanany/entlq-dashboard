@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
@@ -126,7 +126,7 @@
             <div class="col-md-3">
                 <div class="card-stats bg-primary text-white border-0 shadow-sm" style="background: linear-gradient(135deg, var(--primary), #ff8a6c) !important;">
                     <p class="small opacity-75 mb-1 fw-bold">إجمالي الإيرادات</p>
-                    <h3 class="fw-900 outfit-font mb-3"><%= stats.totalIncome %> ر.س</h3>
+                    <h3 class="fw-900 outfit-font mb-3"><%= formatCurrency(stats.totalIncome) %></h3>
                     <div class=" bg-opacity-20 rounded-pill px-3 py-2 small fw-bold">
                         <i class="fas fa-arrow-up me-1"></i> الاشتراكات المدفوعة
                     </div>
@@ -136,7 +136,7 @@
             <div class="col-md-3">
                 <div class="card-stats shadow-sm border-0">
                     <p class="small text-muted mb-1 fw-bold">إجمالي المصروفات</p>
-                    <h3 class="fw-900 outfit-font text-danger mb-3"><%= stats.totalExpenses %> ر.س</h3>
+                    <h3 class="fw-900 outfit-font text-danger mb-3"><%= formatCurrency(stats.totalExpenses) %></h3>
                     <p class="small text-muted mb-0">رواتب المعلمين المدفوعة</p>
                 </div>
             </div>
@@ -144,7 +144,7 @@
             <div class="col-md-3">
                 <div class="card-stats shadow-sm border-0">
                     <p class="small text-muted mb-1 fw-bold">صافي الأرباح</p>
-                    <h3 class="fw-900 outfit-font text-success mb-3"><%= stats.netProfit %> ر.س</h3>
+                    <h3 class="fw-900 outfit-font text-success mb-3"><%= formatCurrency(stats.netProfit) %></h3>
                     <p class="small text-muted mb-0">الإيرادات - المصروفات</p>
                 </div>
             </div>
@@ -152,7 +152,7 @@
             <div class="col-md-3">
                 <div class="card-stats shadow-sm border-0">
                     <p class="small text-muted mb-1 fw-bold">مستحقات المعلمين (معلقة)</p>
-                    <h3 class="fw-900 outfit-font text-warning mb-3"><%= stats.pendingExpenses %> ر.س</h3>
+                    <h3 class="fw-900 outfit-font text-warning mb-3"><%= formatCurrency(stats.pendingExpenses) %></h3>
                     <a href="/admin/teachers" class="btn btn-light btn-sm rounded-pill px-4 fw-bold text-primary">إدارة المدفوعات</a>
                 </div>
             </div>
@@ -230,7 +230,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-center text-muted"><%= new Date(txn.createdAt).toLocaleDateString('ar-EG') %></td>
                                     <td class="px-4 py-3 fw-bold <%= txn.type === 'income' ? 'text-success' : 'text-danger' %>">
-                                        <%= txn.type === 'income' ? '+' : '-' %><%= txn.amount.toFixed(2) %> ر.س
+                                        <%= txn.type === 'income' ? '+' : '-' %><%= formatCurrency(txn.amount) %>
                                     </td>
                                     <td class="px-4 py-3">
                                         <% if (txn.status === 'completed') { %>

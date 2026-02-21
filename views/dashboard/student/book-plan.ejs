@@ -11,10 +11,10 @@
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&family=Lobster+Two:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Icon Font Stylesheet -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Libraries Stylesheet -->
@@ -23,564 +23,569 @@
     <!-- Customized Bootstrap Stylesheet -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Template Stylesheet -->
-    <link href="/css/style.css" rel="stylesheet">
-
     <style>
         :root {
             --primary: #FE5D37;
-            --secondary: #FFF0ED;
+            --primary-dark: #e44d2d;
+            --primary-light: #fff0ed;
+            --secondary: #121F3E;
             --light: #F8F9FA;
             --dark: #000B1C;
+            --glass: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --shadow-premium: 0 10px 30px rgba(0, 0, 0, 0.05);
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f7f9fc;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            font-size: 0.9rem;
         }
 
-        .lobster-font { font-family: 'Lobster Two', cursive; }
         .outfit-font { font-family: 'Outfit', sans-serif; }
+
+        /* Background Shapes */
+        .bg-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .shape {
+            position: absolute;
+            background: var(--primary);
+            filter: blur(80px);
+            opacity: 0.1;
+            border-radius: 50%;
+        }
+        .shape-1 { width: 400px; height: 400px; top: -100px; left: -100px; }
+        .shape-2 { width: 300px; height: 300px; bottom: -50px; right: -50px; background: var(--secondary); }
 
         /* Header */
         .top-header {
-            background: #fff;
-            padding: 1.5rem 0;
-            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 2.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .btn-back {
-            background: var(--light);
-            border: 1px solid #dee2e6;
-            padding: 0.5rem 1.5rem;
-            border-radius: 2rem;
+            background: white;
+            border: 1px solid #edf2f7;
+            padding: 0.6rem 1.75rem;
+            border-radius: 3rem;
             font-weight: 700;
-            transition: all 0.3s;
+            color: var(--secondary);
+            transition: var(--transition);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
         .btn-back:hover {
             background: var(--primary);
-            color: #fff;
+            color: white;
             border-color: var(--primary);
+            transform: translateX(-5px);
         }
 
         /* Step Indicator */
+        .steps-wrapper {
+            max-width: 800px;
+            margin: 0 auto 3rem;
+        }
+
         .steps-container {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
-        }
-
-        .step-item {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: space-between;
             position: relative;
-            flex: 1;
         }
 
-        .step-number {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #e9ecef;
-            color: #6c757d;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 1.25rem;
-            margin-bottom: 0.75rem;
-            transition: all 0.3s;
-            z-index: 2;
-        }
-
-        .step-item.active .step-number {
-            background: var(--primary);
-            color: #fff;
-            box-shadow: 0 0.5rem 1rem rgba(254, 93, 55, 0.3);
-        }
-
-        .step-item.completed .step-number {
-            background: #22c55e;
-            color: #fff;
-        }
-
-        .step-label {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #6c757d;
-        }
-
-        .step-item.active .step-label {
-            color: var(--primary);
-        }
-
-        .step-line {
+        .steps-container::before {
+            content: '';
             position: absolute;
-            top: 25px;
-            left: 50%;
-            right: -50%;
+            top: 22px;
+            left: 10%;
+            right: 10%;
             height: 3px;
-            background: #e9ecef;
+            background: #cbd5e0;
             z-index: 1;
         }
 
-        .step-item:last-child .step-line {
-            display: none;
+        .step-progress-line {
+            position: absolute;
+            top: 22px;
+            left: 10%;
+            height: 3px;
+            background: var(--primary);
+            z-index: 1;
+            transition: width 0.5s ease;
+            width: 0%;
         }
 
-        .step-item.completed .step-line {
+        .step-item {
+            width: 45px;
+            height: 45px;
+            background: white;
+            border: 3px solid #cbd5e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .step-item.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 20px rgba(254, 93, 55, 0.4);
+        }
+
+        .step-item.completed {
+            border-color: #22c55e;
             background: #22c55e;
+            color: white;
         }
 
-        /* Content Cards */
-        .content-card {
-            background: #fff;
+        .step-content {
+            position: absolute;
+            top: 55px;
+            white-space: nowrap;
+            text-align: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: #718096;
+            transition: var(--transition);
+        }
+
+        .step-item.active .step-content { color: var(--primary); }
+        .step-item.completed .step-content { color: #22c55e; }
+
+        /* Main Card */
+        .main-card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 2rem;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-premium);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header-v2 {
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #f7fafc;
+            padding-bottom: 1rem;
+        }
+
+        .card-title-v2 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Course Selector Card */
+        .course-preview-v2 {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            border: 2px solid #edf2f7;
+            transition: var(--transition);
+        }
+
+        .course-img-v2 {
+            width: 120px;
+            height: 120px;
+            border-radius: 1.25rem;
+            object-fit: cover;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .course-info-v2 { flex-grow: 1; }
+        .course-info-v2 h4 { font-weight: 800; font-size: 1.15rem; margin-bottom: 0.35rem; }
+        .course-info-v2 p { color: #718096; font-size: 0.85rem; margin: 0; line-height: 1.5; }
+
+        /* Form Inputs */
+        .form-label-premium {
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-premium {
+            background: #fdfdfd;
+            border: 2px solid #edf2f7;
+            border-radius: 0.85rem;
+            padding: 0.7rem 1.1rem;
+            font-weight: 600;
+            color: var(--secondary);
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .input-premium:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(254, 93, 55, 0.1);
+            outline: none;
+        }
+
+        /* Summary Box Premium */
+        .summary-card-v2 {
+            background: linear-gradient(135deg, white 0%, #fffbf9 100%);
+            border: 2px solid var(--primary-light);
             border-radius: 1.5rem;
             padding: 2rem;
-            box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.05);
-            border: 1px solid #f1f1f1;
+            position: relative;
         }
 
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--dark);
-            margin-bottom: 1.5rem;
+        .summary-card-v2::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 1.5rem 0 0 1.5rem;
         }
 
-        /* Course Card */
-        .course-card {
-            border: 2px solid #f1f1f1;
-            border-radius: 1.25rem;
-            overflow: hidden;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .course-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 1rem 2rem rgba(0,0,0,0.1);
-            border-color: var(--primary);
-        }
-
-        .course-card.selected {
-            border-color: var(--primary);
-            background: var(--secondary);
-        }
-
-        .course-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-
-        .course-body {
-            padding: 1.5rem;
-        }
-
-        .course-category {
-            background: var(--secondary);
-            color: var(--primary);
-            padding: 0.35rem 1rem;
-            border-radius: 2rem;
-            font-size: 0.75rem;
-            font-weight: 800;
-            display: inline-block;
-            margin-bottom: 0.75rem;
-        }
-
-        .course-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: var(--dark);
-            margin-bottom: 0.75rem;
-        }
-
-        .course-description {
-            font-size: 0.9rem;
-            color: #6c757d;
-            line-height: 1.6;
-        }
-
-        /* Form Controls */
-        .form-select-custom,
-        .form-control-custom {
-            border: 2px solid #eef0f2;
-            border-radius: 1rem;
-            padding: 0.85rem 1.25rem;
-            font-weight: 600;
-            font-size: 0.95rem;
-            background: #f8fafc;
-            transition: all 0.3s;
-        }
-
-        .form-select-custom:focus,
-        .form-control-custom:focus {
-            background: #fff;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 0.25rem rgba(254, 93, 55, 0.1);
-        }
-
-        .form-label-custom {
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.75rem;
-            font-size: 0.95rem;
-        }
-
-        /* Summary Box */
-        .summary-box {
-            background: linear-gradient(135deg, #f8fafc 0%, #fff 100%);
-            border: 2px solid var(--primary);
-            border-radius: 1.25rem;
-            padding: 1.5rem;
-        }
-
-        .summary-title {
-            font-size: 1.1rem;
-            font-weight: 900;
-            color: var(--dark);
-            margin-bottom: 1rem;
-        }
-
-        .summary-row {
+        .summary-item-v2 {
             display: flex;
             justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f1f1f1;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px dashed #e2e8f0;
         }
 
-        .summary-row:last-child {
-            border-bottom: none;
-            padding-top: 1rem;
+        .summary-item-v2:last-child { border: none; }
+
+        .price-label-v2 { font-weight: 800; color: #4a5568; }
+        .price-value-v2 { 
+            font-size: 1.35rem; 
+            font-weight: 800; 
+            color: var(--primary); 
+            font-family: 'Outfit', sans-serif;
         }
 
-        .summary-label {
-            color: #6c757d;
-            font-weight: 600;
+        /* Buttons Premium */
+        .btn-next-v2 {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 3rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            box-shadow: 0 8px 15px rgba(254, 93, 55, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .summary-value {
-            font-weight: 800;
+        .btn-next-v2:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(254, 93, 55, 0.35);
+        }
+
+        .btn-next-v2:disabled {
+            opacity: 0.6;
+            filter: grayscale(1);
+        }
+
+        .btn-prev-v2 {
+            background: #edf2f7;
+            color: #4a5568;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 3rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .btn-prev-v2:hover {
+            background: #e2e8f0;
             color: var(--dark);
         }
 
-        .price-value {
-            color: #22c55e;
-            font-size: 1.5rem;
-        }
-
-        /* Payment Methods */
-        .payment-option {
-            border: 2px solid #f1f1f1;
-            border-radius: 1rem;
-            padding: 1.25rem;
+        /* Payment Icons */
+        .payment-method-card {
+            border: 2px solid #edf2f7;
+            border-radius: 1.25rem;
+            padding: 1.5rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: var(--transition);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 1rem;
         }
 
-        .payment-option:hover {
+        .payment-method-card .method-info {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .payment-method-card i { font-size: 1.5rem; }
+
+        .payment-method-card:hover {
             border-color: var(--primary);
-            background: var(--secondary);
+            background: #fffafa;
         }
 
-        .payment-option input[type="radio"]:checked ~ .payment-content {
-            color: var(--primary);
-        }
-
-        .payment-option input[type="radio"]:checked ~ * {
+        .payment-method-card.selected {
             border-color: var(--primary);
+            background: var(--primary-light);
+            box-shadow: 0 5px 15px rgba(254, 93, 55, 0.1);
         }
 
-        /* Buttons */
-        .btn-primary-custom {
-            background: var(--primary);
-            border: none;
-            padding: 0.85rem 2.5rem;
-            border-radius: 2rem;
-            font-weight: 800;
-            font-size: 1rem;
-            transition: all 0.3s;
-            box-shadow: 0 0.5rem 1rem rgba(254, 93, 55, 0.2);
+        /* UI Utilities */
+        .hidden { display: none !important; }
+        .text-gradient {
+            background: linear-gradient(to right, var(--primary), #ff8466);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .btn-primary-custom:hover {
-            background: #ff4520;
-            transform: translateY(-2px);
-            box-shadow: 0 0.75rem 1.5rem rgba(254, 93, 55, 0.3);
+        @media (max-width: 768px) {
+            .course-preview-v2 { flex-direction: column; text-align: center; }
+            .course-img-v2 { width: 100%; height: 200px; }
+            .main-card { padding: 1.5rem; border-radius: 1.5rem; }
+            .step-content { font-size: 0.7rem; }
+            .btn-next-v2, .btn-prev-v2 { width: 100%; justify-content: center; }
         }
 
-        .btn-secondary-custom {
-            background: #e9ecef;
-            border: none;
-            padding: 0.85rem 2rem;
-            border-radius: 2rem;
-            font-weight: 700;
-            color: #6c757d;
-            transition: all 0.3s;
-        }
-
-        .btn-secondary-custom:hover {
-            background: #dee2e6;
-            color: var(--dark);
-        }
-
-        /* Alert Box */
-        .alert-custom {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 1rem;
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .alert-custom-title {
-            font-weight: 800;
-            color: #856404;
-            margin-bottom: 0.5rem;
-        }
-
-        .alert-custom-text {
-            color: #856404;
-            font-size: 0.9rem;
-        }
-
-        /* Hidden class */
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
+
+    <div class="bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
     <!-- Header -->
     <div class="top-header">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 text-primary fw-900 lobster-font">
-                    <i class="fas fa-calendar-alt me-2"></i>
-                    معالج حجز خطة الحصص
-                </h5>
+                <div class="d-flex align-items-center gap-3">
+                    <img src="/img/logo.png" alt="Logo" height="40" onerror="this.src='/img/favicon.ico'">
+                    <h5 class="mb-0 fw-bold d-none d-md-block">حجز باقة الحصص</h5>
+                </div>
                 <a href="/" class="btn btn-back">
-                    <i class="fas fa-arrow-right me-2"></i>
-                    إلغاء والعودة
+                    <i class="fas fa-chevron-right me-2"></i>
+                    العودة للرئيسية
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="container pb-5">
-        <!-- Steps Indicator -->
-        <div class="steps-container">
-            <div class="d-flex justify-content-between position-relative">
-                <div class="step-item active" id="step1Indicator">
-                    <div class="step-number">1</div>
-                    <div class="step-label">اختيار الكورس</div>
-                    <div class="step-line"></div>
+    <div class="container mb-5">
+        <!-- Steps Wrapper -->
+        <div class="steps-wrapper">
+            <div class="steps-container">
+                <div class="step-progress-line" id="progressLine"></div>
+                <div class="step-item active" id="step1Circle">
+                    <i class="fas fa-book-open"></i>
+                    <div class="step-content">اختيار الكورس</div>
                 </div>
-                <div class="step-item" id="step2Indicator">
-                    <div class="step-number">2</div>
-                    <div class="step-label">تفاصيل الحزمة</div>
-                    <div class="step-line"></div>
+                <div class="step-item" id="step2Circle">
+                    <i class="fas fa-sliders"></i>
+                    <div class="step-content">تخصيص الخطة</div>
                 </div>
-                <div class="step-item" id="step3Indicator">
-                    <div class="step-number">3</div>
-                    <div class="step-label">الدفع والتأكيد</div>
+                <div class="step-item" id="step3Circle">
+                    <i class="fas fa-check-double"></i>
+                    <div class="step-content">التأكيد والدفع</div>
                 </div>
             </div>
         </div>
 
-        <!-- Step 1: Course Selection -->
-        <div id="step1" class="content-card animate__animated animate__fadeIn">
-            <h3 class="card-title">
-                <i class="fas fa-book-open text-primary me-2"></i>
-                الخطوة 1: اختيار الكورس
-            </h3>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="main-card animate__animated animate__fadeIn">
+                    
+                    <!-- Step 1: Course Overview -->
+                    <div id="step1">
+                        <div class="card-header-v2">
+                            <h3 class="card-title-v2">
+                                <span class="badge bg-primary rounded-pill">01</span>
+                                مراجعة الكورس المختار
+                            </h3>
+                        </div>
+                        
+                        <div class="course-preview-v2 mb-4">
+                            <img src="<%= getImageUrl(course.coverImage) %>" alt="<%= course.title %>" class="course-img-v2">
+                            <div class="course-info-v2">
+                                <span class="badge bg-primary-light text-primary mb-2"><%= course.category?.name || 'تخصص عام' %></span>
+                                <h4><%= course.title %></h4>
+                                <p><%= course.description %></p>
+                            </div>
+                        </div>
 
-            <div class="course-card" data-course-id="MATH" data-course-name="<%= course.title %>" data-course-description="<%= course.description %>">
-                <img src="<%= getImageUrl(course.coverImage) %>" alt="<%= course.title %>" class="course-image">
-                <div class="course-body">
-                    <% if (course.category && course.category.name) { %>
-                        <span class="course-category">
-                            <i class="fas fa-tag me-1"></i>
-                            <%= course.category.name %>
-                        </span>
-                    <% } %>
-                    <h4 class="course-title"><%= course.title %></h4>
-                    <p class="course-description"><%= course.description %></p>
-                    <div class="mt-3">
-                        <small class="text-primary fw-bold">
-                            <i class="fas fa-mouse-pointer me-1"></i>
-                            انقر للمتابعة
-                        </small>
+                        <div class="d-flex justify-content-end">
+                            <button id="nextToStep2" class="btn btn-next-v2">
+                                تخصيص الخطة
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Step 2: Package Details -->
-        <div id="step2" class="content-card hidden animate__animated animate__fadeIn">
-            <h3 class="card-title">
-                <i class="fas fa-box-open text-primary me-2"></i>
-                الخطوة 2: تحديد تفاصيل الحزمة
-            </h3>
+                    <!-- Step 2: Customization -->
+                    <div id="step2" class="hidden">
+                        <div class="card-header-v2">
+                            <h3 class="card-title-v2">
+                                <span class="badge bg-primary rounded-pill">02</span>
+                                تخصيص باقتك الشهرية
+                            </h3>
+                        </div>
 
-            <div class="alert alert-info rounded-4 mb-4">
-                <strong>الكورس المختار:</strong>
-                <span class="text-primary fw-bold" id="summaryCourse">--</span>
-            </div>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label-premium">
+                                    <i class="fas fa-calendar-alt text-primary"></i>
+                                    تكرار الحصص الأسبوعي
+                                </label>
+                                <select id="sessionsPerMonth" class="form-select input-premium">
+                                    <% for(let i = 1; i <= 6; i++) { %>
+                                        <option value="<%= i %>"><%= i %> حصة/أسبوع (<%= i * 4 %> حصص شهرياً)</option>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-premium">
+                                    <i class="fas fa-hourglass-half text-primary"></i>
+                                    مدة الحصة الواحدة
+                                </label>
+                                <select id="sessionDuration" class="form-select input-premium">
+                                    <% course.pricingOptions.forEach(opt => { %>
+                                        <option 
+                                            value="<%= opt.price %>"
+                                            data-duration="<%= opt.duration %>"
+                                            data-id="<%= opt.duration %>">
+                                            <%= opt.duration %> دقيقة
+                                        </option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                        </div>
 
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <label for="sessionsPerMonth" class="form-label-custom">
-                        <i class="fas fa-calendar-week text-primary me-2"></i>
-                        عدد الحصص في الأسبوع:
-                    </label>
-                    <select id="sessionsPerMonth" required class="form-select form-select-custom">
-                        <% for(let index = 1; index < 6; index++) { %>
-                            <option value="<%= index %>"><%= index %> حصة أسبوعياً (<%= 4*index %> حصص شهرياً)</option>
-                        <% } %>
-                    </select>
-                </div>
+                        <div class="summary-card-v2 mb-5">
+                            <h5 class="fw-bold mb-4">ملخص الباقة المخصصة</h5>
+                            <div class="summary-item-v2">
+                                <span class="price-label-v2">إجمالي الحصص الشهرية</span>
+                                <span class="fw-bold" id="monthlySessionsCount">--</span>
+                            </div>
+                            <div class="summary-item-v2">
+                                <span class="price-label-v2">إجمالي المحتوى التعليمي</span>
+                                <span class="fw-bold" id="totalMinutesDisplay">--</span>
+                            </div>
+                            <div class="summary-item-v2">
+                                <span class="price-label-v2">الاستثمار الشهري</span>
+                                <span class="price-value-v2" id="totalPriceDisplay">--</span>
+                            </div>
+                        </div>
 
-                <div class="col-md-6">
-                    <label for="sessionDuration" class="form-label-custom">
-                        <i class="fas fa-clock text-primary me-2"></i>
-                        مدة كل حصة:
-                    </label>
-                    <select id="sessionDuration" required class="form-select form-select-custom">
-                        <% for(let index = 0; index < course.pricingOptions.length; index++) { %>
-                            <option 
-                                session-price="<%= course.pricingOptions[index].price %>" 
-                                data-id="<%= course.pricingOptions[index].duration %>" 
-                                data-duration="<%= course.pricingOptions[index].duration %>" 
-                                value="<%= course.pricingOptions[index].price %>">
-                                <%= course.pricingOptions[index].duration %> دقيقة
-                            </option>
-                        <% } %>
-                    </select>
-                </div>
-            </div>
-
-            <div class="summary-box mt-4">
-                <h5 class="summary-title">
-                    <i class="fas fa-file-invoice-dollar text-primary me-2"></i>
-                    ملخص الدفع الشهري
-                </h5>
-                <div class="summary-row">
-                    <span class="summary-label">إجمالي الدقائق شهرياً:</span>
-                    <span class="summary-value outfit-font" id="totalMinutes">--</span>
-                </div>
-                <div class="summary-row">
-                    <span class="summary-label">السعر الإجمالي:</span>
-                    <span class="summary-value price-value outfit-font" id="calculatedPrice">--</span>
-                </div>
-                <small class="text-muted d-block mt-2">
-                    <i class="fas fa-info-circle me-1"></i>
-                    السعر قد يختلف قليلاً حسب التخصص والمدة
-                </small>
-            </div>
-
-            <div class="d-flex justify-content-between mt-4">
-                <button id="backToStep1" class="btn btn-secondary-custom">
-                    <i class="fas fa-arrow-right me-2"></i>
-                    عودة
-                </button>
-                <button id="goToStep3" disabled class="btn btn-primary-custom">
-                    المتابعة للدفع
-                    <i class="fas fa-arrow-left ms-2"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Step 3: Payment & Confirmation -->
-        <div id="step3" class="content-card hidden animate__animated animate__fadeIn">
-            <h3 class="card-title">
-                <i class="fas fa-credit-card text-primary me-2"></i>
-                الخطوة 3: الدفع والتأكيد
-            </h3>
-
-            <div class="alert-custom">
-                <div class="alert-custom-title">
-                    <i class="fas fa-clipboard-check me-2"></i>
-                    تفاصيل الخطة:
-                </div>
-                <p id="finalSummary" class="alert-custom-text mb-2">--</p>
-                <h4 class="text-success fw-900 mb-0 outfit-font">
-                    المبلغ المطلوب: <span id="finalPriceDisplay">--</span>
-                </h4>
-            </div>
-
-            <h5 class="fw-bold mb-3">
-                <i class="fas fa-wallet text-primary me-2"></i>
-                اختر طريقة الدفع:
-            </h5>
-
-            <label class="payment-option">
-                <div class="d-flex align-items-center">
-                    <input type="radio" name="paymentMethod" value="visa" class="form-check-input me-3" checked>
-                    <div class="payment-content flex-grow-1">
-                        <div class="fw-bold">بطاقة ائتمانية</div>
-                        <small class="text-muted">Visa / Mastercard</small>
+                        <div class="d-flex justify-content-between">
+                            <button onclick="navigateToStep(1)" class="btn btn-prev-v2">الرجوع</button>
+                            <button id="nextToStep3" class="btn btn-next-v2">انتقل للدفع</button>
+                        </div>
                     </div>
-                    <i class="fas fa-credit-card text-primary fs-4"></i>
-                </div>
-            </label>
 
-            <label class="payment-option">
-                <div class="d-flex align-items-center">
-                    <input type="radio" name="paymentMethod" value="mada" class="form-check-input me-3">
-                    <div class="payment-content flex-grow-1">
-                        <div class="fw-bold">مدى</div>
-                        <small class="text-muted">Mada Card</small>
+                    <!-- Step 3: Payment -->
+                    <div id="step3" class="hidden">
+                        <div class="card-header-v2">
+                            <h3 class="card-title-v2">
+                                <span class="badge bg-primary rounded-pill">03</span>
+                                تأكيد الطلب والدفع
+                            </h3>
+                        </div>
+
+                        <div class="alert bg-light border-0 rounded-4 p-4 mb-5">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="bg-success text-white rounded-circle p-2">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <h5 class="mb-0 fw-bold">تفاصيل الاشتراك</h5>
+                            </div>
+                            <p class="mb-0 text-muted" id="finalDescription">--</p>
+                        </div>
+
+                        <h5 class="fw-bold mb-4">اختر وسيلة الدفع المناسبة</h5>
+                        
+                        <div class="payment-method-card selected" onclick="selectPayment(this, 'banktransfer')">
+                            <div class="method-info">
+                                <div class="bg-primary-light text-primary rounded-circle p-3">
+                                    <i class="fas fa-building-columns"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">تحويل بنكي (Bank Transfer)</div>
+                                    <small class="text-muted">قم بتحويل المبلغ وإرفاق صورة الإيصال</small>
+                                </div>
+                            </div>
+                            <input type="radio" name="paymentType" value="banktransfer" checked class="form-check-input">
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-5">
+                            <button onclick="navigateToStep(2)" class="btn btn-prev-v2">الرجوع</button>
+                            <button id="checkoutButton" class="btn btn-next-v2">
+                                إتمام الطلب الآن
+                                <i class="fas fa-lock"></i>
+                            </button>
+                        </div>
                     </div>
-                    <i class="fas fa-shield-alt text-primary fs-4"></i>
-                </div>
-            </label>
 
-            <div class="d-flex justify-content-between mt-4">
-                <button id="backToStep2" class="btn btn-secondary-custom">
-                    <i class="fas fa-arrow-right me-2"></i>
-                    عودة
-                </button>
-                <button id="checkoutButton" type="button" class="btn btn-primary-custom">
-                    إتمام عملية الدفع
-                    <i class="fas fa-check ms-2"></i>
-                </button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Toast Container -->
-    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-4" style="z-index: 1050"></div>
+    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-4" style="z-index: 2000"></div>
 
-    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-          const CURRENT = {
-    id: "<%= user._id %>",
-    role: "<%= user.role %>",
-    studentId: "<%= locals.studentId || '' %>"
-  };
-          console.log(CURRENT.studentId,'studentId');
-        // Toast notification function
+        const CURRENT = {
+            id: "<%= user._id %>",
+            role: "<%= user.role %>",
+            studentId: "<%= locals.studentId || '' %>",
+            academyId:"<%= user.academyId._id || '' %>"
+        };
+
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
-            let bgClass = 'bg-primary';
-            if (type === 'success') bgClass = 'bg-success';
-            if (type === 'error') bgClass = 'bg-danger';
-
+            const bgClass = type === 'success' ? 'bg-success' : (type === 'error' ? 'bg-danger' : 'bg-primary');
             const toastElem = document.createElement('div');
-            toastElem.className = `toast align-items-center text-white ${bgClass} border-0 mb-3`;
-            toastElem.setAttribute('role', 'alert');
+            toastElem.className = `toast align-items-center text-white ${bgClass} border-0 mb-3 shadow-lg`;
             toastElem.innerHTML = `
                 <div class="d-flex p-3">
                     <div class="toast-body fw-bold">${message}</div>
@@ -592,162 +597,111 @@
             toastElem.addEventListener('hidden.bs.toast', () => toastElem.remove());
         }
 
-        // Checkout function
-        function checkout() {
-          
-            const STUDENT_ID = CURRENT.role=='admin'?CURRENT.studentId:CURRENT.id;
-            const COURSE_ID = '<%= course._id %>';
-            const API_ENDPOINT = '/student/checkout';
-
-            const sessionCount = document.getElementById('sessionsPerMonth').value;
-            const select = document.getElementById('sessionDuration');
-            const pricingOptionsSelectedId = select.options[select.selectedIndex].getAttribute('data-id');
-            const sessionsPrice = select.options[select.selectedIndex].getAttribute('session-price');
-
-            const button = document.getElementById('checkoutButton');
-            button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري إعداد الطلب...';
-
-            if (!pricingOptionsSelectedId || !sessionCount || !COURSE_ID || !STUDENT_ID) {
-                showToast('خطأ: بيانات النموذج مفقودة', 'error');
-                resetButtonState(button);
-                return;
-            }
-
-            const bookingData = {
-                studentId: STUDENT_ID,
-                courseId: COURSE_ID,
-                selectedPriceOption: pricingOptionsSelectedId,
-                numberOfSessionsPerMonth: sessionCount * 4,
-                totalAmount: sessionsPrice * (sessionCount * 4)
-            };
-
-            fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bookingData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.message || 'فشل الاتصال بالخادم'); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                showToast('تم إنشاء طلب الحجز بنجاح!', 'success');
-                setTimeout(() => window.location.href = '/', 1500);
-            })
-            .catch(error => {
-                console.error('خطأ في عملية الدفع:', error);
-                showToast(`فشلت عملية الدفع: ${error.message}`, 'error');
-                resetButtonState(button);
-            });
-        }
-
-        function resetButtonState(button) {
-            button.disabled = false;
-            button.innerHTML = 'إتمام عملية الدفع <i class="fas fa-check ms-2"></i>';
-        }
-
-        // Page initialization
         let currentStep = 1;
-        let selectedPlan = { courseId: null, courseName: null, sessions: null, duration: null, price: 0 };
-
-        const elements = {
-            step1: document.getElementById('step1'),
-            step2: document.getElementById('step2'),
-            step3: document.getElementById('step3'),
-            step1Indicator: document.getElementById('step1Indicator'),
-            step2Indicator: document.getElementById('step2Indicator'),
-            step3Indicator: document.getElementById('step3Indicator'),
-            courseCard: document.querySelector('.course-card'),
-            summaryCourse: document.getElementById('summaryCourse'),
-            sessionsPerMonth: document.getElementById('sessionsPerMonth'),
-            sessionDuration: document.getElementById('sessionDuration'),
-            totalMinutes: document.getElementById('totalMinutes'),
-            calculatedPrice: document.getElementById('calculatedPrice'),
-            goToStep3: document.getElementById('goToStep3'),
-            finalSummary: document.getElementById('finalSummary'),
-            finalPriceDisplay: document.getElementById('finalPriceDisplay'),
+        let selectedPlan = {
+            pricePerSession: 0,
+            weeklyCount: 1,
+            duration: 0,
+            totalPrice: 0,
+            durationId: null
         };
 
-        function updateStepIndicators() {
-            const indicators = [elements.step1Indicator, elements.step2Indicator, elements.step3Indicator];
-            indicators.forEach((ind, index) => {
-                const stepNumber = index + 1;
-                ind.classList.remove('active', 'completed');
-                
-                if (stepNumber < currentStep) {
-                    ind.classList.add('completed');
-                } else if (stepNumber === currentStep) {
-                    ind.classList.add('active');
-                }
+        function updateStepUI() {
+            // Hide all steps
+            $('#step1, #step2, #step3').addClass('hidden');
+            $(`#step${currentStep}`).removeClass('hidden');
+
+            // Update circles
+            $('.step-item').each(function(index) {
+                const step = index + 1;
+                $(this).removeClass('active completed');
+                if (step < currentStep) $(this).addClass('completed');
+                else if (step === currentStep) $(this).addClass('active');
             });
+
+            // Update line
+            const progress = (currentStep - 1) * 40; // 0, 40, 80
+            $('#progressLine').css('width', `${progress}%`);
+        }
+
+        function calculatePrice() {
+            const weeklyCount = parseInt($('#sessionsPerMonth').val());
+            const sessionOption = $('#sessionDuration option:selected');
+            const price = parseFloat(sessionOption.val());
+            const duration = parseInt(sessionOption.data('duration'));
+            
+            const monthlyCount = weeklyCount * 4;
+            const total = monthlyCount * price;
+            const totalMin = monthlyCount * duration;
+
+            selectedPlan = {
+                pricePerSession: price,
+                weeklyCount: weeklyCount,
+                duration: duration,
+                totalPrice: total,
+                durationId: sessionOption.data('id')
+            };
+
+            $('#monthlySessionsCount').text(`${monthlyCount} حصة`);
+            $('#totalMinutesDisplay').text(`${totalMin} دقيقة تعليمية`);
+            $('#totalPriceDisplay').text(`${total.toFixed(2)} ريال`);
+            
+            $('#finalDescription').text(`${monthlyCount} حصف شهرياً (${weeklyCount} أسبوعياً) - مدة الحصة ${duration} دقيقة`);
         }
 
         function navigateToStep(step) {
             currentStep = step;
-            elements.step1.classList.add('hidden');
-            elements.step2.classList.add('hidden');
-            elements.step3.classList.add('hidden');
-
-            if (step === 1) elements.step1.classList.remove('hidden');
-            if (step === 2) elements.step2.classList.remove('hidden');
-            if (step === 3) elements.step3.classList.remove('hidden');
-
-            updateStepIndicators();
+            updateStepUI();
+            if (step === 2) calculatePrice();
         }
 
-        function calculatePrice() {
-            const sessions = parseInt(elements.sessionsPerMonth.value);
-            const sessionsPrice = parseInt(elements.sessionDuration.value);
-            const select = document.getElementById('sessionDuration');
-            const selectedDuration = select.options[select.selectedIndex].getAttribute('data-duration');
-
-            const totalMin = sessions * selectedDuration * 4;
-            const totalPrice = sessions * sessionsPrice * 4;
-
-            selectedPlan.sessions = sessions;
-            selectedPlan.duration = selectedDuration;
-            selectedPlan.price = totalPrice;
-
-            elements.totalMinutes.textContent = `${totalMin} دقيقة`;
-            elements.calculatedPrice.textContent = `${totalPrice.toFixed(2)} ريال`;
-            elements.goToStep3.disabled = (totalPrice === 0);
+        function selectPayment(el, type) {
+            $('.payment-method-card').removeClass('selected').find('input').prop('checked', false);
+            $(el).addClass('selected').find('input').prop('checked', true);
         }
 
-        // Event listeners
-        elements.courseCard.addEventListener('click', function() {
-            this.classList.add('selected');
-            selectedPlan.courseId = this.dataset.courseId;
-            selectedPlan.courseName = this.dataset.courseName;
-            elements.summaryCourse.textContent = selectedPlan.courseName;
-            navigateToStep(2);
+        // Event Handlers
+        $('#nextToStep2').on('click', () => navigateToStep(2));
+        $('#nextToStep3').on('click', () => navigateToStep(3));
+        
+        $('#sessionsPerMonth, #sessionDuration').on('change', calculatePrice);
+
+        $('#checkoutButton').on('click', function() {
+            const btn = $(this);
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>جاري الدفع...');
+
+            const STUDENT_ID = CURRENT.role === 'admin' ? CURRENT.studentId : CURRENT.id;
+            
+            const bookingData = {
+                studentId: STUDENT_ID,
+                courseId: '<%= course._id %>',
+                selectedPriceOption: selectedPlan.durationId,
+                numberOfSessionsPerMonth: selectedPlan.weeklyCount * 4,
+                academyId: CURRENT.academyId,
+                totalAmount: selectedPlan.totalPrice
+            };
+
+            fetch('/student/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bookingData)
+            })
+            .then(res => res.ok ? res.json() : res.json().then(e => Promise.reject(e)))
+            .then(data => {
+                showToast('تمت عملية الاشتراك بنجاح!', 'success');
+                setTimeout(() => window.location.href = '/', 1500);
+            })
+            .catch(err => {
+                showToast(err.message || 'حدث خطأ في الدفع', 'error');
+                btn.prop('disabled', false).html('إتمام الطلب الآن <i class="fas fa-lock"></i>');
+            });
+        });
+
+        // Init
+        $(document).ready(() => {
+            updateStepUI();
             calculatePrice();
         });
-
-        elements.sessionsPerMonth.addEventListener('change', calculatePrice);
-        elements.sessionDuration.addEventListener('change', calculatePrice);
-
-        document.getElementById('backToStep1').addEventListener('click', () => navigateToStep(1));
-
-        elements.goToStep3.addEventListener('click', function() {
-            const select = document.getElementById('sessionDuration');
-            const selectedDuration = select.options[select.selectedIndex].getAttribute('data-duration');
-            const sessions = parseInt(elements.sessionsPerMonth.value);
-
-            if (selectedPlan.price > 0) {
-                elements.finalSummary.textContent = `${sessions * 4} حصص شهرياً | مدة الحصة ${selectedDuration} دقيقة | كورس ${selectedPlan.courseName}`;
-                elements.finalPriceDisplay.textContent = `${selectedPlan.price.toFixed(2)} ريال`;
-                navigateToStep(3);
-            }
-        });
-
-        document.getElementById('backToStep2').addEventListener('click', () => navigateToStep(2));
-        document.getElementById('checkoutButton').addEventListener('click', checkout);
-
-        // Initialize
-        updateStepIndicators();
     </script>
 </body>
 </html>

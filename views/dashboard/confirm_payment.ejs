@@ -157,7 +157,11 @@
         const currentStartDate = booking.startDate ? new Date(booking.startDate).toISOString().split('T')[0] : '';
     %>
 
-    <%- include('./_admin_sidebar.ejs', { currentPage: 'subscriptions', user: user }) %>
+    <% if (user.role === 'supervisor') { %>
+        <%- include('./supervisor/_supervisor_sidebar.ejs', { currentPage: 'subscriptions', user: user }) %>
+    <% } else { %>
+        <%- include('./_admin_sidebar.ejs', { currentPage: 'subscriptions', user: user }) %>
+    <% } %>
 
     <div class="main-content">
         <!-- Top Nav -->
@@ -212,9 +216,14 @@
                             <h3 class="fw-900 text-success mb-0 outfit-font">$<%= totalAmount %></h3>
                         </div>
                         <div class="mb-3">
-                            <label class="small text-muted d-block fw-bold mb-1 uppercase">الحالة الحالية</label>
                             <span class="status-badge <%= statusInfo.class %> text-white"><%= statusInfo.text %></span>
                         </div>
+                        <% if (booking.confirmedBy) { %>
+                            <div class="mb-3">
+                                <label class="small text-muted d-block fw-bold mb-1 uppercase">تأكيد بواسطة</label>
+                                <p class="fw-bold text-dark mb-0"><i class="fas fa-user-check text-success me-1"></i><%= booking.confirmedBy %></p>
+                            </div>
+                        <% } %>
                     </div>
 
                     <div class="mt-5 p-3 bg-white rounded-4 border border-light text-center">
@@ -272,7 +281,20 @@
 
                         <div class="col-12">
                             <label class="form-label-custom"><i class="fas fa-sticky-note"></i> ملاحظات إدارية (اختياري)</label>
-                            <textarea id="adminNotes" name="adminNotes" rows="4" class="form-control" placeholder="أضف أي تفاصيل حول عملية الدفع أو الحجز..."><%= booking.adminNotes || '' %></textarea>
+                            <textarea id="adminNotes" name="adminNotes" rows="3" class="form-control" placeholder="أضف أي تفاصيل حول عملية الدفع أو الحجز..."><%= booking.adminNotes || '' %></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label-custom"><i class="fas fa-camera"></i> إرفاق صورة التحويل البنكي</label>
+                            <input type="file" id="paymentScreenshot" name="paymentScreenshot" class="form-control" accept="image/*">
+                            <% if (booking.paymentScreenshot) { %>
+                                <div class="mt-3">
+                                    <p class="small text-muted mb-2">صورة التحويل الحالية:</p>
+                                    <a href="<%= booking.paymentScreenshot %>" target="_blank">
+                                        <img src="<%= booking.paymentScreenshot %>" class="rounded-3 border" style="max-width: 150px; cursor: pointer;">
+                                    </a>
+                                </div>
+                            <% } %>
                         </div>
 
                         <div class="col-12 pt-4">
@@ -337,7 +359,7 @@
                 rates.forEach(r => {
                     const opt = document.createElement('option');
                     opt.value = r.rate;
-                    opt.textContent = `${r.label} - ${r.rate} ر.س`;
+                    opt.textContent = `${r.label} - ${r.rate} <%= currencySymbol %>`;
                     if (Number(r.rate) === Number('<%= booking.teacherHourlyRate || 0 %>')) {
                         opt.selected = true;
                     }
@@ -374,10 +396,21 @@
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري الحفظ...';
 
+                const formData = new FormData();
+                formData.append('startDate', startDate);
+                formData.append('paymentStatus', paymentStatus);
+                formData.append('adminNotes', adminNotes);
+                formData.append('teacherId', teacherId);
+                formData.append('teacherHourlyRate', teacherHourlyRate);
+                
+                const screenshotFile = document.getElementById('paymentScreenshot').files[0];
+                if (screenshotFile) {
+                    formData.append('paymentScreenshot', screenshotFile);
+                }
+
                 const response = await fetch(`/booking/<%= booking._id %>/confirm-payment`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ startDate, paymentStatus, adminNotes, teacherId, teacherHourlyRate })
+                    body: formData
                 });
 
                 const data = await response.json();

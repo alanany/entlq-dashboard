@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
@@ -314,7 +314,7 @@
                         <i class="fas fa-money-bill-wave me-1"></i>
                         المبلغ الإجمالي
                     </div>
-                    <div class="info-value text-success outfit-font"><%= requestDetails.totalAmount.toFixed(2) %> ريال</div>
+                    <div class="info-value text-success outfit-font"><%= formatCurrency(requestDetails.totalAmount) %></div>
                 </div>
 
                 <div class="info-item">

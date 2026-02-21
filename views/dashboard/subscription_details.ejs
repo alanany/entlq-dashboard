@@ -1,0 +1,1005 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title><%= t('brand_name') %> - تفاصيل الاشتراك</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #FE5D37;
+            --primary-light: #fff0ed;
+            --primary-dark: #d94720;
+            --dark: #0f172a;
+            --muted: #64748b;
+            --light-bg: #f8fafc;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+        @media (max-width: 991.98px) { .main-content { margin-right: 0; } }
+
+        /* ======= Top Nav ======= */
+        .top-bar {
+            background: #fff;
+            border-radius: 1.5rem;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+            margin-bottom: 1.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border);
+        }
+
+        /* ======= Hero Banner ======= */
+        .order-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #ff8c69 100%);
+            border-radius: 1.75rem;
+            padding: 2rem 2.5rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .order-hero::before {
+            content: '';
+            position: absolute;
+            top: -40px; left: -40px;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+        .order-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; right: -20px;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+        .order-id-badge {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.35rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 0.75rem;
+        }
+
+        /* ======= Status Pills ======= */
+        .status-pill {
+            padding: 0.45rem 1.2rem;
+            border-radius: 3rem;
+            font-weight: 800;
+            font-size: 0.78rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .status-pending   { background: #fef3c7; color: #92400e; }
+        .status-confirmed { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-completed { background: #dbeafe; color: #1e40af; }
+
+        /* ======= Cards ======= */
+        .info-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+        }
+        .card-head {
+            padding: 1.1rem 1.75rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #fafbfc;
+        }
+        .card-head-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+        .card-head h6 {
+            margin: 0;
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+        .card-body-custom { padding: 1.75rem; }
+
+        /* ======= Info Item ======= */
+        .detail-row {
+            display: flex;
+            align-items: flex-start;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label {
+            flex: 0 0 160px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding-top: 0.1rem;
+        }
+        .detail-value {
+            flex: 1;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.92rem;
+        }
+
+        /* ======= Sessions Progress ======= */
+        .sessions-stat {
+            text-align: center;
+            padding: 1.25rem;
+            border-radius: 1rem;
+            flex: 1;
+        }
+        .sessions-stat .number {
+            font-size: 2rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 0.35rem;
+        }
+        .sessions-stat .label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ======= Receipt Image ======= */
+        .receipt-img-wrapper {
+            border: 2px dashed var(--border);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            text-align: center;
+            background: var(--light-bg);
+        }
+        .receipt-img-wrapper img {
+            max-height: 350px;
+            max-width: 100%;
+            border-radius: 1rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            cursor: zoom-in;
+            transition: transform 0.3s;
+        }
+        .receipt-img-wrapper img:hover { transform: scale(1.02); }
+
+        /* ======= Invoice Print ======= */
+        .invoice-btn {
+            background: linear-gradient(135deg, var(--primary), #ff8c69);
+            border: none;
+            color: white;
+            border-radius: 0.85rem;
+            padding: 0.7rem 1.5rem;
+            font-weight: 700;
+            font-size: 0.88rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .invoice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(254, 93, 55, 0.35);
+            color: white;
+        }
+
+        /* ======= Print Invoice Modal/Content ======= */
+        @media print {
+            body * { visibility: hidden; }
+            #invoicePrintArea, #invoicePrintArea * { visibility: visible; }
+            #invoicePrintArea {
+                position: fixed; top: 0; left: 0;
+                width: 100%; height: 100%;
+                background: white; z-index: 9999;
+                padding: 40px;
+            }
+        }
+
+        .invoice-paper {
+            background: white;
+            border-radius: 1.5rem;
+            border: 1px solid var(--border);
+            padding: 2.5rem;
+        }
+        .invoice-logo-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--primary);
+        }
+        .invoice-table th {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.85rem 1rem;
+            border: none;
+        }
+        .invoice-table td {
+            padding: 0.85rem 1rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            border-right: none;
+            border-left: none;
+            font-size: 0.88rem;
+        }
+        .invoice-total-row td {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 900;
+            font-size: 1rem;
+            border-bottom: none;
+        }
+
+        /* Notes Box */
+        .notes-box {
+            background: var(--primary-light);
+            border-right: 4px solid var(--primary);
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+        }
+
+        /* Quick Actions Bar */
+        .action-quick-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1.1rem 1rem;
+            border-radius: 1.25rem;
+            color: white;
+            text-decoration: none;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            min-width: 110px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+        .action-quick-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+            color: white;
+            text-decoration: none;
+        }
+        .action-quick-btn:active { transform: translateY(-1px); }
+        .aqb-icon {
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+        .aqb-label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        @media (max-width: 576px) {
+            .action-quick-btn { min-width: calc(50% - 1rem); }
+        }
+    </style>
+</head>
+<body>
+
+    <%
+        const studentName = (booking.studentId && booking.studentId.name) || 'طالب غير معروف';
+        const studentEmail = (booking.studentId && booking.studentId.email) || '-';
+        const studentPhone = (booking.studentId && booking.studentId.phone_number) || '-';
+        const courseTitle = (booking.courseId && booking.courseId.title) || 'كورس محذوف';
+        const teacherName = (booking.teacherId && booking.teacherId.name) || 'لم يتم التعيين';
+        const orderId = booking._id.toString().slice(-8).toUpperCase();
+        const orderDate = new Date(booking.createdAt).toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' });
+        
+        const completedSessions = booking.sessions ? booking.sessions.filter(s => s.status === 'completed').length : 0;
+        const totalSessions = booking.sessions ? booking.sessions.length : booking.numberOfSessionsPerMonth;
+        const remainingSessions = totalSessions - completedSessions;
+
+        function getStatusInfo(status) {
+            switch(status) {
+                case 'pending': return { text: 'قيد المراجعة', cls: 'status-pending', icon: 'fa-clock' };
+                case 'confirmed': return { text: 'مؤكد ومدفوع', cls: 'status-confirmed', icon: 'fa-check-circle' };
+                case 'cancelled': return { text: 'ملغي', cls: 'status-cancelled', icon: 'fa-times-circle' };
+                case 'completed': return { text: 'مكتمل', cls: 'status-completed', icon: 'fa-flag-checkered' };
+                default: return { text: 'غير محدد', cls: '', icon: 'fa-question' };
+            }
+        }
+        const statusInfo = getStatusInfo(booking.status);
+    %>
+
+    <% if (user.role === 'supervisor') { %>
+        <%- include('./supervisor/_supervisor_sidebar.ejs', { currentPage: 'subscriptions', user: user }) %>
+    <% } else { %>
+        <%- include('./_admin_sidebar.ejs', { currentPage: 'subscriptions', user: user }) %>
+    <% } %>
+
+    <div class="main-content">
+
+        <!-- Top Bar -->
+        <div class="top-bar animate__animated animate__fadeInDown">
+            <div class="d-flex align-items-center gap-3">
+                <button onclick="history.back()" class="btn btn-light rounded-circle p-2" title="رجوع">
+                    <i class="fas fa-arrow-right text-muted"></i>
+                </button>
+                <div>
+                    <h5 class="mb-0 fw-800" style="font-size:1rem;">تفاصيل الاشتراك</h5>
+                    <small class="text-muted">رقم الطلب: #<%= orderId %></small>
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button onclick="printInvoice()" class="invoice-btn">
+                    <i class="fas fa-file-invoice"></i> طباعة الفاتورة
+                </button>
+                <button onclick="downloadInvoice()" class="btn btn-light rounded-pill px-4 fw-bold border" style="font-size:0.85rem;">
+                    <i class="fas fa-download me-2 text-primary"></i> تحميل PDF
+                </button>
+                <% if (user.role === 'admin' || user.role === 'supervisor') { %>
+                <a href="/booking/<%= booking._id %>/manage-payment" class="btn btn-outline-primary rounded-pill px-4 fw-bold" style="font-size:0.85rem;">
+                    <i class="fas fa-edit me-2"></i> تعديل
+                </a>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Order Hero -->
+        <div class="order-hero animate__animated animate__fadeInUp">
+            <div class="row align-items-center position-relative" style="z-index:1;">
+                <div class="col-md-7">
+                    <div class="order-id-badge">
+                        <i class="fas fa-hashtag me-1"></i> ORDER #<%= orderId %>
+                    </div>
+                    <h3 class="fw-900 mb-1" style="font-size:1.5rem;"><%= courseTitle %></h3>
+                    <p class="mb-0 opacity-75"><i class="fas fa-user-graduate me-2"></i><%= studentName %></p>
+                    <p class="mb-0 mt-1 opacity-75"><i class="fas fa-chalkboard-teacher me-2"></i>المعلم: <%= teacherName %></p>
+                </div>
+                <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                    <div class="mb-2">
+                        <span class="status-pill <%= statusInfo.cls %>">
+                            <i class="fas <%= statusInfo.icon %>"></i> <%= statusInfo.text %>
+                        </span>
+                    </div>
+                    <div class="display-6 fw-900"><%= formatCurrency(booking.totalAmount) %></div>
+                    <small class="opacity-75">تاريخ الطلب: <%= orderDate %></small>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== شريط الإجراءات السريعة ====== -->
+        <% if (user.role === 'admin' || user.role === 'supervisor') { %>
+        <div class="animate__animated animate__fadeInUp mb-4" style="animation-delay:0.05s;">
+            <div class="d-flex flex-wrap gap-3">
+
+                <a href="/booking/<%= booking._id %>/manage-payment"
+                   class="action-quick-btn flex-fill"
+                   style="background:linear-gradient(135deg,#FE5D37,#ff8c69);">
+                    <div class="aqb-icon"><i class="fas fa-credit-card"></i></div>
+                    <div class="aqb-label">إدارة الدفع</div>
+                </a>
+
+                <a href="/booking/<%= booking._id %>/schedule"
+                   class="action-quick-btn flex-fill"
+                   style="background:linear-gradient(135deg,#10b981,#34d399);">
+                    <div class="aqb-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <div class="aqb-label">جدول الحصص</div>
+                </a>
+
+                <a href="/booking/<%= booking._id %>/manage-sessions"
+                   class="action-quick-btn flex-fill"
+                   style="background:linear-gradient(135deg,#3b82f6,#60a5fa);">
+                    <div class="aqb-icon"><i class="fas fa-layer-group"></i></div>
+                    <div class="aqb-label">إدارة الحصص</div>
+                </a>
+
+                <button onclick="printInvoice()"
+                        class="action-quick-btn flex-fill border-0"
+                        style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">
+                    <div class="aqb-icon"><i class="fas fa-file-invoice"></i></div>
+                    <div class="aqb-label">طباعة فاتورة</div>
+                </button>
+
+                <% if (booking.isCritical || (booking.daysRemaining !== null && booking.daysRemaining !== undefined && booking.daysRemaining <= 2)) { %>
+                <button onclick="openRenewModal()"
+                        class="action-quick-btn flex-fill border-0"
+                        style="background:linear-gradient(135deg,#ef4444,#f87171);">
+                    <div class="aqb-icon"><i class="fas fa-sync-alt"></i></div>
+                    <div class="aqb-label">تجديد الاشتراك</div>
+                </button>
+                <% } %>
+
+            </div>
+        </div>
+        <% } %>
+
+        <div class="row g-4">
+            <!-- Left Column -->
+            <div class="col-lg-8 animate__animated animate__fadeInUp">
+
+                <!-- Student Info -->
+                <div class="info-card">
+                    <div class="card-head">
+                        <div class="card-head-icon"><i class="fas fa-user-graduate"></i></div>
+                        <h6>بيانات الطالب</h6>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="detail-row">
+                            <span class="detail-label">الاسم</span>
+                            <span class="detail-value"><%= studentName %></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">البريد الإلكتروني</span>
+                            <span class="detail-value"><%= studentEmail %></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">رقم الهاتف</span>
+                            <span class="detail-value"><%= studentPhone !== '-' ? studentPhone : '<span class="text-muted">غير متوفر</span>' %></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">الدورة</span>
+                            <span class="detail-value fw-800 text-primary"><%= courseTitle %></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">المعلم</span>
+                            <span class="detail-value"><%= teacherName %></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Info -->
+                <div class="info-card">
+                    <div class="card-head">
+                        <div class="card-head-icon"><i class="fas fa-credit-card"></i></div>
+                        <h6>تفاصيل الدفع والاشتراك</h6>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="detail-row">
+                            <span class="detail-label">مدة الحصة</span>
+                            <span class="detail-value">
+                                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-3 py-2 rounded-pill">
+                                    <%= booking.selectedPriceOption %> دقيقة
+                                </span>
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">عدد الحصص</span>
+                            <span class="detail-value"><%= booking.numberOfSessionsPerMonth %> حصة</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">سعر الحصة</span>
+                            <span class="detail-value">
+                                <%
+                                    const pricePerSession = booking.numberOfSessionsPerMonth > 0
+                                        ? (booking.totalAmount / booking.numberOfSessionsPerMonth).toFixed(0)
+                                        : booking.totalAmount;
+                                %>
+                                <%= formatCurrency(pricePerSession) %>
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">المبلغ الإجمالي</span>
+                            <span class="detail-value fw-900" style="color:var(--success); font-size:1.05rem;"><%= formatCurrency(booking.totalAmount) %></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">طريقة الدفع</span>
+                            <span class="detail-value"><%= (booking.paymentDetails && booking.paymentDetails.method) || 'تحويل بنكي' %></span>
+                        </div>
+                        <% if (booking.paymentDetails && booking.paymentDetails.transactionId) { %>
+                        <div class="detail-row">
+                            <span class="detail-label">رقم العملية</span>
+                            <span class="detail-value font-monospace"><%= booking.paymentDetails.transactionId %></span>
+                        </div>
+                        <% } %>
+                        <div class="detail-row">
+                            <span class="detail-label">تاريخ البدء</span>
+                            <span class="detail-value"><%= booking.startDate ? new Date(booking.startDate).toLocaleDateString('ar-EG', {year:'numeric',month:'long',day:'numeric'}) : 'لم يُحدد بعد' %></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">حالة الاشتراك</span>
+                            <span class="detail-value">
+                                <span class="status-pill <%= statusInfo.cls %>">
+                                    <i class="fas <%= statusInfo.icon %>"></i> <%= statusInfo.text %>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmation Info -->
+                <div class="info-card">
+                    <div class="card-head">
+                        <div class="card-head-icon"><i class="fas fa-shield-halved"></i></div>
+                        <h6>بيانات التحقق والتأكيد</h6>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="detail-row">
+                            <span class="detail-label">تاريخ الطلب</span>
+                            <span class="detail-value"><%= new Date(booking.createdAt).toLocaleDateString('ar-EG', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}) %></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">تأكيد بواسطة</span>
+                            <span class="detail-value">
+                                <% if (booking.confirmedBy) { %>
+                                    <span class="badge bg-success bg-opacity-10 text-white px-3 py-2 rounded-pill fw-bold">
+                                        <i class="fas fa-user-shield me-1"></i> <%= booking.confirmedBy %>
+                                    </span>
+                                <% } else { %>
+                                    <span class="text-muted">بانتظار التأكيد</span>
+                                <% } %>
+                            </span>
+                        </div>
+                        <% if (booking.updatedAt && booking.status === 'confirmed') { %>
+                        <div class="detail-row">
+                            <span class="detail-label">تاريخ التأكيد</span>
+                            <span class="detail-value"><%= new Date(booking.updatedAt).toLocaleDateString('ar-EG', {year:'numeric',month:'long',day:'numeric'}) %></span>
+                        </div>
+                        <% } %>
+                        <div class="detail-row">
+                            <span class="detail-label">سعر ساعة المعلم</span>
+                            <span class="detail-value"><%= booking.teacherHourlyRate || 0 %></span>
+                        </div>
+                    </div>
+                    <% if (booking.adminNotes) { %>
+                    <div class="px-4 pb-4">
+                        <div class="notes-box">
+                            <p class="small text-muted fw-bold mb-1"><i class="fas fa-sticky-note me-1"></i> ملاحظات إدارية:</p>
+                            <p class="mb-0 fw-700 text-dark"><%= booking.adminNotes %></p>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+
+                <!-- Transfer Receipt -->
+                <div class="info-card">
+                    <div class="card-head">
+                        <div class="card-head-icon"><i class="fas fa-image"></i></div>
+                        <h6>صورة إيصال التحويل</h6>
+                        <% if (booking.paymentScreenshot) { %>
+                        <div class="ms-auto d-flex gap-2">
+                            <a href="<%= booking.paymentScreenshot %>" target="_blank" class="btn btn-sm btn-light rounded-pill px-3 fw-bold">
+                                <i class="fas fa-expand me-1 text-primary"></i> عرض كامل
+                            </a>
+                            <a href="<%= booking.paymentScreenshot %>" download="receipt-<%= orderId %>" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
+                                <i class="fas fa-download me-1"></i> تحميل
+                            </a>
+                        </div>
+                        <% } %>
+                    </div>
+                    <div class="card-body-custom">
+                        <% if (booking.paymentScreenshot) { %>
+                            <div class="receipt-img-wrapper">
+                                <img src="<%= booking.paymentScreenshot %>" alt="إيصال التحويل"
+                                     onclick="openImageModal(this.src)" id="receiptImg">
+                                <p class="small text-muted mt-3 mb-0">
+                                    <i class="fas fa-hand-pointer me-1"></i> انقر على الصورة لعرضها بالحجم الكامل
+                                </p>
+                            </div>
+                        <% } else { %>
+                            <div class="text-center py-5 text-muted" style="border: 2px dashed var(--border); border-radius: 1rem;">
+                                <i class="fas fa-file-image fa-3x mb-3 text-muted opacity-50"></i>
+                                <p class="fw-bold mb-0">لا توجد صورة مرفقة لإيصال التحويل</p>
+                                <p class="small mb-0 mt-1">سيتم إضافتها عند تأكيد الدفع</p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Sessions Stats -->
+                <div class="info-card animate__animated animate__fadeInUp">
+                    <div class="card-head">
+                        <div class="card-head-icon"><i class="fas fa-calendar-check"></i></div>
+                        <h6>إحصائية الحصص</h6>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="d-flex gap-2">
+                            <div class="sessions-stat" style="background:#f0fdf4;">
+                                <div class="number" style="color:var(--success);"><%= completedSessions %></div>
+                                <div class="label">مكتملة</div>
+                            </div>
+                            <div class="sessions-stat" style="background:#eff6ff;">
+                                <div class="number" style="color:var(--info);"><%= remainingSessions %></div>
+                                <div class="label">متبقية</div>
+                            </div>
+                            <div class="sessions-stat" style="background:#faf5ff;">
+                                <div class="number" style="color:#7c3aed;"><%= totalSessions %></div>
+                                <div class="label">إجمالي</div>
+                            </div>
+                        </div>
+                        <% if (totalSessions > 0) { %>
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="fw-bold text-muted">نسبة الإتمام</small>
+                                <small class="fw-bold text-success"><%= Math.round((completedSessions / totalSessions) * 100) %>%</small>
+                            </div>
+                            <div class="progress" style="height:8px; border-radius:4px; background:#e2e8f0;">
+                                <div class="progress-bar bg-success" style="width:<%= Math.round((completedSessions / totalSessions) * 100) %>%; border-radius:4px;"></div>
+                            </div>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Quick Contact -->
+                <div class="info-card animate__animated animate__fadeInUp">
+                    <div class="card-head">
+                        <div class="card-head-icon"><i class="fas fa-bolt"></i></div>
+                        <h6>تواصل سريع</h6>
+                    </div>
+                    <div class="card-body-custom d-flex flex-column gap-2">
+                        <% 
+                            const phone = (booking.studentId && booking.studentId.phone_number) || '';
+                            const email = (booking.studentId && booking.studentId.email) || '';
+                            const waMsg = encodeURIComponent('مرحباً ' + studentName + '، نود التواصل معك بخصوص اشتراكك في دورة ' + courseTitle);
+                            const mailBody = encodeURIComponent('عزيزي ' + studentName + '،\n\nنود التواصل معك بخصوص اشتراكك في دورة ' + courseTitle + '.\n\nمع تحياتنا،\nفريق المنصة');
+                        %>
+                        <% if (phone) { %>
+                        <a href="https://wa.me/<%= phone %>?text=<%= waMsg %>" target="_blank"
+                           class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+                           style="background:#f0fdf4; border:1px solid #bbf7d0; transition:all 0.2s;"
+                           onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:40px;height:40px;background:#22c55e;color:white;font-size:1.1rem;">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div>
+                                <div class="fw-800 text-dark" style="font-size:0.82rem;">واتساب</div>
+                                <div class="text-muted" style="font-size:0.72rem;"><%= phone %></div>
+                            </div>
+                            <i class="fas fa-arrow-left ms-auto text-muted small"></i>
+                        </a>
+                        <% } else { %>
+                        <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background:#f8f9fa;opacity:0.6;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:40px;height:40px;background:#e2e8f0;color:#94a3b8;font-size:1.1rem;">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div class="text-muted small fw-bold">رقم الهاتف غير متوفر</div>
+                        </div>
+                        <% } %>
+
+                        <% if (email) { %>
+                        <a href="mailto:<%= email %>?subject=بخصوص اشتراكك في <%= courseTitle %>&body=<%= mailBody %>"
+                           class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+                           style="background:#eff6ff; border:1px solid #bfdbfe; transition:all 0.2s;"
+                           onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:40px;height:40px;background:#3b82f6;color:white;font-size:1rem;">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div>
+                                <div class="fw-800 text-dark" style="font-size:0.82rem;">البريد الإلكتروني</div>
+                                <div class="text-muted" style="font-size:0.72rem;direction:ltr;text-align:right;"><%= email %></div>
+                            </div>
+                            <i class="fas fa-arrow-left ms-auto text-muted small"></i>
+                        </a>
+                        <% } %>
+
+                        <% if (phone) { %>
+                        <a href="tel:<%= phone %>"
+                           class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+                           style="background:#fff7ed; border:1px solid #fed7aa; transition:all 0.2s;"
+                           onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:40px;height:40px;background:#f97316;color:white;font-size:1rem;">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div>
+                                <div class="fw-800 text-dark" style="font-size:0.82rem;">اتصال مباشر</div>
+                                <div class="text-muted" style="font-size:0.72rem;"><%= phone %></div>
+                            </div>
+                            <i class="fas fa-arrow-left ms-auto text-muted small"></i>
+                        </a>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <% if (user.role === 'admin' || user.role === 'supervisor') { %>
+                <div class="info-card animate__animated animate__fadeInUp">
+                    <div class="card-head">
+                        <div class="card-head-icon"><i class="fas fa-sliders"></i></div>
+                        <h6>الإجراءات</h6>
+                    </div>
+                    <div class="card-body-custom d-flex flex-column gap-2">
+                        <a href="/booking/<%= booking._id %>/manage-payment"
+                           class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+                           style="background:#fff0ed; border:1px solid #fecdc5; transition:all 0.2s;"
+                           onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:38px;height:38px;background:var(--primary);color:white;font-size:0.9rem;">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="fw-800 text-dark" style="font-size:0.85rem;">إدارة الدفع</div>
+                            <i class="fas fa-arrow-left ms-auto text-muted small"></i>
+                        </a>
+
+                        <a href="/booking/<%= booking._id %>/schedule"
+                           class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+                           style="background:#f0fdf4; border:1px solid #bbf7d0; transition:all 0.2s;"
+                           onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:38px;height:38px;background:#22c55e;color:white;font-size:0.9rem;">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="fw-800 text-dark" style="font-size:0.85rem;">جدول الحصص</div>
+                            <i class="fas fa-arrow-left ms-auto text-muted small"></i>
+                        </a>
+
+                        <a href="/booking/<%= booking._id %>/manage-sessions"
+                           class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+                           style="background:#eff6ff; border:1px solid #bfdbfe; transition:all 0.2s;"
+                           onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:38px;height:38px;background:#3b82f6;color:white;font-size:0.9rem;">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div class="fw-800 text-dark" style="font-size:0.85rem;">إدارة الحصص</div>
+                            <i class="fas fa-arrow-left ms-auto text-muted small"></i>
+                        </a>
+
+                        <% if (booking.isCritical || (booking.daysRemaining !== null && booking.daysRemaining !== undefined && booking.daysRemaining <= 2)) { %>
+                        <button onclick="openRenewModal()"
+                                class="d-flex align-items-center gap-3 p-3 rounded-3 w-100 text-decoration-none border-0"
+                                style="background:#fef2f2; border:1px solid #fecaca !important; transition:all 0.2s; cursor:pointer;"
+                                onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 style="width:38px;height:38px;background:#ef4444;color:white;font-size:0.9rem;">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-800 text-danger" style="font-size:0.85rem;">تجديد الاشتراك</div>
+                                <div class="text-muted" style="font-size:0.7rem;">ينتهي قريباً</div>
+                            </div>
+                            <i class="fas fa-arrow-left ms-auto text-muted small"></i>
+                        </button>
+                        <% } %>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- Quick Invoice Preview -->
+                <div class="info-card animate__animated animate__fadeInUp">
+                    <div class="card-head">
+                        <div class="card-head-icon"><i class="fas fa-receipt"></i></div>
+                        <h6>ملخص الفاتورة</h6>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted small fw-bold">الدورة</span>
+                            <span class="fw-bold small text-end" style="max-width:55%;"><%= courseTitle %></span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted small fw-bold">عدد الحصص</span>
+                            <span class="fw-bold small"><%= booking.numberOfSessionsPerMonth %> حصة</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted small fw-bold">مدة الحصة</span>
+                            <span class="fw-bold small"><%= booking.selectedPriceOption %> دقيقة</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 mt-1">
+                            <span class="fw-800">الإجمالي</span>
+                            <span class="fw-900" style="color:var(--primary); font-size:1.1rem;"><%= formatCurrency(booking.totalAmount) %></span>
+                        </div>
+                        <button onclick="printInvoice()" class="invoice-btn w-100 mt-3 justify-content-center">
+                            <i class="fas fa-print"></i> طباعة الفاتورة
+                        </button>
+                        <button onclick="downloadInvoice()" class="btn btn-outline-secondary rounded-pill w-100 mt-2 fw-bold" style="font-size:0.82rem;">
+                            <i class="fas fa-file-pdf me-1 text-danger"></i> تحميل كـ PDF
+                        </button>
+                    </div>
+                </div>
+
+
+                <!-- Order Timeline -->
+                <div class="info-card animate__animated animate__fadeInUp">
+                    <div class="card-head">
+                        <div class="card-head-icon"><i class="fas fa-timeline"></i></div>
+                        <h6>مسار الطلب</h6>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex gap-3 align-items-start">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width:32px;height:32px;background:#d1fae5;color:#065f46;">
+                                    <i class="fas fa-file-alt small"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 fw-bold small">تقديم الطلب</p>
+                                    <span class="text-muted" style="font-size:0.75rem;"><%= new Date(booking.createdAt).toLocaleDateString('ar-EG') %></span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-3 align-items-start">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width:32px;height:32px;background:<%= booking.status !== 'pending' ? '#d1fae5' : '#f1f5f9' %>;color:<%= booking.status !== 'pending' ? '#065f46' : '#94a3b8' %>;">
+                                    <i class="fas fa-check small"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 fw-bold small" style="color:<%= booking.status !== 'pending' ? 'var(--dark)' : '#94a3b8' %>;">تأكيد الدفع</p>
+                                    <span class="text-muted" style="font-size:0.75rem;">
+                                        <%= booking.confirmedBy ? 'بواسطة ' + booking.confirmedBy : 'بانتظار المراجعة' %>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-3 align-items-start">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width:32px;height:32px;background:<%= booking.startDate ? '#d1fae5' : '#f1f5f9' %>;color:<%= booking.startDate ? '#065f46' : '#94a3b8' %>;">
+                                    <i class="fas fa-play small"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 fw-bold small" style="color:<%= booking.startDate ? 'var(--dark)' : '#94a3b8' %>;">بدء الدراسة</p>
+                                    <span class="text-muted" style="font-size:0.75rem;">
+                                        <%= booking.startDate ? new Date(booking.startDate).toLocaleDateString('ar-EG') : 'لم يُحدد بعد' %>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 bg-transparent">
+                <div class="modal-body p-2 text-center position-relative">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2 bg-dark rounded-circle p-2" data-bs-dismiss="modal"></button>
+                    <img id="modalImg" src="" style="max-width:100%;max-height:85vh;border-radius:1rem;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Invoice for Print -->
+    <div id="invoicePrintArea" style="display:none;">
+        <div class="invoice-paper">
+            <div class="invoice-logo-bar">
+                <div>
+                    <h3 class="fw-900 mb-1" style="color:var(--primary);">فـاتـورة</h3>
+                    <p class="text-muted small mb-0">INVOICE</p>
+                </div>
+                <div class="text-end">
+                    <h4 class="fw-900 mb-1"><%= t('brand_name') %></h4>
+                    <p class="text-muted small mb-0">رقم الفاتورة: #<%= orderId %></p>
+                    <p class="text-muted small mb-0">التاريخ: <%= orderDate %></p>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-6">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase">صادرة لـ:</p>
+                    <p class="fw-800 mb-1"><%= studentName %></p>
+                    <p class="text-muted small mb-0"><%= studentEmail %></p>
+                    <p class="text-muted small mb-0"><%= studentPhone %></p>
+                </div>
+                <div class="col-6 text-end">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase">حالة الدفع:</p>
+                    <span class="status-pill <%= statusInfo.cls %>">
+                        <i class="fas <%= statusInfo.icon %>"></i> <%= statusInfo.text %>
+                    </span>
+                    <% if (booking.confirmedBy) { %>
+                    <p class="text-muted small mt-2 mb-0">تم التأكيد بواسطة: <strong><%= booking.confirmedBy %></strong></p>
+                    <% } %>
+                </div>
+            </div>
+
+            <table class="table invoice-table mb-0 text-start">
+                <thead>
+                    <tr>
+                        <th>البيان</th>
+                        <th class="text-center">الكمية</th>
+                        <th class="text-center">مدة الحصة</th>
+                        <th class="text-end">الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong><%= courseTitle %></strong><br>
+                            <small class="text-muted">المعلم: <%= teacherName %></small>
+                        </td>
+                        <td class="text-center"><%= booking.numberOfSessionsPerMonth %> حصة</td>
+                        <td class="text-center"><%= booking.selectedPriceOption %> دقيقة</td>
+                        <td class="text-end fw-bold"><%= formatCurrency(booking.totalAmount) %></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="invoice-total-row">
+                        <td colspan="3" class="text-end fw-800">المبلغ الإجمالي المدفوع:</td>
+                        <td class="text-end fw-900" style="font-size:1.1rem;"><%= formatCurrency(booking.totalAmount) %></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="mt-4 pt-3 border-top text-center text-muted small">
+                <p class="mb-0">شكراً لثقتكم بنا • <%= t('brand_name') %></p>
+                <p class="mb-0">تم إنشاء هذه الفاتورة بتاريخ: <%= new Date().toLocaleDateString('ar-EG') %></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function openImageModal(src) {
+            document.getElementById('modalImg').src = src;
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
+        }
+
+        function printInvoice() {
+            const invoiceArea = document.getElementById('invoicePrintArea');
+            invoiceArea.style.display = 'block';
+            window.print();
+            invoiceArea.style.display = 'none';
+        }
+
+        async function downloadInvoice() {
+            const btn = event.currentTarget;
+            const icon = btn.querySelector('i');
+            icon.className = 'fas fa-spinner fa-spin me-1';
+            btn.disabled = true;
+
+            // Use print dialog as PDF fallback
+            const invoiceArea = document.getElementById('invoicePrintArea');
+            invoiceArea.style.display = 'block';
+
+            // Try to use browser's print-to-PDF
+            setTimeout(() => {
+                window.print();
+                invoiceArea.style.display = 'none';
+                icon.className = 'fas fa-file-pdf me-1 text-danger';
+                btn.disabled = false;
+            }, 300);
+        }
+    </script>
+</body>
+</html>
+
