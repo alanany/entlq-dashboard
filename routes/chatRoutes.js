@@ -17,5 +17,6 @@ router.get('/api/chat/rooms', requireAuth,checkUser, chatController.getChatRooms
 router.get('/api/chat/rooms/:roomId/messages', requireAuth,checkUser, chatController.getMessages);
 router.post('/api/chat/rooms/course', requireAuth,checkUser, chatController.getOrCreateCourseRoom);
 router.post('/api/chat/rooms/support', requireAuth,checkUser, chatController.getOrCreateSupportRoom);
+router.post('/api/chat/rooms/direct', requireAuth,checkUser, chatController.getOrCreateDirectRoom);
 
 module.exports = router;

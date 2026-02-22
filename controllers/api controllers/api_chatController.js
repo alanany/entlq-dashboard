@@ -6,7 +6,8 @@ const httpStatus = require('../../utility/http_status');
 // Get all chat rooms for the student
 exports.getChatRooms = async (req, res) => {
     try {
-        const rooms = await ChatRoom.find({ participants: req.user._id })
+        const academyId = req.user.academyId;
+        const rooms = await ChatRoom.find({ participants: req.user._id, academyId: academyId })
             .populate('participants', 'name email image role')
             .populate({
                 path: 'lastMessage',
@@ -57,7 +58,8 @@ exports.getMessages = async (req, res) => {
 exports.getOrCreateSupportRoom = async (req, res) => {
     try {
         const userId = req.user._id;
-        const admin = await User.findOne({ role: 'admin' });
+        const academyId = req.user.academyId;
+        const admin = await User.findOne({ role: 'admin', academyId: academyId });
         
         if (!admin) {
             return res.status(404).json({
@@ -75,7 +77,8 @@ exports.getOrCreateSupportRoom = async (req, res) => {
         if (!room) {
             room = await ChatRoom.create({
                 type: 'support',
-                participants: [userId, admin._id]
+                participants: [userId, admin._id],
+                academyId: academyId
             });
             room = await room.populate('participants', 'name email image role').execPopulate();
         }
@@ -111,9 +114,46 @@ exports.getOrCreateCourseRoom = async (req, res) => {
             room = await ChatRoom.create({
                 type: 'course',
                 course: courseId,
-                participants: [studentId, teacherId]
+                participants: [studentId, teacherId],
+                academyId: req.user.academyId
             });
             room = await room.populate('participants', 'name email image role').populate('course', 'title').execPopulate();
+        }
+
+        res.status(200).json({
+            status: 'success',
+            statusCode: httpStatus.SUCCESS,
+            data: room
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            statusCode: httpStatus.ERROR,
+            message: 'Internal Server Error',
+            error: err.message
+        });
+    }
+};
+// Create/Get Direct Room
+exports.getOrCreateDirectRoom = async (req, res) => {
+    try {
+        const { targetUserId } = req.body;
+        const currentUserId = req.user._id;
+        const academyId = req.user.academyId;
+
+        let room = await ChatRoom.findOne({
+            type: 'direct',
+            academyId: academyId,
+            participants: { $all: [currentUserId, targetUserId] }
+        }).populate('participants', 'name email image role');
+
+        if (!room) {
+            room = await ChatRoom.create({
+                type: 'direct',
+                academyId: academyId,
+                participants: [currentUserId, targetUserId]
+            });
+            room = await room.populate('participants', 'name email image role').execPopulate();
         }
 
         res.status(200).json({

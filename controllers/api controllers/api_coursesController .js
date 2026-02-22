@@ -3,17 +3,31 @@ const Subscription = require("../../models/subscription_model");
 const { DateTime } = require("luxon");
 const Course = require("../../models/course_model");
 const User = require("../../models/user_model");
+const Category = require("../../models/category_model");
+const BlogPost = require("../../models/BlogPost");
 const mongoose = require("mongoose");
 const getapicourses = async (req, res) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  const courses = await Course.find()
+  // Ensure we only get courses for the user's academy
+  const academyId = req.params.academyId;
+
+  if (!academyId) {
+    return res.status(400).json({
+      statusCode: 400,
+      status: "fail",
+      message: "لا توجد أكاديمية مرتبطة بهذا المستخدم."
+    });
+  }
+
+  const courses = await Course.find({ academyId })
+    .populate('category')
     .skip(skip)
     .limit(limit);
 
-  const total = await Course.countDocuments();
+  const total = await Course.countDocuments({ academyId });
 
   res.status(200).json({
     statusCode: 200,
@@ -33,10 +47,11 @@ const getapicourses = async (req, res) => {
 const getapiCourseDetails =  async (req, res,next) => {
     const { id } = req.params;
 console.log('Course ID:', id); // Debugging line to check the received ID
-  const course = await Course.findById(id);
+  const academyId = req.user.academyId;
+  const course = await Course.findOne({ _id: id, academyId: academyId });
 
   if (!course) {
-    return res.status(404).json({ statusCode: 404, status: "fail", message: 'عذراً، لم يتم العثور على هذا الكورس.' });
+    return res.status(404).json({ statusCode: 404, status: "fail", message: 'عذراً، لم يتم العثور على هذا الكورس في هذه الأكاديمية.' });
   }
 
   res.status(200).json({
@@ -68,7 +83,8 @@ console.log(req.body);
             numberOfSessionsPerMonth,
             selectedPriceOption,
             studentId,
-            totalAmount
+            totalAmount,
+            academyId: req.user.academyId
                 // يتم إدراج هيكل المنهج الدراسي مباشرة
             // creator: req.user._id // (إذا كنت تستخدم مصادقة)
         });
@@ -320,6 +336,82 @@ async function notifyUser(userId, content) {
   return await sendPushNotification(tokens, content);
 }
 
+const SystemSettings = require("../../models/SystemSettings");
+
+const getAcademyInfo = async (req, res) => {
+  try {
+    const academyId = req.user.academyId;
+    if (!academyId) {
+      return res.status(400).json({
+        statusCode: 400,
+        status: "fail",
+        message: "لا توجد أكاديمية مرتبطة بهذا المستخدم."
+      });
+    }
+
+    const settings = await SystemSettings.findOne({ academyId });
+    
+    if (!settings) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: "fail",
+        message: "لم يتم العثور على إعدادات لهذه الأكاديمية."
+      });
+    }
+
+    res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: {
+        settings
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching academy info:", error);
+    res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "حدث خطأ أثناء تحميل بيانات الأكاديمية."
+    });
+  }
+};
+
+const getApiCategories = async (req, res) => {
+  try {
+    const academyId = req.user.academyId;
+    const categories = await Category.find({ academyId });
+    res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: categories
+    });
+  } catch (error) {
+    res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "Internal Server Error"
+    });
+  }
+};
+
+const getApiBlogPosts = async (req, res) => {
+  try {
+    const academyId = req.user.academyId;
+    const posts = await BlogPost.find({ academyId, isPublished: true }).sort({ createdAt: -1 });
+    res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: posts
+    });
+  } catch (error) {
+    res.status(500).json({
+      statusCode: 500,
+      status: "error",
+      message: "Internal Server Error"
+    });
+  }
+};
+
 // مثال: إرسال إشعار عند نجاح الدفع
 
 module.exports = {
@@ -328,5 +420,8 @@ module.exports = {
   getapiCourseDetails,
   getStudentSessionsPage,
   getStudentApiDashboard,
+  getAcademyInfo,
+  getApiCategories,
+  getApiBlogPosts,
   notifyUser
 };

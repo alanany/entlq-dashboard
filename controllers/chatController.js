@@ -66,7 +66,7 @@ exports.getOrCreateSupportRoom = async (req, res) => {
 
         let room = await ChatRoom.findOne({
             type: 'support',
-            participants: { $all: [userId, admin._id] }
+            participants: { $all: [user._id, admin._id] }
         });
 
         if (!room) {
@@ -80,4 +80,38 @@ exports.getOrCreateSupportRoom = async (req, res) => {
     } catch (err) {
         res.status(500).json({ message: 'حدث خطأ أثناء إنشاء غرفة دردشة الدعم', error: err.message });
     }
+};
+
+// إنشاء أو جلب غرفة دردشة مباشرة بين مستخدمين
+exports.getOrCreateDirectRoom = async (req, res) => {
+    const user = req.user || res.locals.user;
+    const { targetUserId } = req.body;
+    const academyId = user.academyId;
+
+    try {
+        let room = await ChatRoom.findOne({
+            type: 'direct',
+            academyId,
+            participants: { $all: [user._id, targetUserId] }
+        });
+
+        if (!room) {
+            room = await ChatRoom.create({
+                type: 'direct',
+                academyId,
+                participants: [user._id, targetUserId]
+            });
+        }
+        res.json(room);
+    } catch (err) {
+        res.status(500).json({ message: 'حدث خطأ أثناء إنشاء غرفة الدردشة المباشرة', error: err.message });
+    }
+};
+
+module.exports = {
+    getChatRooms: exports.getChatRooms,
+    getMessages: exports.getMessages,
+    getOrCreateCourseRoom: exports.getOrCreateCourseRoom,
+    getOrCreateSupportRoom: exports.getOrCreateSupportRoom,
+    getOrCreateDirectRoom: exports.getOrCreateDirectRoom
 };

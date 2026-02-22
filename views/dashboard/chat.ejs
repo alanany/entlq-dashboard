@@ -256,7 +256,10 @@
                     </div>
                     <div>
                         <h5 id="active-room-name" class="fw-bold mb-0">اسم المحادثة</h5>
-                        <small class="text-success"><span class="status-dot"></span> متصل الآن</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <span id="active-room-role" class="badge bg-secondary bg-opacity-10 text-secondary fw-normal" style="font-size: 0.65rem;">الدور</span>
+                            <small class="text-success" style="font-size: 0.7rem;"><span class="status-dot"></span> متصل الآن</small>
+                        </div>
                     </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -290,7 +293,20 @@
     <script>
         const socket = io();
         const userId = "<%= user._id %>";
+        const userRole = "<%= user.role %>";
         let currentRoomId = null;
+
+        const roleTranslations = {
+            'admin': 'مدير',
+            'teacher': 'معلم',
+            'student': 'طالب',
+            'supervisor': 'مشرف',
+            'superadmin': 'مدير عام'
+        };
+
+        function translateRole(role) {
+            return roleTranslations[role] || role;
+        }
 
         // Load Rooms
         async function loadRooms() {
@@ -302,11 +318,29 @@
 
                 rooms.forEach(room => {
                     const otherParticipant = room.participants.find(p => p._id !== userId);
-                    const name = room.type === 'course' ? (room.course ? room.course.title : 'دورة تدريبية') : 'الدعم الفني';
-                    const icon = room.type === 'course' ? 'fa-book' : 'fa-headset';
+                    let name, roleText = '', icon;
+
+                    if (room.type === 'course') {
+                        name = room.course ? room.course.title : 'دورة تدريبية';
+                        roleText = 'دورة تدريبية';
+                        icon = 'fa-book';
+                    } else if (room.type === 'support') {
+                        if (userRole === 'admin' || userRole === 'supervisor') {
+                            name = otherParticipant ? otherParticipant.name : 'طالب';
+                            roleText = otherParticipant ? translateRole(otherParticipant.role) : 'طالب';
+                        } else {
+                            name = 'الدعم الفني';
+                            roleText = 'إدارة الأكاديمية';
+                        }
+                        icon = 'fa-headset';
+                    } else if (room.type === 'direct') {
+                        name = otherParticipant ? otherParticipant.name : 'مستخدم';
+                        roleText = otherParticipant ? translateRole(otherParticipant.role) : '';
+                        icon = 'fa-user-circle';
+                    }
                     
                     const item = $(`
-                        <div class="room-item" onclick="openRoom('${room._id}', '${name}', '${icon}')">
+                        <div class="room-item" onclick="openRoom('${room._id}', '${name}', '${icon}', '${roleText}')">
                             <div class="room-icon">
                                 <i class="fa ${icon}"></i>
                             </div>
@@ -315,7 +349,10 @@
                                     <h6 class="fw-bold mb-0 text-truncate">${name}</h6>
                                     <small class="text-muted" style="font-size: 0.7rem;">${room.lastMessage ? new Date(room.lastMessage.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</small>
                                 </div>
-                                <p class="text-muted mb-0 text-truncate small">${room.lastMessage ? room.lastMessage.content : 'لا توجد رسائل بعد'}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <p class="text-muted mb-0 text-truncate small" style="max-width: 70%;">${room.lastMessage ? room.lastMessage.content : 'لا توجد رسائل بعد'}</p>
+                                    <span class="badge bg-light text-dark fw-normal" style="font-size: 0.6rem;">${roleText}</span>
+                                </div>
                             </div>
                         </div>
                     `);
@@ -326,11 +363,12 @@
             }
         }
 
-        async function openRoom(roomId, name, icon) {
+        async function openRoom(roomId, name, icon, role) {
             currentRoomId = roomId;
             $('#chat-welcome').addClass('d-none');
             $('#chat-active').removeClass('d-none');
             $('#active-room-name').text(name);
+            $('#active-room-role').text(role);
             $('#active-room-icon').attr('class', `fa ${icon}`);
             
             socket.emit('joinRoom', { roomId });
@@ -356,9 +394,10 @@
 
         function appendMessage(msg) {
             const isSent = msg.sender._id === userId;
+            const role = translateRole(msg.sender.role);
             const msgHtml = `
                 <div class="message ${isSent ? 'sent' : 'received'}">
-                    <div class="small fw-bold mb-1" style="font-size: 0.7rem; opacity: 0.8;">${msg.sender.name}</div>
+                    <div class="small fw-bold mb-1" style="font-size: 0.7rem; opacity: 0.8;">${msg.sender.name} (${role})</div>
                     <div class="content">${msg.content}</div>
                     <div class="text-end" style="font-size: 0.6rem; opacity: 0.6; margin-top: 5px;">
                         ${new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}

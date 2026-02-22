@@ -8,7 +8,7 @@ const chatRoomSchema = new mongoose.Schema({
     }],
     type: {
         type: String,
-        enum: ['course', 'support'],
+        enum: ['course', 'support', 'direct'],
         required: true
     },
     course: {

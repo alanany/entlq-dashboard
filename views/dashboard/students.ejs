@@ -127,6 +127,7 @@
                             <th class="px-4 py-3">الطالب</th>
                             <th class="px-4 py-3">البريد</th>
                             <th class="px-4 py-3">الهاتف</th>
+                            <th class="px-4 py-3 text-center">الدردشة</th>
                             <th class="px-4 py-3 text-center">الحالة</th>
                             <th class="px-4 py-3 text-start">الإجراءات</th>
                         </tr>
@@ -141,6 +142,11 @@
                                 </td>
                                 <td class="px-4 py-3 text-muted" style="font-size: 0.8rem;"><%= student.email %></td>
                                 <td class="px-4 py-3 text-muted outfit-font" style="font-size: 0.8rem;"><%= student.country_code %> <%= student.phone_number %></td>
+                                <td class="px-4 py-3 text-center">
+                                    <button onclick="event.stopPropagation(); startChat('<%= student._id %>')" class="btn btn-sm btn-outline-success rounded-3">
+                                        <i class="fas fa-comment-dots"></i>
+                                    </button>
+                                </td>
                                 <td class="px-4 py-3 text-center">
                                     <% if (student.isActive == false) { %>
                                         <span class="badge bg-danger bg-opacity-10 text-white rounded-pill px-3 py-2" style="font-size: 0.65rem;">غير نشط</span>
@@ -416,6 +422,25 @@
             } catch (e) {
                 Swal.fire({ title: 'خطأ', text: 'تعذر الاتصال بالسيرفر', icon: 'error', customClass: { popup: 'swal-custom-modal' } });
             }
+        }
+    }
+
+    async function startChat(targetUserId) {
+        try {
+            const response = await fetch('/api/chat/rooms/direct', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ targetUserId })
+            });
+            const room = await response.json();
+            if (room && room._id) {
+                window.location.href = '/chat';
+            } else {
+                Swal.fire({ title: 'خطأ', text: 'فشل في بدء المحادثة', icon: 'error', customClass: { popup: 'swal-custom-modal' } });
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire({ title: 'خطأ', text: 'حدث خطأ ما', icon: 'error', customClass: { popup: 'swal-custom-modal' } });
         }
     }
     </script>
