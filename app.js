@@ -39,7 +39,7 @@ app.use(globalLimiter);
 // Specific limiters for sensitive routes (Brute force protection)
 app.use('/login', authLimiter);
 app.use('/admin_register', authLimiter);
-app.use('/api/v1', authLimiter); // Apply to all API auth routes
+// Note: authLimiter is applied directly on /api/v1/login and /api/v1/register routes in api_authRoutes.js
 
 // ⭐️ الإعداد الصحيح لمجلد العرض ⭐️
 // يتم تعيين مجلد 'views' كمسار افتراضي للـ EJS
