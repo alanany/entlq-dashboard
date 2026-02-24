@@ -3,6 +3,8 @@
 const Category = require('../models/category_model.js');
 const Course = require('../models/course_model.js');
 const User = require('../models/user_model.js');
+const fs = require('fs');
+const path = require('path');
 
 const api_coursesController = require('./api controllers/api_coursesController .js');
 const Subscription= require('../models/subscription_model.js');
@@ -159,6 +161,14 @@ const updateCoursePost = async (req, res) => {
 
         // إذا تم رفع صورة جديدة
         if (req.file) {
+            // جلب الدورة القديمة لحذف صورتها
+            const oldCourse = await Course.findOne({ _id: courseId, academyId: req.user.academyId });
+            if (oldCourse && oldCourse.coverImage) {
+                const oldImagePath = path.join(__dirname, '..', oldCourse.coverImage);
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
+                }
+            }
             updatedData.coverImage = `/uploads/${req.file.filename}`;
         }
 
@@ -196,6 +206,14 @@ const deleteCourse = async (req, res) => {
 
         if (!result) {
             return res.status(404).json({ message: 'الدورة غير موجودة ولا يمكن حذفها.' });
+        }
+
+        // حذف الصورة من الملفات إذا وجدت
+        if (result.coverImage) {
+            const imagePath = path.join(__dirname, '..', result.coverImage);
+            if (fs.existsSync(imagePath)) {
+                fs.unlinkSync(imagePath);
+            }
         }
 
         res.status(200).json({ 
