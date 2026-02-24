@@ -6,6 +6,7 @@ const User = require("../../models/user_model");
 const Category = require("../../models/category_model");
 const BlogPost = require("../../models/BlogPost");
 const mongoose = require("mongoose");
+const SystemSettings = require("../../models/SystemSettings");
 const getapicourses = async (req, res) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
@@ -302,6 +303,10 @@ const getStudentApiDashboard = async (req, res) => {
     const nearestSession = await getNearestSession(studentId, req.user.timezone);
     const studentStats = await getStudentStats(studentId);
     const courseBookingDetails = await getStudentCourseDetails(studentId);
+    
+    // جلب إعدادات الأكاديمية للحصول على رقم الواتساب
+    const settings = await SystemSettings.findOne({ academyId: req.user.academyId });
+    const whatsapp = settings?.socialLinks?.whatsapp || settings?.supportContact?.student || "";
 
     res.status(200).json({
       statusCode: 200,
@@ -310,6 +315,7 @@ const getStudentApiDashboard = async (req, res) => {
         nearestSession,
         studentStats,
         courseBookingDetails,
+        whatsapp,
         user: req.user
       }
     });
@@ -335,8 +341,6 @@ async function notifyUser(userId, content) {
   // هنا بننادي على الـ Service اللي فوق
   return await sendPushNotification(tokens, content);
 }
-
-const SystemSettings = require("../../models/SystemSettings");
 
 const getAcademyInfo = async (req, res) => {
   try {
