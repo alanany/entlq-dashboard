@@ -10,4 +10,7 @@ router.post('/login', authController.login_post);
 router.get('/logout', authController.logout_get);
 router.get('/student/logout', authController.student_logout_get);
 
+// Redirect old blog URL to home page
+router.get('/almdwnh', (req, res) => res.redirect(301, '/'));
+
 module.exports = router;
