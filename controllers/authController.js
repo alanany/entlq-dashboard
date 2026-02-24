@@ -108,7 +108,7 @@ module.exports.login_post = async (req, res) => {
 
         // 5.5 تحقق من حالة الأكاديمية (إذا كان المستخدم مرتبطاً بأكاديمية)
         if (user.academyId) {
-            const academy = await Academy.findById(user.academyId);
+            const academy = await Academy.findById(user.academyId).populate('academyId');
             if (academy && academy.status === 'suspended') {
                 errors.email = 'تم حظر هذه الأكاديمية مؤقتاً. يرجى التواصل مع الإدارة.';
                 res.status(403).json({ errors });
