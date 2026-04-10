@@ -22,8 +22,11 @@
     "moment": "^2.30.1",
     "mongoose": "^5.9.23",
     "multer": "^2.0.2",
+    "mysql2": "^3.21.1",
     "nodemon": "^3.1.11",
+    "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.3",
+    "typeorm": "^0.3.28",
     "validator": "^13.1.1"
   },
   "scripts": {

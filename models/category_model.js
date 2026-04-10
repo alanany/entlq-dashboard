@@ -1,34 +1,46 @@
+const { EntitySchema } = require('typeorm');
 
-const mongoose = require('mongoose');
-
-const CategorySchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'اسم القسم مطلوب'],
-        trim: true
+module.exports = new EntitySchema({
+    name: 'Category',
+    tableName: 'categories',
+    columns: {
+        id: {
+            primary: true,
+            type: 'int',
+            generated: true
+        },
+        name: {
+            type: 'varchar',
+            nullable: false
+        },
+        slug: {
+            type: 'varchar',
+            nullable: true
+        },
+        academyId: {
+            type: 'int',
+            nullable: true
+        }
     },
-    slug: { // يمكن استخدامه لعناوين URL النظيفة
-        type: String,
-        lowercase: true
+    relations: {
+        academy: {
+            target: 'Academy',
+            type: 'many-to-one',
+            joinColumn: { name: 'academyId' },
+            nullable: false,
+            onDelete: 'CASCADE'
+        }
     },
-    // يمكن إضافة حقول أخرى مثل creator أو dateCreated
-    academyId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Academy',
-        required: true
-    }
+    indices: [
+        {
+            name: 'IDX_CATEGORY_NAME_ACADEMY',
+            unique: true,
+            columns: ['name', 'academyId']
+        },
+        {
+            name: 'IDX_CATEGORY_SLUG_ACADEMY',
+            unique: true,
+            columns: ['slug', 'academyId']
+        }
+    ]
 });
-
-// إضافة فهارس فريدة لكل أكاديمية
-CategorySchema.index({ name: 1, academyId: 1 }, { unique: true });
-CategorySchema.index({ slug: 1, academyId: 1 }, { unique: true });
-
-// 💡 يمكنك إضافة منطق لإنشاء الـ slug قبل الحفظ
-CategorySchema.pre('save', function(next) {
-    if (this.isModified('name')) {
-        this.slug = this.name.replace(/\s+/g, '-'); // تحويل الاسم إلى slug (قد تحتاج مكتبة للتعامل مع الأحرف العربية)
-    }
-    next();
-});
-
-module.exports = mongoose.model('Category', CategorySchema);

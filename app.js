@@ -3,7 +3,7 @@ const express = require('express');
 const authRoutes = require('./routes/authRoutes');
 const cookieParser = require('cookie-parser');
 const {  checkUser } = require('./middleware/authMiddleware');
-const connectMango = require('./middleware/mongo_connect');
+
 const bodyParser = require('body-parser');
 const { globalLimiter, authLimiter } = require('./middleware/rateLimiter');
 const dashboardRoutes = require('./routes/dashboardRoutes');
@@ -17,7 +17,7 @@ const teacherDashboardRoutes = require('./routes/teacher_dashboard_routes');
 const supervisorRoutes = require('./routes/supervisorRoutes');
 const superAdminRoutes = require('./routes/superAdminRoutes');
 const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
+
 const hpp = require('hpp');
 
 const app = express();
@@ -27,8 +27,6 @@ app.use(helmet({
     contentSecurityPolicy: false, // Disabled for easier integration with EJS/CDNs, can be tuned later
 }));
 
-// 2. Data Sanitization against NoSQL query injection
-app.use(mongoSanitize());
 
 // 3. Prevent HTTP Parameter Pollution
 app.use(hpp());
@@ -89,11 +87,14 @@ const io = socketIo(server, {
 
 chatSocket(io);
 
+const { AppDataSource } = require('./config/database');
+
 const port = process.env.PORT || 4000;
 // database connection
 (async () => {
     try {
-        await connectMango();
+        await AppDataSource.initialize();
+        console.log("Connected to MySQL via TypeORM successfully");
         server.listen(port, () => {
             console.log(`Server is running at http://localhost:${port}`);
         });

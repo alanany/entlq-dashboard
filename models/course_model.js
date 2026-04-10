@@ -1,38 +1,58 @@
-// Course.js (نموذج Mongoose)
-const mongoose=require("mongoose");
+const { EntitySchema } = require('typeorm');
 
-const LessonSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    // videoUrl: String,
-});
-
-const SectionSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    lessons: [LessonSchema] // مصفوفة من الدروس
-});
-
-const CourseSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-
-    level: { type: String, enum: ['beginner', 'intermediate', 'advanced'] },
-    category:  { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
-    isPublished: { type: Boolean, default: true },
-   pricingOptions: {
-        type: [
-            {
-                duration: { type: Number, required: true }, // مثال: 30, 40, 60
-                price: { type: Number, required: true }    // سعر الحصة لهذه المدة
-            }
-        ],
-        required: true,
-      
+module.exports = new EntitySchema({
+    name: 'Course',
+    tableName: 'courses',
+    columns: {
+        id: {
+            primary: true,
+            type: 'int',
+            generated: true
+        },
+        title: {
+            type: 'varchar',
+            nullable: false
+        },
+        description: {
+            type: 'text',
+            nullable: false
+        },
+        level: {
+            type: 'enum',
+            enum: ['beginner', 'intermediate', 'advanced'],
+            nullable: true
+        },
+        isPublished: {
+            type: 'boolean',
+            default: true
+        },
+        pricingOptions: {
+            type: 'json',
+            nullable: false
+        },
+        coverImage: {
+            type: 'varchar',
+            nullable: true
+        },
+        curriculum: {
+            type: 'json',
+            nullable: true // Stores array of SectionSchema and LessonSchema
+        }
     },
-   coverImage: { type: String },
-    curriculum: [SectionSchema], // مصفوفة من الأقسام
-    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy' },
-    // creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    relations: {
+        category: {
+            target: 'Category',
+            type: 'many-to-one',
+            joinColumn: { name: 'categoryId' },
+            nullable: true,
+            onDelete: 'SET NULL'
+        },
+        academy: {
+            target: 'Academy',
+            type: 'many-to-one',
+            joinColumn: { name: 'academyId' },
+            nullable: true,
+            onDelete: 'CASCADE'
+        }
+    }
 });
-
-const Course = mongoose.model('Course', CourseSchema);
-module.exports = Course;

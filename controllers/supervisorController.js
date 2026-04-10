@@ -1,14 +1,18 @@
-const User = require('../models/user_model');
-const Subscription = require('../models/subscription_model');
+const { AppDataSource } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const { DateTime } = require('luxon');
+const { In } = require('typeorm');
 
 // ────────────────────────────────────────────
 // Helper: get teacher IDs assigned to this supervisor
 // ────────────────────────────────────────────
 async function getAssignedTeacherIds(supervisorId) {
-    const teachers = await User.find({ role: 'teacher', supervisorId: supervisorId }).select('_id');
-    return teachers.map(t => t._id);
+    const userRepository = AppDataSource.getRepository('User');
+    const teachers = await userRepository.find({ 
+        where: { role: 'teacher', supervisor: { id: parseInt(supervisorId) } },
+        select: ['id']
+    });
+    return teachers.map(t => t.id);
 }
 
 // ────────────────────────────────────────────
@@ -16,25 +20,33 @@ async function getAssignedTeacherIds(supervisorId) {
 // ────────────────────────────────────────────
 const supervisorDashboard = async (req, res) => {
     try {
-        const supervisorId = req.user._id;
+        const supervisorId = req.user.id;
+        const userRepository = AppDataSource.getRepository('User');
+        const subscriptionRepository = AppDataSource.getRepository('Subscription');
 
         // Get assigned teachers
-        const teachers = await User.find({ role: 'teacher', supervisorId: supervisorId }).select('name email phone_number');
-        const teacherIds = teachers.map(t => t._id);
+        const teachers = await userRepository.find({ 
+            where: { role: 'teacher', supervisor: { id: parseInt(supervisorId) } },
+            select: ['id', 'name', 'email', 'phone_number']
+        });
+        const teacherIds = teachers.map(t => t.id);
 
-        // Get subscriptions for those teachers
-        const subscriptions = await Subscription.find({
-            teacherId: { $in: teacherIds },
-            status: 'confirmed'
-        })
-        .populate('studentId', 'name')
-        .populate('courseId', 'title')
-        .populate('teacherId', 'name');
+        let subscriptions = [];
+        if (teacherIds.length > 0) {
+            // Get subscriptions for those teachers
+            subscriptions = await subscriptionRepository.find({
+                where: {
+                    teacher: { id: In(teacherIds) },
+                    status: 'confirmed'
+                },
+                relations: ['student', 'course', 'teacher']
+            });
+        }
 
         // Unique students
         const uniqueStudentIds = new Set();
         subscriptions.forEach(sub => {
-            if (sub.studentId) uniqueStudentIds.add(sub.studentId._id.toString());
+            if (sub.student) uniqueStudentIds.add(sub.student.id.toString());
         });
 
         // Upcoming sessions (next 7 days)
@@ -43,15 +55,15 @@ const supervisorDashboard = async (req, res) => {
         let upcomingSessions = [];
 
         subscriptions.forEach(sub => {
-            if (!sub.sessions) return;
+            if (!sub.sessions || !Array.isArray(sub.sessions)) return;
             sub.sessions.forEach(session => {
                 if (!session.utcDateAndTime) return;
                 const sessionTime = DateTime.fromISO(session.utcDateAndTime);
                 if (sessionTime >= now && sessionTime <= weekLater && session.status !== 'completed' && session.status !== 'missed') {
                     upcomingSessions.push({
-                        studentName: sub.studentId ? sub.studentId.name : 'غير معروف',
-                        teacherName: sub.teacherId ? sub.teacherId.name : 'غير محدد',
-                        courseTitle: sub.courseId ? sub.courseId.title : 'غير معروف',
+                        studentName: sub.student ? sub.student.name : 'غير معروف',
+                        teacherName: sub.teacher ? sub.teacher.name : 'غير محدد',
+                        courseTitle: sub.course ? sub.course.title : 'غير معروف',
                         displayDate: sessionTime.setZone('Asia/Riyadh').toFormat('yyyy-MM-dd'),
                         displayTime: sessionTime.setZone('Asia/Riyadh').toFormat('hh:mm a'),
                     });
@@ -89,8 +101,12 @@ const supervisorDashboard = async (req, res) => {
 // ────────────────────────────────────────────
 const supervisorTeachers = async (req, res) => {
     try {
-        const supervisorId = req.user._id;
-        const teachers = await User.find({ role: 'teacher', supervisorId: supervisorId }).sort({ createdAt: -1 });
+        const supervisorId = req.user.id;
+        const userRepository = AppDataSource.getRepository('User');
+        const teachers = await userRepository.find({ 
+            where: { role: 'teacher', supervisor: { id: parseInt(supervisorId) } },
+            order: { createdAt: 'DESC' }
+        });
 
         res.render('dashboard/supervisor/supervisor_teachers', {
             title: 'المعلمون التابعون',
@@ -108,36 +124,39 @@ const supervisorTeachers = async (req, res) => {
 // ────────────────────────────────────────────
 const supervisorStudents = async (req, res) => {
     try {
-        const supervisorId = req.user._id;
+        const supervisorId = req.user.id;
         const teacherIds = await getAssignedTeacherIds(supervisorId);
+        const subscriptionRepository = AppDataSource.getRepository('Subscription');
 
-        // Get subscriptions for those teachers
-        const subscriptions = await Subscription.find({
-            teacherId: { $in: teacherIds },
-            status: { $in: ['confirmed', 'completed'] }
-        })
-        .populate('studentId', 'name email phone_number')
-        .populate('courseId', 'title')
-        .populate('teacherId', 'name');
+        let subscriptions = [];
+        if (teacherIds.length > 0) {
+            subscriptions = await subscriptionRepository.find({
+                where: {
+                    teacher: { id: In(teacherIds) },
+                    status: In(['confirmed', 'completed'])
+                },
+                relations: ['student', 'course', 'teacher']
+            });
+        }
 
         // Group students with their subscriptions
         const studentMap = {};
         subscriptions.forEach(sub => {
-            if (!sub.studentId) return;
-            const sid = sub.studentId._id.toString();
+            if (!sub.student) return;
+            const sid = sub.student.id.toString();
             if (!studentMap[sid]) {
                 studentMap[sid] = {
-                    student: sub.studentId,
+                    student: sub.student,
                     subscriptions: []
                 };
             }
             studentMap[sid].subscriptions.push({
-                id: sub._id, // إضافة معرّف الاشتراك
-                courseTitle: sub.courseId ? sub.courseId.title : 'غير معروف',
-                teacherName: sub.teacherId ? sub.teacherId.name : 'غير محدد',
+                id: sub.id,
+                courseTitle: sub.course ? sub.course.title : 'غير معروف',
+                teacherName: sub.teacher ? sub.teacher.name : 'غير محدد',
                 status: sub.status,
-                sessionsCount: sub.sessions ? sub.sessions.length : 0,
-                completedSessions: sub.sessions ? sub.sessions.filter(s => s.status === 'completed').length : 0
+                sessionsCount: sub.sessions && Array.isArray(sub.sessions) ? sub.sessions.length : 0,
+                completedSessions: sub.sessions && Array.isArray(sub.sessions) ? sub.sessions.filter(s => s.status === 'completed').length : 0
             });
         });
 
@@ -159,8 +178,9 @@ const supervisorStudents = async (req, res) => {
 // ────────────────────────────────────────────
 const supervisorSessions = async (req, res) => {
     try {
-        const supervisorId = req.user._id;
+        const supervisorId = req.user.id;
         const teacherIds = await getAssignedTeacherIds(supervisorId);
+        const subscriptionRepository = AppDataSource.getRepository('Subscription');
 
         let startDate = req.query.from ? DateTime.fromISO(req.query.from).startOf('day') : DateTime.now().startOf('day');
         let endDate = req.query.to ? DateTime.fromISO(req.query.to).endOf('day') : DateTime.now().endOf('day');
@@ -168,43 +188,45 @@ const supervisorSessions = async (req, res) => {
         if (!startDate.isValid) startDate = DateTime.now().startOf('day');
         if (!endDate.isValid) endDate = DateTime.now().endOf('day');
 
-        const subscriptions = await Subscription.find({
-            teacherId: { $in: teacherIds },
-            status: 'confirmed',
-            'sessions.0': { $exists: true }
-        })
-        .populate({ path: 'studentId', select: 'name email devices phone_number' })
-        .populate({ path: 'teacherId', select: 'name' })
-        .populate({ path: 'courseId', select: 'title' });
-
         let upcomingSessions = [];
 
-        subscriptions.forEach(sub => {
-            if (!sub.sessions) return;
-            sub.sessions.forEach(session => {
-                if (!session.utcDateAndTime) return;
-                const sessionTime = DateTime.fromISO(session.utcDateAndTime);
-                if (sessionTime >= startDate && sessionTime <= endDate && session.status !== 'completed' && session.status !== 'missed') {
-                    if (!sub.studentId) return;
-                    upcomingSessions.push({
-                        sessionId: session._id,
-                        subscriptionId: sub._id,
-                        studentName: sub.studentId.name || 'طالب بدون اسم',
-                        studentId: sub.studentId._id,
-                        courseTitle: sub.courseId ? sub.courseId.title : 'دورة غير معروفة',
-                        teacherName: sub.teacherId ? sub.teacherId.name : 'معلم غير محدد',
-                        date: session.date,
-                        time: session.time,
-                        displayDate: sessionTime.setZone('Asia/Riyadh').toFormat('yyyy-MM-dd'),
-                        displayTime: sessionTime.setZone('Asia/Riyadh').toFormat('hh:mm a'),
-                        utcDate: session.utcDateAndTime,
-                        link: session.link
-                    });
-                }
+        if (teacherIds.length > 0) {
+            // TypeORM JSON support varies by DB, we retrieve all matching status and filter JSON in memory
+            const subscriptions = await subscriptionRepository.find({
+                where: {
+                    teacher: { id: In(teacherIds) },
+                    status: 'confirmed'
+                },
+                relations: ['student', 'teacher', 'course']
             });
-        });
 
-        upcomingSessions.sort((a, b) => DateTime.fromISO(a.utcDate) - DateTime.fromISO(b.utcDate));
+            subscriptions.forEach(sub => {
+                if (!sub.sessions || !Array.isArray(sub.sessions) || sub.sessions.length === 0) return;
+                sub.sessions.forEach((session, index) => {
+                    if (!session.utcDateAndTime) return;
+                    const sessionTime = DateTime.fromISO(session.utcDateAndTime);
+                    if (sessionTime >= startDate && sessionTime <= endDate && session.status !== 'completed' && session.status !== 'missed') {
+                        if (!sub.student) return;
+                        upcomingSessions.push({
+                            sessionId: index, // Since Mongo ObjectId for inner arrays is lost in simple JSON, use index
+                            subscriptionId: sub.id,
+                            studentName: sub.student.name || 'طالب بدون اسم',
+                            studentId: sub.student.id,
+                            courseTitle: sub.course ? sub.course.title : 'دورة غير معروفة',
+                            teacherName: sub.teacher ? sub.teacher.name : 'معلم غير محدد',
+                            date: session.date,
+                            time: session.time,
+                            displayDate: sessionTime.setZone('Asia/Riyadh').toFormat('yyyy-MM-dd'),
+                            displayTime: sessionTime.setZone('Asia/Riyadh').toFormat('hh:mm a'),
+                            utcDate: session.utcDateAndTime,
+                            link: session.link
+                        });
+                    }
+                });
+            });
+
+            upcomingSessions.sort((a, b) => DateTime.fromISO(a.utcDate) - DateTime.fromISO(b.utcDate));
+        }
 
         res.render('dashboard/supervisor/supervisor_sessions', {
             title: 'الجلسات القادمة',
@@ -257,7 +279,8 @@ const supervisorSettings = async (req, res) => {
 const updateSupervisorPassword = async (req, res) => {
     try {
         const { currentPassword, newPassword, confirmPassword } = req.body;
-        const user = await User.findById(req.user._id);
+        const userRepository = AppDataSource.getRepository('User');
+        const user = await userRepository.findOne({ where: { id: req.user.id } });
 
         if (newPassword !== confirmPassword) {
             return res.status(400).json({ success: false, message: "كلمة المرور الجديدة وتأكيدها غير متطابقين." });
@@ -272,8 +295,8 @@ const updateSupervisorPassword = async (req, res) => {
             return res.status(400).json({ success: false, message: "كلمة المرور الحالية غير صحيحة." });
         }
 
-        user.password = newPassword;
-        await user.save();
+        user.password = await bcrypt.hash(newPassword, 10);
+        await userRepository.save(user);
 
         res.status(200).json({ success: true, message: "تم تغيير كلمة المرور بنجاح." });
     } catch (err) {
@@ -288,8 +311,10 @@ const updateSupervisorPassword = async (req, res) => {
 const updateSupervisorProfile = async (req, res) => {
     try {
         const { name, phone_number } = req.body;
-        const updated = await User.findByIdAndUpdate(req.user._id, { name, phone_number }, { new: true });
-        if (!updated) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
+        const userRepository = AppDataSource.getRepository('User');
+        const updated = await userRepository.update(req.user.id, { name, phone_number });
+        
+        if (updated.affected === 0) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
         res.json({ success: true, message: "تم تحديث البيانات بنجاح" });
     } catch (error) {
         res.status(500).json({ success: false, message: "خطأ في السيرفر" });
@@ -301,19 +326,22 @@ const updateSupervisorProfile = async (req, res) => {
 // ────────────────────────────────────────────
 const getTeacherDetails = async (req, res) => {
     try {
-        const supervisorId = req.user._id;
+        const supervisorId = req.user.id;
         const teacherId = req.params.id;
+        const userRepository = AppDataSource.getRepository('User');
+        const subscriptionRepository = AppDataSource.getRepository('Subscription');
 
         // Verify the teacher belongs to this supervisor
-        const teacher = await User.findOne({ _id: teacherId, supervisorId: supervisorId });
+        const teacher = await userRepository.findOne({ where: { id: parseInt(teacherId), supervisor: { id: parseInt(supervisorId) } } });
         if (!teacher) return res.status(403).send("غير مسموح لك بالدخول، هذا المعلم لا يتبع لإشرافك");
 
-        const teacherHourlyRateDefault = Number(teacher.hour_rate) || (teacher.hourly_rates && teacher.hourly_rates.length > 0 ? teacher.hourly_rates[0].rate : 0);
+        let hourly_rates = teacher.hourly_rates || [];
+        const teacherHourlyRateDefault = Number(teacher.hour_rate) || (hourly_rates.length > 0 ? hourly_rates[0].rate : 0);
 
-        const allSubscriptions = await Subscription.find({ teacherId: teacherId })
-          .populate("studentId")
-          .populate("courseId")
-          .lean();
+        const allSubscriptions = await subscriptionRepository.find({ 
+            where: { teacher: { id: parseInt(teacherId) } },
+            relations: ['student', 'course']
+        });
 
         let totalPendingEarnings = 0;
         let completedSessionsCountAll = 0;
@@ -322,14 +350,14 @@ const getTeacherDetails = async (req, res) => {
         const studentsMap = {};
 
         allSubscriptions.forEach((sub) => {
-          const student = sub.studentId;
+          const student = sub.student;
           if (!student) return;
 
-          const studentId = student._id.toString();
+          const studentId = student.id.toString();
 
-          const actualCompleted = sub.sessions ? sub.sessions.filter((s) => s.status === "completed").length : 0;
-          const unpaidCompleted = sub.sessions ? sub.sessions.filter((s) => s.status === "completed" && s.isPaidByAdmin !== true).length : 0;
-          const totalPlanned = sub.sessions ? sub.sessions.length : 0;
+          const actualCompleted = sub.sessions && Array.isArray(sub.sessions) ? sub.sessions.filter((s) => s.status === "completed").length : 0;
+          const unpaidCompleted = sub.sessions && Array.isArray(sub.sessions) ? sub.sessions.filter((s) => s.status === "completed" && s.isPaidByAdmin !== true).length : 0;
+          const totalPlanned = sub.sessions && Array.isArray(sub.sessions) ? sub.sessions.length : 0;
           const remaining = Math.max(0, totalPlanned - actualCompleted);
           
           const duration = Number(sub.selectedPriceOption) || 60;
@@ -341,7 +369,7 @@ const getTeacherDetails = async (req, res) => {
           totalRemainingAll += remaining;
 
           if (studentsMap[studentId]) {
-            studentsMap[studentId].courses.push(sub.courseId?.title || "كورس غير محدد");
+            studentsMap[studentId].courses.push(sub.course?.title || "كورس غير محدد");
             studentsMap[studentId].totalSessions += totalPlanned;
             studentsMap[studentId].completedSessions += actualCompleted;
             studentsMap[studentId].remainingSessions += remaining;
@@ -351,7 +379,7 @@ const getTeacherDetails = async (req, res) => {
               id: studentId,
               name: student.name || "طالب محذوف",
               image: student.image, 
-              courses: [sub.courseId?.title || "كورس غير محدد"],
+              courses: [sub.course?.title || "كورس غير محدد"],
               totalSessions: totalPlanned,
               completedSessions: actualCompleted,
               remainingSessions: remaining,
@@ -395,10 +423,12 @@ function fromUTC(utcDate, timeZone) {
 
 const getTeacherSchedule = async (req, res) => {
     try {
-        const supervisorId = req.user._id;
+        const supervisorId = req.user.id;
         const teacherId = req.params.id;
+        const userRepository = AppDataSource.getRepository('User');
+        const subscriptionRepository = AppDataSource.getRepository('Subscription');
 
-        const teacher = await User.findOne({ _id: teacherId, supervisorId: supervisorId });
+        const teacher = await userRepository.findOne({ where: { id: parseInt(teacherId), supervisor: { id: parseInt(supervisorId) } } });
         if (!teacher) return res.status(403).send("غير مسموح لك بالدخول، هذا المعلم لا يتبع لإشرافك");
 
         const now = new Date();
@@ -413,14 +443,16 @@ const getTeacherSchedule = async (req, res) => {
         endOfWeek.setDate(startOfWeek.getDate() + 6);
         endOfWeek.setHours(23, 59, 59, 999);
 
-        const bookings = await Subscription.find({ teacherId: teacherId })
-          .populate("studentId", "name")
-          .populate("courseId", "title");
+        const bookings = await subscriptionRepository.find({ 
+            where: { teacher: { id: parseInt(teacherId) } },
+            relations: ["student", "course"]
+        });
 
         let weeklySchedule = {};
 
         bookings.forEach((booking) => {
-          booking.sessions.forEach((session, index) => {
+            if (!booking.sessions || !Array.isArray(booking.sessions)) return;
+            booking.sessions.forEach((session, index) => {
             const sessionDate = new Date(session.date);
 
             if (sessionDate >= startOfWeek && sessionDate <= endOfWeek) {
@@ -442,10 +474,10 @@ const getTeacherSchedule = async (req, res) => {
                 date: result.date,
                 time: result.time,
                 fullUTC: session.utcDateAndTime,
-                studentName: booking.studentId?.name,
-                courseTitle: booking.courseId?.title,
+                studentName: booking.student?.name,
+                courseTitle: booking.course?.title,
                 status: session.status,
-                bookingId: booking._id,
+                bookingId: booking.id,
                 sessionIndex: index,
               });
             }
@@ -483,40 +515,36 @@ const getTeacherSchedule = async (req, res) => {
 // ────────────────────────────────────────────
 const getStudentProfile = async (req, res) => {
     try {
-        const supervisorId = req.user._id;
+        const supervisorId = req.user.id;
         const studentId = req.params.id;
         const teacherIds = await getAssignedTeacherIds(supervisorId);
+        const userRepository = AppDataSource.getRepository('User');
+        const subscriptionRepository = AppDataSource.getRepository('Subscription');
 
-        // Verify the student is associated with at least one teacher of this supervisor
-        const student = await User.findById(studentId);
+        // Verify the student exists
+        const student = await userRepository.findOne({ where: { id: parseInt(studentId) } });
         if (!student) return res.status(404).send('الطالب غير موجود');
 
         // Check if there's an active subscription with any of the assigned teachers
-        const hasAccess = await Subscription.exists({
-            studentId: studentId,
-            teacherId: { $in: teacherIds }
+        const subscriptions = await subscriptionRepository.find({ 
+            where: { student: { id: parseInt(studentId) }, teacher: { id: In(teacherIds) } },
+            relations: ['course', 'teacher']
         });
 
-        if (!hasAccess) return res.status(403).send('غير مسموح لك بالدخول لملف هذا الطالب');
-
-        const subscriptions = await Subscription.find({ 
-            studentId: studentId,
-            teacherId: { $in: teacherIds }
-        })
-        .populate('courseId')
-        .populate('teacherId');
+        if (subscriptions.length === 0) return res.status(403).send('غير مسموح لك بالدخول لملف هذا الطالب');
 
         let allSessions = [];
         subscriptions.forEach(sub => {
+            if (!sub.sessions || !Array.isArray(sub.sessions)) return;
             sub.sessions.forEach(session => {
                 allSessions.push({
-                    courseName: sub.courseId ? sub.courseId.title : 'كورس غير مسمى',
-                    teacherName: sub.teacherId ? sub.teacherId.name : 'غير محدد',
+                    courseName: sub.course ? sub.course.title : 'كورس غير مسمى',
+                    teacherName: sub.teacher ? sub.teacher.name : 'غير محدد',
                     date: session.date,
                     time: session.time,
                     status: session.status,
                     report: session.report,
-                    link: sub.teacherId ? sub.teacherId.zoom_link : '#'
+                    link: sub.teacher ? sub.teacher.zoom_link : '#'
                 });
             });
         });

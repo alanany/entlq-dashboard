@@ -1,11 +1,12 @@
-const WebsiteSection = require('../models/WebsiteSection');
-const BlogPost = require('../models/BlogPost');
+const { AppDataSource } = require('../config/database');
 
 // GET - Website Sections List
 const getWebsiteSections = async (req, res) => {
     try {
-        const academyId = req.user.academyId;
-        const sections = await WebsiteSection.find({ academyId });
+        const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+        const websiteSectionRepository = AppDataSource.getRepository('WebsiteSection');
+        
+        const sections = await websiteSectionRepository.find({ where: { academy: { id: academyId } } });
         res.render('dashboard/website-sections', { 
             title: 'إدارة أقسام الموقع', 
             sections, 
@@ -22,13 +23,21 @@ const updateWebsiteSection = async (req, res) => {
     try {
         const { key, title, subtitle, content, buttonText, buttonLink } = req.body;
         const image = req.file ? `/uploads/${req.file.filename}` : req.body.existingImage;
-        const academyId = req.user.academyId;
+        const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+        
+        const websiteSectionRepository = AppDataSource.getRepository('WebsiteSection');
 
-        await WebsiteSection.findOneAndUpdate(
-            { key, academyId },
-            { title, subtitle, content, buttonText, buttonLink, image },
-            { upsert: true, new: true }
-        );
+        let section = await websiteSectionRepository.findOne({ where: { key, academy: { id: academyId } } });
+        
+        if (section) {
+            section = websiteSectionRepository.merge(section, { title, subtitle, content, buttonText, buttonLink, image });
+        } else {
+            section = websiteSectionRepository.create({
+                key, title, subtitle, content, buttonText, buttonLink, image, academy: { id: academyId }
+            });
+        }
+        
+        await websiteSectionRepository.save(section);
 
         res.status(200).json({ message: 'تم تحديث القسم بنجاح' });
     } catch (err) {
@@ -40,8 +49,14 @@ const updateWebsiteSection = async (req, res) => {
 // GET - Blog Posts List
 const getBlogPosts = async (req, res) => {
     try {
-        const academyId = req.user.academyId;
-        const posts = await BlogPost.find({ academyId }).sort({ createdAt: -1 });
+        const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+        const blogPostRepository = AppDataSource.getRepository('BlogPost');
+        
+        const posts = await blogPostRepository.find({ 
+            where: { academy: { id: academyId } },
+            order: { createdAt: 'DESC' }
+        });
+        
         res.render('dashboard/website-blog', { 
             title: 'إدارة المدونة', 
             posts, 
@@ -58,9 +73,12 @@ const addBlogPost = async (req, res) => {
     try {
         const { title, content, summary } = req.body;
         const image = req.file ? `/uploads/${req.file.filename}` : null;
-        const academyId = req.user.academyId;
+        const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
 
-        await BlogPost.create({ title, content, summary, image, academyId });
+        const blogPostRepository = AppDataSource.getRepository('BlogPost');
+        const post = blogPostRepository.create({ title, content, summary, image, academy: { id: academyId } });
+        await blogPostRepository.save(post);
+        
         res.status(201).json({ message: 'تم إضافة المقال بنجاح' });
     } catch (err) {
         console.error(err);
@@ -71,8 +89,14 @@ const addBlogPost = async (req, res) => {
 // DELETE - Delete Blog Post
 const deleteBlogPost = async (req, res) => {
     try {
-        const academyId = req.user.academyId;
-        await BlogPost.findOneAndDelete({ _id: req.params.id, academyId });
+        const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+        const blogPostRepository = AppDataSource.getRepository('BlogPost');
+        
+        const post = await blogPostRepository.findOne({ where: { id: req.params.id, academy: { id: academyId } } });
+        if (post) {
+            await blogPostRepository.remove(post);
+        }
+        
         res.status(200).json({ message: 'تم حذف المقال بنجاح' });
     } catch (err) {
         console.error(err);

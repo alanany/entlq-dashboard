@@ -1,6 +1,5 @@
-const mongoose = require('mongoose');
+const { EntitySchema } = require('typeorm');
 
-// قائمة العملات المدعومة
 const SUPPORTED_CURRENCIES = [
     { code: 'SAR', symbol: 'ر.س',  name: 'ريال سعودي',      position: 'after'  },
     { code: 'EGP', symbol: 'ج.م',  name: 'جنيه مصري',        position: 'after'  },
@@ -17,38 +16,93 @@ const SUPPORTED_CURRENCIES = [
     { code: 'TRY', symbol: '₺',    name: 'ليرة تركية',       position: 'before' },
 ];
 
-const systemSettingsSchema = new mongoose.Schema({
-    academyName:        { type: String, default: 'منصة انطلق التعليمية' },
-    academyEmail:       { type: String, default: 'info@academy.com' },
-    academyPhone:       { type: String, default: '+966' },
-    address:            { type: String, default: 'المملكة العربية السعودية' },
-    taxPercentage:      { type: Number, default: 0 },
-    registrationStatus: { type: Boolean, default: true },
-    logo:               { type: String },
-    footerText:         { type: String, default: 'جميع الحقوق محفوظة' },
-
-    // ====== إعدادات العملة ======
-    currencyCode:     { type: String, default: 'SAR' },   // ISO 4217
-    currencySymbol:   { type: String, default: 'ر.س' },   // الرمز للعرض
-    currencyPosition: { type: String, default: 'after', enum: ['before', 'after'] },
-    // الحقل القديم للتوافق الرجعي
-    currency:         { type: String, default: 'ر.س' },
-
-    socialLinks: {
-        facebook:  String,
-        twitter:   String,
-        instagram: String,
-        whatsapp:  String
+const SystemSettingsEntity = new EntitySchema({
+    name: 'SystemSettings',
+    tableName: 'system_settings',
+    columns: {
+        id: {
+            primary: true,
+            type: 'int',
+            generated: true
+        },
+        academyName: {
+            type: 'varchar',
+            default: 'منصة انطلق التعليمية'
+        },
+        academyEmail: {
+            type: 'varchar',
+            default: 'info@academy.com'
+        },
+        academyPhone: {
+            type: 'varchar',
+            default: '+966'
+        },
+        address: {
+            type: 'varchar',
+            default: 'المملكة العربية السعودية'
+        },
+        taxPercentage: {
+            type: 'decimal',
+            precision: 5,
+            scale: 2,
+            default: 0
+        },
+        registrationStatus: {
+            type: 'boolean',
+            default: true
+        },
+        logo: {
+            type: 'varchar',
+            nullable: true
+        },
+        footerText: {
+            type: 'varchar',
+            default: 'جميع الحقوق محفوظة'
+        },
+        currencyCode: {
+            type: 'varchar',
+            default: 'SAR'
+        },
+        currencySymbol: {
+            type: 'varchar',
+            default: 'ر.س'
+        },
+        currencyPosition: {
+            type: 'enum',
+            enum: ['before', 'after'],
+            default: 'after'
+        },
+        currency: { // legacy 
+            type: 'varchar',
+            default: 'ر.س'
+        },
+        socialLinks: {
+            type: 'json',
+            nullable: true // stores { facebook, twitter, instagram, whatsapp }
+        },
+        supportContact: {
+            type: 'json',
+            nullable: true // stores { student, teacher, supervisor }
+        },
+        createdAt: {
+            type: 'timestamp',
+            createDate: true
+        },
+        updatedAt: {
+            type: 'timestamp',
+            updateDate: true
+        }
     },
-    supportContact: {
-        student:    String,
-        teacher:    String,
-        supervisor: String
-    },
-    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', required: true }
-}, { timestamps: true });
+    relations: {
+        academy: {
+            target: 'Academy',
+            type: 'many-to-one',
+            joinColumn: { name: 'academyId' },
+            nullable: false,
+            onDelete: 'CASCADE'
+        }
+    }
+});
 
-const SystemSettings = mongoose.model('SystemSettings', systemSettingsSchema);
-
-module.exports = SystemSettings;
+module.exports = SystemSettingsEntity;
 module.exports.SUPPORTED_CURRENCIES = SUPPORTED_CURRENCIES;

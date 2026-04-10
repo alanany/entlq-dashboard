@@ -1,7 +1,7 @@
 // categoryController.js
 
-const Category = require('../models/category_model.js');
-const SystemSettings = require('../models/SystemSettings');
+const { AppDataSource } = require('../config/database');
+
 const getSettingScreen = async (req, res) => {
     res.render('dashboard/settings', { 
             title: 'الإعدادات',
@@ -11,13 +11,16 @@ const getSettingScreen = async (req, res) => {
 
 const getSystemSettings = async (req, res) => {
     try {
-        const academyId = req.user.academyId;
-        let settings = await SystemSettings.findOne({ academyId });
+        const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+        const settingsRepository = AppDataSource.getRepository('SystemSettings');
+        
+        let settings = await settingsRepository.findOne({ where: { academy: { id: academyId } } });
         if (!settings) {
-            settings = await SystemSettings.create({ 
-                academyId,
+            settings = settingsRepository.create({ 
+                academy: { id: academyId },
                 academyName: 'أكاديمية جديدة' 
             });
+            await settingsRepository.save(settings);
         }
         res.render('dashboard/settings-system', { title: 'إعدادات النظام', settings, user: req.user });
     } catch (err) {
@@ -29,30 +32,39 @@ const getSystemSettings = async (req, res) => {
 const updateSystemSettings = async (req, res) => {
     try {
         const updateData = req.body;
-        const academyId = req.user.academyId;
-        let settings = await SystemSettings.findOneAndUpdate(
-            { academyId }, 
-            updateData, 
-            { new: true, upsert: true }
-        );
+        const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+        const settingsRepository = AppDataSource.getRepository('SystemSettings');
+        
+        let settings = await settingsRepository.findOne({ where: { academy: { id: academyId } } });
+        if (!settings) {
+            settings = settingsRepository.create({ academy: { id: academyId }, ...updateData });
+        } else {
+            // merge updates
+            settings = settingsRepository.merge(settings, updateData);
+        }
+        await settingsRepository.save(settings);
+        
         res.status(200).json({ message: 'تم التحديث بنجاح', settings });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'فشل التحديث' });
     }
 };
+
 // 1. جلب جميع الأقسام (GET)
 const getAllCategories = async (req, res) => {
     try {
-        const academyId = req.user.academyId?._id || req.user.academyId;
+        const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
         console.log('Fetching categories for academyId:', academyId);
         
-        const categories = await Category.find({ academyId }).lean();
+        const categoryRepository = AppDataSource.getRepository('Category');
+        const courseRepository = AppDataSource.getRepository('Course');
+        
+        const categories = await categoryRepository.find({ where: { academy: { id: academyId } } });
         
         // جلب عدد الدورات لكل قسم
-        const Course = require('../models/course_model');
         const categoriesWithCount = await Promise.all(categories.map(async (cat) => {
-            const count = await Course.countDocuments({ category: cat._id, academyId });
+            const count = await courseRepository.count({ where: { category: { id: cat.id }, academy: { id: academyId } } });
             return { ...cat, courseCount: count };
         }));
         
@@ -76,13 +88,21 @@ const createCategory = async (req, res) => {
     }
 
     try {
-        const academyId = req.user.academyId?._id || req.user.academyId;
+        const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
         console.log('Creating category for academyId:', academyId, 'name:', name);
 
-        const category = await Category.create({ 
+        const categoryRepository = AppDataSource.getRepository('Category');
+        
+        let slug = name.replace(/\s+/g, '-');
+        
+        const category = categoryRepository.create({ 
             name, 
-            academyId 
+            slug,
+            academy: { id: academyId } 
         });
+        
+        await categoryRepository.save(category);
+        
         res.status(201).json({ 
             message: 'تم إنشاء القسم بنجاح.', 
             category: category
@@ -90,10 +110,8 @@ const createCategory = async (req, res) => {
     } catch (err) {
         console.error('Error in createCategory:', err);
         let errorMessage = 'فشل في إنشاء القسم.';
-        if (err.code === 11000) { 
+        if (err.code === 'ER_DUP_ENTRY' || err.errno === 1062) { 
             errorMessage = 'هذا القسم موجود بالفعل لهذه الأكاديمية.';
-        } else if (err.name === 'ValidationError') {
-            errorMessage = Object.values(err.errors).map(val => val.message).join(', ');
         }
         res.status(400).json({ message: errorMessage });
     }
@@ -104,23 +122,24 @@ const deleteCategory = async (req, res) => {
     const categoryId = req.params.id;
     
     try {
-        const academyId = req.user.academyId._id || req.user.academyId;
+        const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+        
+        const categoryRepository = AppDataSource.getRepository('Category');
+        const courseRepository = AppDataSource.getRepository('Course');
         
         // التحقق من وجود كورسات مرتبطة
-        const Course = require('../models/course_model');
-        const hasCourses = await Course.exists({ category: categoryId, academyId });
+        const hasCourses = await courseRepository.exists({ where: { category: { id: categoryId }, academy: { id: academyId } } });
         if (hasCourses) {
             return res.status(400).json({ message: 'لا يمكن حذف القسم لوجود دورات مرتبطة به.' });
         }
 
-        const result = await Category.findOneAndDelete({ 
-            _id: categoryId, 
-            academyId 
-        });
-
-        if (!result) {
+        const category = await categoryRepository.findOne({ where: { id: categoryId, academy: { id: academyId } } });
+        if (!category) {
             return res.status(404).json({ message: 'القسم غير موجود.' });
         }
+        
+        await categoryRepository.remove(category);
+        
         res.status(200).json({ message: 'تم حذف القسم بنجاح.' });
     } catch (err) {
         console.error(err);

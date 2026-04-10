@@ -1,15 +1,54 @@
-const mongoose = require('mongoose');
+const { EntitySchema } = require('typeorm');
 
-const blogPostSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    content: { type: String, required: true },
-    image: { type: String },
-    author: { type: String, default: 'Admin' },
-    summary: { type: String },
-    isPublished: { type: Boolean, default: true },
-    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', required: true }
-}, { timestamps: true });
-
-const BlogPost = mongoose.model('BlogPost', blogPostSchema);
-
-module.exports = BlogPost;
+module.exports = new EntitySchema({
+    name: 'BlogPost',
+    tableName: 'blog_posts',
+    columns: {
+        id: {
+            primary: true,
+            type: 'int',
+            generated: true
+        },
+        title: {
+            type: 'varchar',
+            nullable: false
+        },
+        content: {
+            type: 'text',
+            nullable: false
+        },
+        image: {
+            type: 'varchar',
+            nullable: true
+        },
+        author: {
+            type: 'varchar',
+            default: 'Admin'
+        },
+        summary: {
+            type: 'varchar',
+            nullable: true
+        },
+        isPublished: {
+            type: 'boolean',
+            default: true
+        },
+        createdAt: {
+            type: 'timestamp',
+            createDate: true
+        },
+        updatedAt: {
+            type: 'timestamp',
+            updateDate: true
+        }
+    },
+    relations: {
+        academy: {
+            target: 'Academy',
+            type: 'many-to-one',
+            joinColumn: { name: 'academyId' },
+            nullable: false,
+            onDelete: 'CASCADE'
+        }
+    }
+});

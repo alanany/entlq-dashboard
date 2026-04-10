@@ -1,8 +1,7 @@
-const User = require("../models/user_model");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const Course = require('../models/course_model.js');
-const Academy = require('../models/academy_model');
+const { AppDataSource } = require('../config/database');
+
 // handle errors
 const handleErrors = (err) => {
   console.log(err.message, err.code);
@@ -18,20 +17,15 @@ const handleErrors = (err) => {
     errors.password = 'That password is incorrect';
   }
 
-  // duplicate email error
-  if (err.code === 11000) {
+  // duplicate email error (MySQL duplicate entry)
+  if (err.code === 'ER_DUP_ENTRY' || err.errno === 1062) {
     errors.email = 'that email is already registered';
     return errors;
   }
 
-  // validation errors
-  if (err.message.includes('user validation failed')) {
-    // console.log(err);
-    Object.values(err.errors).forEach(({ properties }) => {
-      // console.log(val);
-      // console.log(properties);
-      errors[properties.path] = properties.message;
-    });
+  // validation errors (Mongoose specific, not usually thrown by TypeORM in same way, but catch general throw)
+  if (err.message.includes('Validation')) {
+    errors.general = err.message;
   }
 
   return errors;
@@ -56,88 +50,89 @@ module.exports.login_get = (req, res) => {
 
 module.exports.signup_post = async (req, res) => {
   const { email, password, name, role, academyId } = req.body;
-console.log(req.body);
+  console.log(req.body);
   try {
-    const user = await User.create({ email, password, name, role, academyId });
-    console.log(user);
-    const token =  createToken(user._id);
-    console.log(token);
-    await res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(200).json({user: user._id});
+    const userRepository = AppDataSource.getRepository('User');
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Create new user object. Map academyId to the academy relation.
+    const userPayload = { 
+        email, 
+        password: hashedPassword, 
+        name, 
+        role 
+    };
+    if (academyId) {
+        userPayload.academy = { id: parseInt(academyId) };
+    }
 
-   
-  }
-  catch(err) {
+    const user = userRepository.create(userPayload);
+    await userRepository.save(user);
+    
+    console.log(user);
+    const token = createToken(user.id);
+    console.log(token);
+    res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+    res.status(200).json({ user: user.id });
+
+  } catch(err) {
     const errors = handleErrors(err);
     console.log(errors);
- res.status(400).json({ errors });
+    res.status(400).json({ errors });
   }
- 
 }
 
 module.exports.login_post = async (req, res) => {
     console.log(req.body);
 
-    // 1. استخراج البيانات المطلوبة
-    const { email, password, role ,timezone} = req.body;
+    const { email, password, role, timezone } = req.body;
     const normalizedEmail = email ? email.trim().toLowerCase() : '';
     
-    // **كائن الأخطاء المخصص**
     let errors = {}; 
 
     try {
-        // 2. البحث عن المستخدم بالبريد والدور
-        const user = await User.findOne({ email: normalizedEmail, role: role });
+        const userRepository = AppDataSource.getRepository('User');
+        const academyRepository = AppDataSource.getRepository('Academy');
+
+        const user = await userRepository.findOne({ 
+            where: { email: normalizedEmail, role: role },
+            relations: ['academy'] // Load academy relationship to check status
+        });
 
         if (!user) {
-            // 3. حالة: المستخدم غير موجود (البريد غير صحيح)
             errors.email = 'هذا البريد الإلكتروني غير صحيح';
-            res.status(400).json({ errors });
-            return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
+            return res.status(400).json({ errors });
         }
 
-        // 4. إذا تم العثور على المستخدم، مقارنة كلمة المرور
         const auth = await bcrypt.compare(password, user.password);
         
         if (!auth) {
-            // 5. حالة: كلمة المرور غير صحيحة
             errors.password = 'كلمة المرور المدخلة غير صحيحة';
-            res.status(400).json({ errors });
-            return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
+            return res.status(400).json({ errors });
         } 
 
-        // 5.5 تحقق من حالة الأكاديمية (إذا كان المستخدم مرتبطاً بأكاديمية)
-        if (user.academyId) {
-            const academy = await Academy.findById(user.academyId).populate('academyId');
-            if (academy && academy.status === 'suspended') {
+        if (user.academy) {
+            if (user.academy.status === 'suspended') {
                 errors.email = 'تم حظر هذه الأكاديمية مؤقتاً. يرجى التواصل مع الإدارة.';
-                res.status(403).json({ errors });
-                return;
+                return res.status(403).json({ errors });
             }
         }
 
         if (timezone && user.timezone !== timezone) {
-    user.timezone = timezone;
-    await user.save();
-    console.log(`تم تحديث توقيت المستخدم إلى: ${timezone}`);
-}
-        // 6. حالة النجاح: كلمة المرور صحيحة
-        const token = createToken(user._id);
-        await res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-        
-        // إرسال استجابة النجاح
-        res.status(200).json({ user: user._id, role: user.role, message: "تم تسجيل الدخول بنجاح." });
-        return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
+            user.timezone = timezone;
+            await userRepository.save(user);
+            console.log(`تم تحديث توقيت المستخدم إلى: ${timezone}`);
+        }
 
-    } 
-    catch (err) {
-        // 7. التقاط أخطاء الخادم العامة أو أخطاء قاعدة البيانات
-        console.error(err);
+        const token = createToken(user.id);
+        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
         
-        // استخدام دالة handleErrors لمعالجة الأخطاء غير المتوقعة (مثل خطأ في الخادم)
+        return res.status(200).json({ user: user.id, role: user.role, message: "تم تسجيل الدخول بنجاح." });
+
+    } catch (err) {
+        console.error(err);
         const specificErrors = handleErrors(err); 
-        res.status(400).json({ errors: specificErrors });
-        return; // ⭐️ إيقاف التنفيذ
+        return res.status(400).json({ errors: specificErrors });
     }
 }
 
@@ -145,6 +140,7 @@ module.exports.logout_get = (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 });
   res.redirect('/');
 }
+
 module.exports.student_logout_get = (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 });
   res.redirect('/landing');

@@ -1,25 +1,127 @@
-const User = require("../models/user_model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const Course = require("../models/course_model.js");
-const Subscription = require("../models/subscription_model.js");
+const { DateTime } = require("luxon");
+const { AppDataSource } = require('../config/database');
 const teacherController = require("../controllers/teacher_controller");
-const courseController=require("../controllers/courseController");
+const courseController = require("../controllers/courseController");
+
+const getNearestSession = async (studentId, userTimeZone) => {
+  const subscriptionRepository = AppDataSource.getRepository('Subscription');
+  const subscriptions = await subscriptionRepository.find({
+    where: { student: { id: parseInt(studentId) }, status: "confirmed" },
+    relations: ["course"]
+  });
+
+  let upcoming = [];
+  const now = new Date();
+  const tz = userTimeZone || "UTC";
+
+  subscriptions.forEach((sub) => {
+    (sub.sessions || []).forEach((session, index) => {
+      const sessionStart = new Date(session.utcDateAndTime);
+      const sessionEnd = new Date(sessionStart.getTime() + 60 * 60 * 1000);
+
+      if (sessionEnd > now && session.status !== "completed") {
+        const dt = DateTime.fromJSDate(sessionStart, { zone: "utc" })
+          .setZone(tz)
+          .setLocale('ar');
+        upcoming.push({
+          bookingId: sub.id,
+          courseTitle: sub.course?.title,
+          sessionDetails: {
+            ...session,
+            displayDate: dt.toFormat("yyyy-MM-dd"),
+            displayTime: dt.toFormat("hh:mm a"),
+            displayDay: dt.toFormat("cccc")
+          },
+          sessionId: index,
+          sessionEnd: sessionEnd,
+          startTime: sessionStart 
+        });
+      }
+    });
+  });
+
+  upcoming.sort((a, b) => a.startTime - b.startTime);
+  return upcoming[0] || null;
+};
+
+const getStudentStats = async (studentId) => {
+  try {
+    const subscriptionRepository = AppDataSource.getRepository('Subscription');
+    const subscriptions = await subscriptionRepository.find({ 
+        where: { student: { id: parseInt(studentId) }, status: "confirmed" } 
+    });
+
+    let completedSessions = 0;
+    let totalMinutes = 0;
+    let totalPlan = 0;
+    let totalScore = 0;
+    let ratingCount = 0;
+    
+    subscriptions.forEach(sub => {
+        if (sub.sessions) {
+            sub.sessions.forEach(sess => {
+                totalPlan++;
+                if (sess.status === 'completed') {
+                    completedSessions++;
+                    totalMinutes += 60;
+                }
+                if (sess.report && sess.report.level) {
+                    const levelToScore = { 'A': 5, 'B': 4, 'C': 3 };
+                    if (levelToScore[sess.report.level]) {
+                        totalScore += levelToScore[sess.report.level];
+                        ratingCount++;
+                    }
+                }
+            });
+        }
+    });
+    
+    const avgRating = ratingCount > 0 ? (totalScore / ratingCount) : 0;
+    
+    return {
+        completedSessions,
+        rating: parseFloat(avgRating.toFixed(1)),
+        learningMinutes: totalMinutes,
+        learningHours: parseFloat((totalMinutes / 60).toFixed(1)),
+        totalPlan
+    };
+  } catch (error) {
+    return { completedSessions: 0, rating: 0, learningMinutes: 0, totalPlan: 0 };
+  }
+};
+
+const getStudentCourseDetails = async (studentId) => {
+  try {
+    const subscriptionRepository = AppDataSource.getRepository('Subscription');
+    const result = await subscriptionRepository.createQueryBuilder("sub")
+      .innerJoinAndSelect("sub.course", "course")
+      .where("sub.studentId = :studentId", { studentId: parseInt(studentId) })
+      .andWhere("sub.status = 'confirmed'")
+      .select([
+        "course.title AS courseName",
+        "sub.numberOfSessionsPerMonth AS numberOfSessionsPerMonth",
+        "CAST(sub.selectedPriceOption AS DECIMAL) AS pricePerSession",
+        "(CAST(sub.selectedPriceOption AS DECIMAL) * sub.numberOfSessionsPerMonth) AS totalCalculatedPrice",
+        "sub.startDate AS startDate",
+        "sub.status AS status"
+      ]).getRawMany();
+      
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    return null;
+  }
+};
+
 const getstudentDashboard = async (req, res, next) => {
   try {
     const role = req.user.role;
-    // c على أقرب حصة
     if (role === "student") {
-      const studentId = req.user._id;
-      
-      console.log(req.user.academyId.name, "academy name");
+      const studentId = req.user.id || req.user._id;
       const nearestSession = await getNearestSession(studentId, req.user.timezone);
-            
-     
-        
-     const studentStats =   await     getStudentStats(studentId);
-     const courseBookingDetails=await getStudentCourseDetails(studentId);
-            console.log(courseBookingDetails, "courseBookingDetails in controller");
+      const studentStats = await getStudentStats(studentId);
+      const courseBookingDetails = await getStudentCourseDetails(studentId);
 
       res.render("dashboard/student/student-dashboard", {
         title: "لوحة تحكم الطالب",
@@ -29,1037 +131,499 @@ const getstudentDashboard = async (req, res, next) => {
         user: req.user
       });
     } else if (role === "teacher") {
-    await  teacherController.teacherHome(req, res, next);
+      await teacherController.teacherHome(req, res, next);
     } else if (role === "supervisor") {
-      // Redirect supervisors to their own dashboard
       return res.redirect('/supervisor');
     } else {
-     
-     console.log("admin dashboard");
-      const academyId = (req.user.academyId?._id || req.user.academyId)?.toString();
+      const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
       const stats = await courseController.getDashboardStats(academyId);
-      // For non-students, render without student data
       res.render("../views/dashboard/index", {
         title: "Dashboard",
         user: req.user,
-        stats:stats
+        stats: stats
       });
     }
   } catch (error) {
-      res.render("website/home");
-    console.error("Error loading dashboard:", error);
-    res
-      .status(500)
-      .render("error", { message: "حدث خطأ أثناء تحميل لوحة التحكم." });
+    res.status(500).render("error", { message: "حدث خطأ أثناء تحميل لوحة التحكم." });
   }
-  // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
 };
+
 const getSucessSubscriptionPage = async (req, res) => {
-  // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
-  res.render("dashboard/student/subscribe-confirm", {
-    title: "  نجاح الاشتراك",
-  });
+  res.render("dashboard/student/subscribe-confirm", { title: "نجاح الاشتراك" });
 };
 
-const signup_get = (req, res) => {
-  res.render("../views/dashboard/student/register");
-};
+const signup_get = (req, res) => { res.render("../views/dashboard/student/register"); };
+const login_get = (req, res) => { res.render("../views/dashboard/student/login"); };
 
-const login_get = (req, res) => {
-   res.render("../views/dashboard/student/login");
-};
-
-
-
-
-// إضافة طالب جديد (الحقول الـ 8)
 const addStudent = async (req, res) => {
-    try {
-        const { name, email, country_code, phone_number, gender, password, timezone } = req.body;
-        const normalizedEmail = email ? email.trim().toLowerCase() : '';
-        
-        const existingStudent = await User.findOne({ email: normalizedEmail });
-        if (existingStudent) {
-            return res.status(400).json({ success: false, message: 'البريد الإلكتروني مسجل مسبقاً' });
-        }
-
-        const newStudent = new User({
-            name, email, country_code, phone_number,
-            gender, password, timezone,
-            role: 'student',
-            status: 'active',
-            academyId: req.user.academyId // الربط بالأكاديمية
-        });
-
-        await newStudent.save();
-        // الرد بـ JSON وليس Redirect
-        res.status(200).json({ success: true, message: 'تم تسجيل الطالب بنجاح' });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'حدث خطأ أثناء التسجيل' });
+  try {
+    const { name, email, country_code, phone_number, gender, password, timezone } = req.body;
+    const normalizedEmail = email ? email.trim().toLowerCase() : '';
+    const userRepository = AppDataSource.getRepository('User');
+    
+    const existingStudent = await userRepository.findOne({ where: { email: normalizedEmail } });
+    if (existingStudent) {
+        return res.status(400).json({ success: false, message: 'البريد الإلكتروني مسجل مسبقاً' });
     }
-};
 
-// تبديل الحالة (أرشفة / تنشيط)
-const toggleStatus = async (req, res) => {
- try {
-    const { studentId, isActive } = req.body;
-    console.log(studentId, isActive, "بيانات التحديث");
-
-    // تحديث الحالة في موديل المستخدم
-    await User.findByIdAndUpdate(studentId, { isActive: isActive });
-
-    res.json({
-      success: true,
-      message: isActive
-        ? "تم تفعيل حساب الطالب بنجاح"
-        : "تم نقل الطالب للأرشيف بنجاح",
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newStudent = userRepository.create({
+        name, email: normalizedEmail, country_code, phone_number,
+        gender, password: hashedPassword, timezone,
+        role: 'student', status: 'active',
+        academy: { id: req.user.academyId || (req.user.academy && req.user.academy.id) }
     });
-  } catch (error) {
-    console.error("Error in updateTeacherStatus:", error);
-    res
-      .status(500)
-      .json({ success: false, error: "حدث خطأ في السيرفر أثناء تحديث الحالة" });
+
+    await userRepository.save(newStudent);
+    res.status(200).json({ success: true, message: 'تم تسجيل الطالب بنجاح' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'حدث خطأ أثناء التسجيل' });
   }
 };
 
-// حذف الطالب
-const deleteStudent = async (req, res) => {
-  console.log(req.params.id,'req.params.id');
-    try {
-        await User.findByIdAndDelete(req.params.id);
-        res.status(200).json({ success: true, message: 'تم الحذف بنجاح' });
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'حدث خطأ أثناء الحذف' });
-    }
+const toggleStatus = async (req, res) => {
+  try {
+    const { studentId, isActive } = req.body;
+    const userRepository = AppDataSource.getRepository('User');
+    await userRepository.update(studentId, { status: isActive ? 'active' : 'archived' });
+    res.json({ success: true, message: isActive ? "تم تفعيل حساب الطالب بنجاح" : "تم نقل الطالب للأرشيف بنجاح" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "حدث خطأ في السيرفر أثناء تحديث الحالة" });
+  }
 };
 
+const deleteStudent = async (req, res) => {
+  try {
+    const userRepository = AppDataSource.getRepository('User');
+    await userRepository.delete(req.params.id);
+    res.status(200).json({ success: true, message: 'تم الحذف بنجاح' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'حدث خطأ أثناء الحذف' });
+  }
+};
 
 const registerStudent = async (req, res) => {
-  // استخراج البيانات من جسم الطلب
-  const {
-    name,
-    email,
-    country_code,
-    phone_number,
-    gender,
-    password,
-    confirm_Password,
-    timezone,
-  } = req.body;
-
+  const { name, email, country_code, phone_number, gender, password, confirm_Password, timezone } = req.body;
   const normalizedEmail = email ? email.trim().toLowerCase() : '';
 
   try {
-    // التحقق من الحقول المطلوبة
-    const requiredFields = {
-      name: "الاسم",
-      email: "البريد الإلكتروني",
-      phone_number: "رقم الجوال",
-      gender: "النوع",
-      password: "كلمة المرور",
-      confirm_Password: "تأكيد كلمة المرور",
-      timezone: "المنطقة الزمنية",
-    };
-
-    const missingFields = [];
-    for (const [field, label] of Object.entries(requiredFields)) {
-      if (!req.body[field] || req.body[field].trim() === "") {
-        missingFields.push(label);
-      }
-    }
-
-    if (missingFields.length > 0) {
+    if (!name || !email || !phone_number || !gender || !password || !confirm_Password || !timezone) {
       return res.status(400).json({
-        error: `الحقول التالية مطلوبة: ${missingFields.join(", ")}`,
-        errors: {
-          general: `الحقول التالية مطلوبة: ${missingFields.join(", ")}`,
-        },
+        error: "الحقول مطلوبة",
+        errors: { general: "الحقول مطلوبة" }
       });
     }
 
-    // التحقق من وجود مستخدم بنفس البريد الإلكتروني
-    const existingStudent = await User.findOne({ email: normalizedEmail });
+    const userRepository = AppDataSource.getRepository('User');
+    const existingStudent = await userRepository.findOne({ where: { email: normalizedEmail } });
     if (existingStudent) {
-      console.log("Email already exists");
-      return res.status(400).json({
-        error: "هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.",
-        errors: {
-          email: "هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.",
-        },
-      });
+      return res.status(400).json({ error: "هذا البريد الإلكتروني مسجل بالفعل.", errors: { email: "مسجل بالفعل" } });
     }
 
-    // التحقق من تطابق كلمات المرور (يتم يدوياً قبل محاولة الحفظ)
     if (password !== confirm_Password) {
-      return res.status(400).json({
-        error: "كلمتا المرور غير متطابقتين. يرجى التأكد من الإدخال.",
-        errors: {
-          password: "كلمتا المرور غير متطابقتين. يرجى التأكد من الإدخال.",
-        },
-      });
+      return res.status(400).json({ error: "كلمتا المرور غير متطابقتين.", errors: { password: "غير متطابقتين" } });
     }
-    // إنشاء طالب جديد
 
-    const user = await User.create({
-      name,
-      email: normalizedEmail,
-      country_code: country_code,
-      phone_number: country_code + phone_number, // حفظ رقم الهاتف بالكامل
-      gender,
-      password,
-      timezone,
-      role: "student",
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = userRepository.create({
+      name, email: normalizedEmail, country_code, phone_number: country_code + phone_number,
+      gender, password: hashedPassword, timezone, role: "student", status: 'active'
     });
-    console.log(user);
-    // حفظ الطالب في قاعدة البيانات (سيتم تشفير كلمة المرور تلقائيًا عبر الـ middleware)
+    
+    await userRepository.save(user);
 
-    res.status(200).json({
-      message: "تم التسجيل بنجاح.", // تمرير الرسالة المجمعة
-    });
-    // إعادة توجيه المستخدم إلى صفحة تسجيل الدخول أو صفحة النجاح
-    // يمكن أيضًا إنشاء جلسة (Session) هنا لتسجيل الدخول الفوري
+    res.status(200).json({ message: "تم التسجيل بنجاح." });
   } catch (err) {
-    console.log(err, "err");
-
-    let errorMessage = "حدث خطأ غير متوقع أثناء التسجيل.";
-    let errors = {};
-
-    // 🟢 الخطوة الحاسمة: تحليل خطأ Mongoose Validation
-    if (err.name === "ValidationError") {
-      // تجميع رسائل الأخطاء حسب الحقل
-      Object.keys(err.errors).forEach((key) => {
-        errors[key] = err.errors[key].message;
-      });
-
-      // إنشاء رسالة عامة من جميع الأخطاء
-      const validationMessages = Object.values(errors);
-      errorMessage = validationMessages.join(" | ");
-    } else if (err.code === 11000) {
-      // خطأ تكرار (Duplicate Key Error)
-      const duplicateField = Object.keys(err.keyPattern)[0];
-      if (duplicateField === "email") {
-        errorMessage = "هذا البريد الإلكتروني مسجل بالفعل.";
-        errors.email = "هذا البريد الإلكتروني مسجل بالفعل.";
-      } else {
-        errorMessage = `هذا ${duplicateField} مسجل بالفعل.`;
-        errors[duplicateField] = `هذا ${duplicateField} مسجل بالفعل.`;
-      }
-    }
-
-    // 📢 عرض الخطأ في الفرونت-إند مع دعم الأخطاء المحددة حسب الحقل
-    res.status(400).json({
-      error: errorMessage,
-      errors: Object.keys(errors).length > 0 ? errors : undefined,
-      message: errorMessage, // للتوافق مع الأنماط الأخرى
-    });
+    res.status(400).json({ error: "حدث خطأ غير متوقع", message: "حدث خطأ" });
   }
 };
-
-
-
-
-
-
 
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id) => {
-  return jwt.sign({ id }, "01115699209", {
-    expiresIn: maxAge,
-  });
+  return jwt.sign({ id }, "01115699209", { expiresIn: maxAge });
 };
+
 const update_profile = async (req, res) => {
     try {
         const { name, phone_number, gender, timezone } = req.body;
-        
-        const updatedUser = await User.findByIdAndUpdate(
-            req.user._id, 
-            { name, phone_number, gender, timezone },
-            { new: true, runValidators: true }
-        );
+        const userRepository = AppDataSource.getRepository('User');
+        const userId = req.user.id || req.user._id;
 
-        res.status(200).json({ 
-            success: true,
-            message: "تم تحديث الملف الشخصي بنجاح.",
-            user: updatedUser 
-        });
+        let user = await userRepository.findOne({ where: { id: userId } });
+        user = userRepository.merge(user, { name, phone_number, gender, timezone });
+        await userRepository.save(user);
+
+        res.status(200).json({ success: true, message: "تم تحديث الملف الشخصي بنجاح.", user });
     } catch (err) {
-        console.error("Update Profile Error:", err);
-        res.status(400).json({ 
-            success: false,
-            message: "حدث خطأ أثناء تحديث الملف الشخصي.",
-            error: err.message 
-        });
+        res.status(400).json({ success: false, message: "حدث خطأ أثناء تحديث الملف الشخصي." });
     }
 };
-const login_student = async (req, res) => {
 
+const login_student = async (req, res) => {
   const { email, password, role, timezone } = req.body;
   const normalizedEmail = email ? email.trim().toLowerCase() : '';
-  console.log(req.body, 'req.body');
 
   try {
-    // 2. البحث عن المستخدم بالبريد والدور
-    const user = await User.findOne({ email: normalizedEmail, role: role });
+    const userRepository = AppDataSource.getRepository('User');
+    const user = await userRepository.findOne({ where: { email: normalizedEmail, role } });
 
-    if (!user) {
-      return res.status(400).json({ error:"هذا البريد الإلكتروني غير صحيح" }); // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(400).json({ error: "البريد الإلكتروني أو كلمة المرور غير صحيحة" });
     }
 
-    // 4. إذا تم العثور على المستخدم، مقارنة كلمة المرور
-    const auth = await bcrypt.compare(password, user.password);
-
-    if (!auth) {
-       return res.status(400).json({ error:"كلمة المرور المدخلة غير صحيحة" });
+    if (timezone && user.timezone !== timezone) {
+      await userRepository.update(user.id, { timezone });
     }
 
- if (timezone && user.timezone !== timezone) {
-    user.timezone = timezone;
-    await user.save();
-    console.log(`تم تحديث توقيت المستخدم إلى: ${timezone}`);
-}
-     // 6. حالة النجاح: كلمة المرور صحيحة
-    const token = createToken(user._id);
-    await res.cookie("jwt", token, { httpOnly: true, maxAge: maxAge * 1000 });
-
-    // إرسال استجابة النجاح
-    res.status(200).json({ user: user._id, message: "تم تسجيل الدخول بنجاح." });
-    return; // ⭐️ إيقاف التنفيذ بعد إرسال الاستجابة
+    const token = createToken(user.id);
+    res.cookie("jwt", token, { httpOnly: true, maxAge: maxAge * 1000 });
+    res.status(200).json({ user: user.id, message: "تم تسجيل الدخول بنجاح." });
   } catch (err) {
-    // 7. التقاط أخطاء الخادم العامة أو أخطاء قاعدة البيانات
-    console.error(err);
-
-    // استخدام دالة handleErrors لمعالجة الأخطاء غير المتوقعة (مثل خطأ في الخادم)
-    const specificErrors = handleErrors(err);
-    res.status(400).json({ errors: specificErrors });
-    return; // ⭐️ إيقاف التنفيذ
+    res.status(400).json({ errors: { general: "خطأ بالخادم" } });
   }
 };
+
 const getAllCourses = async (req, res) => {
-  const academyId = req.user ? req.user.academyId : null;
-  const courses = await Course.find({ academyId });
+  const academyId = req.user ? (req.user.academyId || (req.user.academy && req.user.academy.id)) : null;
+  const courseRepository = AppDataSource.getRepository('Course');
+  const courses = await courseRepository.find({ where: { academy: { id: parseInt(academyId) } } });
   
-  res.render("../views/dashboard/student/course-list", {
-    title: "كورسات الموقع",
-    courses: courses,
-    user: req.user
-  });
+  res.render("../views/dashboard/student/course-list", { title: "كورسات الموقع", courses, user: req.user });
 };
+
 const getAllCoursesForAdminAutoSubscription = async (req, res) => {
-  const student = await User.findById(req.params.studentId);
-  const academyId = student ? student.academyId : null;
-  const courses = await Course.find({ academyId });
+  const userRepository = AppDataSource.getRepository('User');
+  const courseRepository = AppDataSource.getRepository('Course');
   
-  res.render("../views/dashboard/student/course-list", {
-    title: "كورسات الموقع",
-    courses: courses,
-    studentId: req.params.studentId,
-  });
+  const student = await userRepository.findOne({ where: { id: parseInt(req.params.studentId) }, relations: ['academy'] });
+  const academyId = student && student.academy ? student.academy.id : null;
+  
+  let courses = [];
+  if (academyId) {
+      courses = await courseRepository.find({ where: { academy: { id: parseInt(academyId) } } });
+  }
+  
+  res.render("../views/dashboard/student/course-list", { title: "كورسات الموقع", courses, studentId: req.params.studentId });
 };
+
 const getBookPlan = async (req, res) => {
-  const courseId = req.params.id;
-
   try {
-    const academyId = req.user ? req.user.academyId : null;
-    const course = await Course.findOne({ 
-        _id: courseId, 
-        academyId: academyId 
-    }).populate("category");
-    console.log(course);
-    if (!course) {
-      return res.status(404).render("404", { message: "الدورة غير موجودة." });
-    }
+    const academyId = req.user ? (req.user.academyId || (req.user.academy && req.user.academy.id)) : null;
+    const courseRepository = AppDataSource.getRepository('Course');
+    const course = await courseRepository.findOne({ where: { id: parseInt(req.params.id), academy: { id: parseInt(academyId) } }, relations: ["category"] });
+    
+    if (!course) return res.status(404).render("404", { message: "الدورة غير موجودة." });
 
-    // ⭐️ إرسال كائن الدورة (course) إلى ملف القالب (edit_course.ejs)
-    res.render("../views/dashboard/student/book-plan", {
-      title: `حجز الدورة:`,
-      course: course,
-    });
+    res.render("../views/dashboard/student/book-plan", { title: `حجز الدورة:`, course });
   } catch (err) {
-    console.error("خطأ في جلب بيانات الدورة للتعديل:", err);
     res.status(500).render("error", { message: "فشل في تحميل بيانات الدورة." });
   }
 };
+
 const getAutoAdminBookPlan = async (req, res) => {
-  const courseId = req.params.id;
-  const studentId = req.params.studentId;
-  console.log(studentId,'studentId');
-
   try {
-    const course = await Course.findById(courseId).populate("category");
-    console.log(course);
-    if (!course) {
-      return res.status(404).render("404", { message: "الدورة غير موجودة." });
-    }
+    const courseRepository = AppDataSource.getRepository('Course');
+    const course = await courseRepository.findOne({ where: { id: parseInt(req.params.id) }, relations: ["category"] });
+    
+    if (!course) return res.status(404).render("404", { message: "الدورة غير موجودة." });
 
-    // ⭐️ إرسال كائن الدورة (course) إلى ملف القالب (edit_course.ejs)
-    res.render("../views/dashboard/student/book-plan", {
-      title: `حجز الدورة:`,
-      course: course,
-      studentId: studentId,
-    });
+    res.render("../views/dashboard/student/book-plan", { title: `حجز الدورة:`, course, studentId: req.params.studentId });
   } catch (err) {
-    console.error("خطأ في جلب بيانات الدورة للتعديل:", err);
     res.status(500).render("error", { message: "فشل في تحميل بيانات الدورة." });
   }
 };
+
 const getEnrolledSubscription = async (req, res) => {
-  const subscription = await Subscription.find({ studentId: req.user._id })
-    .populate({
-      path: "courseId", // قم بتعبئة الكورس أولاً
-      // داخل الكورس المُعبَّأ، قم بتعبئة التصنيف
-      populate: {
-        path: "category", // اسم الحقل في موديل Course
-        model: "Category", // اسم موديل التصنيف
-      },
-    })
-    .populate("studentId")
-    .sort({ createdAt: -1 });
-  console.log(subscription, "subscription");
-  const pendingRequests = await Subscription.countDocuments({
-    studentId: req.user._id,
-    status: "pending",
-  });
-  const totalRequests = await Subscription.countDocuments({
-    studentId: req.user._id,
-  });
-  const acceptedRequests = await Subscription.countDocuments({
-    studentId: req.user._id,
-    status: "confirmed",
+  const subscriptionRepository = AppDataSource.getRepository('Subscription');
+  const studentId = req.user.id || req.user._id;
+
+  const subscription = await subscriptionRepository.find({ 
+      where: { student: { id: parseInt(studentId) } },
+      relations: ["course", "course.category", "student", "teacher"],
+      order: { createdAt: 'DESC' }
   });
 
-    // 2. معالجة البيانات وإضافة خاصية التجديد
-    const subscriptionsWithRenewal = subscription.map(sub => {
-        const subObj = sub.toObject();
-        
-        // حساب ما إذا كان قابل للتجديد
-        let isRenewable = false;
-        if (subObj.status === 'confirmed' || subObj.status === 'paid') {
-            const startDate = new Date(subObj.startDate || subObj.createdAt);
-            const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000); // اشتراك شهري
-            const now = new Date();
-            const diffTime = endDate - now;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // قد يكون سالب إذا انتهى
+  const pendingRequests = await subscriptionRepository.count({ where: { student: { id: parseInt(studentId) }, status: "pending" } });
+  const totalRequests = await subscriptionRepository.count({ where: { student: { id: parseInt(studentId) } } });
+  const acceptedRequests = await subscriptionRepository.count({ where: { student: { id: parseInt(studentId) }, status: "confirmed" } });
 
-            let remainingSessions = 0;
-            if (subObj.sessions && subObj.sessions.length > 0) {
-                remainingSessions = subObj.sessions.filter(s => s.status === 'pending').length;
-            }
+  const subscriptionsWithRenewal = subscription.map(sub => {
+      const subObj = { ...sub };
+      let isRenewable = false;
+      if (subObj.status === 'confirmed' || subObj.status === 'paid') {
+          const startDate = new Date(subObj.startDate || subObj.createdAt);
+          const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000); 
+          const diffDays = Math.ceil((endDate - new Date()) / (1000 * 60 * 60 * 24)); 
+          
+          let remainingSessions = 0;
+          if (subObj.sessions && Array.isArray(subObj.sessions)) {
+              remainingSessions = subObj.sessions.filter(s => s.status === 'pending').length;
+          }
 
-            // الشرط: أقل من 5 أيام أو أقل من حصتين
-            console.log(`Sub ID: ${subObj._id}`);
-            console.log(`Status: ${subObj.status}`);
-            console.log(`Start Date: ${startDate}`);
-            console.log(`End Date: ${endDate}`);
-            console.log(`Diff Days: ${diffDays}`);
-            console.log(`Remaining Sessions: ${remainingSessions}`);
-            
-            if (diffDays < 5 || remainingSessions < 2 &&remainingSessions >0) {
-                isRenewable = true;
-            }
-            console.log(`Is Renewable: ${isRenewable}`);
-        }
-        subObj.isRenewable = isRenewable;
-        return subObj;
-    });
+          if (diffDays < 5 || (remainingSessions < 2 && remainingSessions > 0)) {
+              isRenewable = true;
+          }
+      }
+      subObj.isRenewable = isRenewable;
+      return subObj;
+  });
 
-    // 'dashboard/index' هو المسار النسبي للملف داخل مجلد 'views'
-    res.render("../views/dashboard/student/student_enrollment_requests.ejs", {
-        title: "طلباتى ",
-        allRequests: subscriptionsWithRenewal, // نمرر القائمة المعدلة
-        stats: {
-            totalRequests,
-            pendingRequests, // ⬅️ هذا هو الحقل المطلوب
-            acceptedRequests,
-        },
-    });
+  res.render("../views/dashboard/student/student_enrollment_requests.ejs", {
+      title: "طلباتى ",
+      allRequests: subscriptionsWithRenewal,
+      stats: { totalRequests, pendingRequests, acceptedRequests },
+  });
 };
+
 const getRequestDetails = async (req, res, next) => {
-  const requestId = req.params.requestId;
-console.log(requestId,'request id');
-
   try {
-    const academyId =  req.user.academyId._id ;
-    console.log(academyId,'academy id');
+    const requestId = req.params.requestId;
+    const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+    const subscriptionRepository = AppDataSource.getRepository('Subscription');
 
-    // 1. جلب بيانات الطل`ب وتعبئة بيانات الكورس والمدرب (Populaton)
-    // نفترض أن حقل courseId يحتوي على تفاصيل الكورس (المتضمنة اسم المدرب)
-    const request = await Subscription.findOne({ 
-        _id: requestId, 
-        academyId: academyId 
-    })
-      .populate({
-        path: "courseId",
-      })
-      .lean();
-    console.log(request, "request details");
-    console.log(
-      request.selectedPriceOption,
-      "request course selectedPriceOption"
-    );
-    if (!request) {
-      return res.status(404).render("404", { message: "الطلب غير موجود." });
-    }
+    const request = await subscriptionRepository.findOne({ 
+        where: { id: parseInt(requestId), academy: { id: parseInt(academyId) } },
+        relations: ["course", "teacher"] 
+    });
 
-    // 2. جلب الحصص المرتبطة بهذا الكورس
+    if (!request) return res.status(404).render("404", { message: "الطلب غير موجود." });
+
     let sessions = [];
-    // يتم عرض الحصص فقط إذا كانت حالة الطلب (مدفوع أو مقبول)
-    if (
-      request.courseId &&
-      (request.status === "paid" || request.status === "confirmed")
-    ) {
+    if (request.course && (request.status === "paid" || request.status === "confirmed")) {
       sessions = request.sessions || [];
     }
 
-    // حساب قابلية التجديد للطلب الفردي
     let isRenewable = false;
     if (request.status === 'confirmed' || request.status === 'paid') {
         const startDate = new Date(request.startDate || request.createdAt);
-        const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-        const now = new Date();
-        const diffTime = endDate - now;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        let remainingSessions = 0;
-        if (request.sessions && request.sessions.length > 0) {
-            remainingSessions = request.sessions.filter(s => s.status === 'pending').length;
-        }
-
-        if (diffDays < 5 || remainingSessions < 2&&remainingSessions >0) {
-            isRenewable = true;
-        }
+        const diffDays = Math.ceil(((startDate.getTime() + 30 * 24 * 60 * 60 * 1000) - new Date()) / (1000 * 60 * 60 * 24));
+        let remainingSessions = (request.sessions || []).filter(s => s.status === 'pending').length;
+        if (diffDays < 5 || (remainingSessions < 2 && remainingSessions > 0)) isRenewable = true;
     }
-
-    // 3. دمج البيانات وإرسالها إلى ملف EJS
-    const requestDetails = {
-      ...request,
-      sessions: sessions,
-      isRenewable: isRenewable // إضافة الخاصية
-    };
 
     res.render("../views/dashboard/student/subscription_details.ejs", {
       pageTitle: `تفاصيل الطلب ${requestId}`,
-      requestDetails: requestDetails, // هذا يصبح locals.requestDetails في EJS
+      requestDetails: { ...request, sessions, isRenewable }, 
     });
   } catch (err) {
-    console.error("Error fetching request details:", err);
-    // في حالة وجود خطأ في الخادم أو قاعدة البيانات
     res.status(500).render("error", { message: "حدث خطأ داخلي في الخادم." });
   }
 };
-const getSessionWaitingRoom = async (req, res, next) => {
-  console.log('getSessionWaitingRoom')
-  const { bookingId, sessionId } = req.params;
 
+const getSessionWaitingRoom = async (req, res, next) => {
+  const { bookingId, sessionId } = req.params;
   try {
-    // 1. البحث عن وثيقة الحجز وجلب بيانات الجلسة المحددة فقط
-    const booking = await Subscription.findOne(
-      {
-        // الشرط 1: البحث باستخدام ID الحجز
-        _id: bookingId,
-        // الشرط 2: التأكد من أن الجلسة المطلوبة موجودة داخل مصفوفة sessions
-        "sessions._id": sessionId,
-      },
-      {
-        // 💡 الإسقاط (Projection): جلب البيانات الأساسية للحجز + الجلسة المحددة فقط
-        // `$`: يقوم بإسقاط العنصر الأول في المصفوفة الذي يطابق الشرط في findOne
-        courseId: 1, // جلب مرجع الكورس (تحتاجه للتعبئة)
-        studentId: 1,
-        "sessions.$": 1, // جلب الجلسة المطابقة فقط
-      }
-    )
-      // 2. تعبئة المراجع (Populate)
-      .populate({
-        path: "courseId",
-        select: "title description instructor",
-        // يمكنك إضافة تعبئة المدرب هنا إذا كان مرجعاً داخل الكورس
-      }) .populate({
-       path: "teacherId"
-      })
-      .lean();
-console.log(booking, "booking details");
-    if (!booking || !booking.sessions || booking.sessions.length === 0) {
-      return res
-        .status(404)
-        .render("404", { message: "الحجز أو تفاصيل الجلسة غير موجودة." });
+    const subscriptionRepository = AppDataSource.getRepository('Subscription');
+    const booking = await subscriptionRepository.findOne({ 
+        where: { id: parseInt(bookingId) },
+        relations: ["course", "teacher"]
+    });
+
+    if (!booking || !booking.sessions || !booking.sessions[sessionId]) {
+      return res.status(404).render("404", { message: "الحجز أو تفاصيل الجلسة غير موجودة." });
     }
 
-    // 3. استخراج كائن الجلسة الفعلي وتنسيقه لموافقته مع العرض
+    const session = booking.sessions[sessionId];
     const userTimeZone = req.user?.timezone || "Asia/Riyadh";
-    const session = booking.sessions[0];
     const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
-               .setZone(userTimeZone)
-               .setLocale('ar');
+               .setZone(userTimeZone).setLocale('ar');
 
     const sessionDetails = {
       ...session,
-      courseTitle: booking.courseId.title,
-      courseId: booking.courseId._id,
-      teacherId: booking.teacherId?._id,
-      sessionLink: booking.teacherId?.zoom_link,
-      teacherName: booking.teacherId?.name,
+      courseTitle: booking.course?.title,
+      courseId: booking.course?.id,
+      teacherId: booking.teacher?.id,
+      sessionLink: booking.teacher?.zoom_link,
+      teacherName: booking.teacher?.name,
       displayDate: dt.toFormat("yyyy-MM-dd"),
       displayTime: dt.toFormat("hh:mm a"),
       displayDay: dt.toFormat("cccc"),
       utcDateAndTime: session.utcDateAndTime
     };
-    console.log(sessionDetails.sessionDetails, "sessionDetails");
-    // 4. تمرير البيانات
+
     res.render("../views/dashboard/student/session-details", {
       pageTitle: `تفاصيل الجلسة ${sessionDetails.date}`,
-      sessionDetails: sessionDetails,
+      sessionDetails,
     });
   } catch (err) {
-    console.error("Error fetching embedded session details:", err);
     res.status(500).render("error", { message: "حدث خطأ داخلي في الخادم." });
   }
 };
 
-/**
- * جلب أقرب حصة قادمة (تاريخياً) من بين جميع حجوزات الطالب.
- */
-const mongoose = require("mongoose");
-const { duration } = require("moment");
-const { DateTime } = require("luxon");
-
-async function getNearestSession(studentId, userTimeZone) {
-  // جلب الاشتراكات المؤكدة
-  const subscriptions = await Subscription.find({
-    studentId: studentId,
-    status: "confirmed",
-  }).populate("courseId");
-
-  let upcoming = [];
-  const now = new Date(); // التوقيت الحالي للسيرفر (UTC)
-
-  // نحدد منطقة زمنية افتراضية في حال لم يحدد اليوزر منطقة في بروفايله
-  const tz = userTimeZone || "UTC";
-
-  subscriptions.forEach((sub) => {
-    (sub.sessions || []).forEach((session) => {
-      // 1. استخدام التوقيت العالمي المخزن
-      const sessionStart = new Date(session.utcDateAndTime);
-      
-      // 2. نهاية الحصة (ساعة من البدء)
-      const sessionEnd = new Date(sessionStart.getTime() + 60 * 60 * 1000);
-
-      // 3. الفلترة (لم تنتهِ ولم تكتمل)
-      if (sessionEnd > now && session.status !== "completed") {
-        
-        // 4. التحويل لمنطقة اليوزر الممررة للدالة
-        const dt = DateTime.fromJSDate(sessionStart, { zone: "utc" })
-          .setZone(tz)
-          .setLocale('ar');
-
-        upcoming.push({
-          bookingId: sub._id,
-          courseTitle: sub.courseId?.title,
-          sessionDetails: {
-            ...session,
-            // إضافة البيانات المنسقة للمنطقة الزمنية الخاصة باليوزر
-            displayDate: dt.toFormat("yyyy-MM-dd"),
-            displayTime: dt.toFormat("hh:mm a"),
-            displayDay: dt.toFormat("cccc")
-          },
-          sessionId: session._id,
-          sessionEnd: sessionEnd,
-          startTime: sessionStart // للترتيب فقط
-        });
-      }
-    });
+const getMySessionsPage = async (req, res) => {
+  const subscriptionRepository = AppDataSource.getRepository('Subscription');
+  const userId = req.user.id || req.user._id;
+  const acceptedRequests = await subscriptionRepository.find({
+    where: { student: { id: parseInt(userId) }, status: "confirmed" },
+    relations: ["course", "course.category", "student", "teacher"]
   });
 
-  // ترتيب من الأقرب للأبعد
-  upcoming.sort((a, b) => a.startTime - b.startTime);
-  return upcoming[0] || null;
-}
-const getStudentCourseDetails = async (studentId) => {
-  try {
-    const mongoose = require('mongoose');
-    const id = new mongoose.Types.ObjectId(studentId);
+  const userTimeZone = req.user.timezone || "Asia/Riyadh";
+  const today = DateTime.now().setZone(userTimeZone).toFormat("yyyy-MM-dd");
 
-    const result = await Subscription.aggregate([
-      { $match: { studentId: id, status: "confirmed" } },
-      
-      // ربط الكورس
-      {
-        $lookup: {
-          from: "courses",
-          localField: "courseId",
-          foreignField: "_id",
-          as: "courseInfo"
-        }
-      },
-      { $unwind: "$courseInfo" },
-
-      // إجراء عملية الضرب
-      {
-        $project: {
-          _id: 0,
-          courseName: "$courseInfo.title",
-          numberOfSessionsPerMonth: 1,
-          pricePerSession: { $toDouble: "$selectedPriceOption" },
-          // العملية الحسابية (السعر × عدد الحصص)
-          totalCalculatedPrice: {
-            $multiply: [
-              { $toDouble: "$selectedPriceOption" },
-              "$numberOfSessionsPerMonth"
-            ]
-          },
-          startDate: 1,
-          status: 1
-        }
-      }
-    ]);
-
-    return result[0];
-  } catch (error) {
-    console.error("Error calculating total:", error);
-    return [];
-  }
-};
-const getStudentStats = async (studentId) => {
-  try {
-    const mongoose = require('mongoose');
-    const id = new mongoose.Types.ObjectId(studentId);
-
-    const stats = await Subscription.aggregate([
-      // 1. فلترة اشتراكات الطالب المؤكدة فقط
-      {
-        $match: {
-          studentId: id,
-          status: "confirmed",
-        },
-      },
-       
-      // 3. التجميع وحساب الاحصائيات
-     
-      // 2. تفكيك الحصص للتعامل مع كل واحدة على حدة
-      { $unwind: "$sessions" },
-      {
-        $group: {
-          _id: "$studentId",
-          // أ- حصص مكتملة: نعد الجلسات التي حالتها 'completed'
-          completedSessions: {
-            $sum: { $cond: [{ $eq: ["$sessions.status", "completed"] }, 1, 0] },
-          },
-          // ب- تقييمك: تحويل المستويات (A,B,C) لأرقام لحساب المتوسط
-          avgRating: {
-            $avg: {
-              $switch: {
-                branches: [
-                  { case: { $eq: ["$sessions.report.level", "A"] }, then: 5 },
-                  { case: { $eq: ["$sessions.report.level", "B"] }, then: 4 },
-                  { case: { $eq: ["$sessions.report.level", "C"] }, then: 3 }
-                ],
-                default: null 
-              }
-            }
-          },
-          // ج- دقائق التعلم: بفرض أن كل حصة مكتملة هي ساعة (60 دقيقة) 
-          // أو يمكنك استبدال 60 بحقل المدة إذا أضفته
-          totalMinutes: {
-            $sum: { $cond: [{ $eq: ["$sessions.status", "completed"] }, 60, 0] }
-          },
-          // د- الخطة: إجمالي الحصص المحجوزة في مصفوفة الجلسات
-          totalPlan: { $sum: 1 }
-        },
-      },
-      // 4. التنسيق النهائي للعرض
-      {
-        $project: {
-          _id: 0,
-          completedSessions: 1,
-       
-
-
-     
-          rating: { $ifNull: [{ $round: ["$avgRating", 1] }, 0] },
-          learningMinutes: 1,
-          totalPlan: 1,
-          learningHours: { $divide: ["$totalMinutes", 60] } // تحويل الساعات لو أردت
-        },
-      },
-    ]);
-console.log(stats,'stats');
-    return stats.length > 0 ? stats[0] : { 
-    
-      completedSessions: 0, 
-      rating: 0, 
-      learningMinutes: 0, 
-      totalPlan: 0 
-    };
-  } catch (error) {
-    console.error("Dashboard Stats Error:", error);
-    return null;
-  }
-};
-
-const getMySessionsPage = async (req, res) => {
-  // 1. جلب البيانات من قاعدة البيانات مع الـ Populates
-  const acceptedRequests = await Subscription.find({
-    studentId: req.user._id,
-    status: "confirmed",
-  })
-    .populate({
-      path: "courseId",
-      populate: {
-        path: "category",
-        model: "Category",
-      },
-    })
-    .populate("studentId").populate("teacherId");
-
-  // 2. تحديد المنطقة الزمنية للمستخدم (أو افتراضية إذا لم توجد)
-  const userTimeZone =  req.user.timezone || "Asia/Riyadh";
-
-  // 3. معالجة البيانات لتحويل توقيت كل جلسة (Session)
   const formattedBookings = acceptedRequests.map((sub) => {
-    // تحويل وثيقة Mongoose إلى كائن عادي لنتمكن من التعديل عليه
-    const booking = sub.toObject();
-
+    const booking = { ...sub };
     if (booking.sessions && Array.isArray(booking.sessions)) {
       booking.sessions = booking.sessions.map((session) => {
-        // تحويل التاريخ من UTC إلى المنطقة الزمنية للمستخدم باستخدام Luxon
         const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
-                   .setZone(userTimeZone)
-                   .setLocale('ar'); // لجعل الوقت والتاريخ بالعربية
-console.log(booking.teacherId.zoom_link,'zoomLink');
-const today = DateTime.now().setZone(userTimeZone).toFormat("yyyy-MM-dd");
-     const sessionDate = dt.toFormat("yyyy-MM-dd");
-return {
+                   .setZone(userTimeZone).setLocale('ar');
+        return {
           ...session,
-          // إضافة حقول منسقة للعرض في الـ EJS
-          displayDate: dt.toFormat("yyyy-MM-dd"), // التاريخ: 2026-01-11
-          displayTime: dt.toFormat("hh:mm a"),   // الوقت: 01:15 م
+          displayDate: dt.toFormat("yyyy-MM-dd"),
+          displayTime: dt.toFormat("hh:mm a"),
           displayDay: dt.toFormat("cccc"),   
-          zoomLink:booking.teacherId.zoom_link,
-          isToday: sessionDate === today    // اليوم: الأحد
+          zoomLink: booking.teacher?.zoom_link,
+          isToday: dt.toFormat("yyyy-MM-dd") === today 
         };
       });
     }
     return booking;
   });
-console.log(formattedBookings.zoomLink, "formattedBookings");
-  // 4. إرسال البيانات المنسقة (formattedBookings) بدلاً من الأصلية
-  res.render("dashboard/student/my-sessions", {
-    title: "حصصي المجدولة",
-    bookings: formattedBookings, 
-  });
+
+  res.render("dashboard/student/my-sessions", { title: "حصصي المجدولة", bookings: formattedBookings });
 };
+
 const getStudentSettings = async (req, res, next) => {
- 
-  const user = await User.findById(req.user._id);
-     console.log(user,'user new ');
-  res.render("dashboard/student/settings", {
-    title: "  الاعدادات الطالب ",
-    newuser: user,
-  });
+  const userRepository = AppDataSource.getRepository('User');
+  const user = await userRepository.findOne({ where: { id: req.user.id || req.user._id } });
+  res.render("dashboard/student/settings", { title: "الاعدادات الطالب", newuser: user });
 };
 
 const getStudentBillingPage = async (req, res) => {
     try {
-        const studentId = req.user._id; // الحصول على ID الطالب من التوثيق
+        const studentId = req.user.id || req.user._id;
+        const subscriptionRepository = AppDataSource.getRepository('Subscription');
+        
+        const subscriptions = await subscriptionRepository.find({
+            where: { student: { id: parseInt(studentId) } },
+            relations: ["course"],
+            order: { createdAt: 'DESC' }
+        });
 
-        const billingData = await Subscription.aggregate([
-            // 1. جلب كافة اشتراكات هذا الطالب
-            { $match: { studentId: new mongoose.Types.ObjectId(studentId) } },
+        const billingData = subscriptions.map(sub => {
+            const startDate = new Date(sub.startDate || sub.createdAt);
+            const remainingSessionsCount = (sub.sessions || []).filter(s => s.status !== "completed").length;
             
-            // 2. ربط بيانات الكورس
-            {
-                $lookup: {
-                    from: "courses",
-                    localField: "courseId",
-                    foreignField: "_id",
-                    as: "courseInfo"
-                }
-            },
-            { $unwind: "$courseInfo" },
+            return {
+                courseName: sub.course?.title,
+                totalSessions: sub.numberOfSessionsPerMonth,
+                priceOption: sub.selectedPriceOption,
+                totalAmount: sub.totalAmount,
+                status: sub.status,
+                createdAt: sub.createdAt,
+                startDate: sub.startDate,
+                remainingSessionsCount,
+                renewalDate: new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000)
+            };
+        });
 
-            // 3. معالجة البيانات وحساب الحصص المتبقية
-            {
-                $project: {
-                    courseName: "$courseInfo.title",
-                    totalSessions: "$numberOfSessionsPerMonth",
-                    priceOption: "$selectedPriceOption",
-                    totalAmount: 1,
-                    status: 1,
-                    createdAt: 1,
-                    startDate: 1,
-                    // حساب الحصص التي لم تكتمل بعد (المتبقية)
-                    remainingSessionsCount: {
-                        $size: {
-                            $filter: {
-                                input: "$sessions",
-                                as: "sess",
-                                cond: { $ne: ["$$sess.status", "completed"] }
-                            }
-                        }
-                    },
-                    // حساب تاريخ التجديد (بعد شهر من البداية)
-                    renewalDate: { $add: ["$startDate", 30 * 24 * 60 * 60 * 1000]||Date.now() }
-                }
-            },
-            // 4. ترتيب الدفعات من الأحدث للأقدم
-            { $sort: { createdAt: -1 } }
-        ]);
-
-    const activePlan = billingData.length > 0 ? billingData[0] : null;
-    
-    // إرسال البيانات للصفحة
-    res.render('dashboard/student/billing', { 
-        billingData,
-        activePlan 
-    });
-
+        res.render('dashboard/student/billing', { billingData, activePlan: billingData[0] || null });
     } catch (error) {
-        console.error("Billing Page Error:", error);
         res.status(500).send("حدث خطأ في جلب بيانات الرصيد");
     }
 };
-const getProfilePage = async (req, res) => {
-    res.render('dashboard/student/profile_tab', { 
-           
-        });
-};
+
+const getProfilePage = async (req, res) => { res.render('dashboard/student/profile_tab', {}); };
+
 const getStudentProfilePage = async (req, res) => {
     try {
         const studentId = req.params.id;
+        const userRepository = AppDataSource.getRepository('User');
+        const subscriptionRepository = AppDataSource.getRepository('Subscription');
 
-        // 1. جلب بيانات الطالب الأساسية
-        const student = await User.findById(studentId);
-        if (!student) {
-            return res.status(404).send('الطالب غير موجود');
-        }
+        const student = await userRepository.findOne({ where: { id: parseInt(studentId) } });
+        if (!student) return res.status(404).send('الطالب غير موجود');
 
-        // 2. جلب جميع اشتراكات الطالب مع بيانات الكورسات والمعلمين
-        const subscriptions = await Subscription.find({ studentId: studentId })
-            .populate('courseId') // لجلب اسم الكورس
-            .populate('teacherId'); // لجلب اسم وإيميل المعلم
+        const subscriptions = await subscriptionRepository.find({ 
+            where: { student: { id: parseInt(studentId) } },
+            relations: ["course", "teacher"]
+        });
 
-        // 3. تجهيز البيانات للعرض في التصميم
-        // سنقوم بتجميع كل الحصص من جميع الاشتراكات في مصفوفة واحدة لسجل الحصص
         let allSessions = [];
         subscriptions.forEach(sub => {
-          console.log(sub,'sub');
-            sub.sessions.forEach(session => {
-              console.log(session,'session');
+            (sub.sessions || []).forEach(session => {
                 allSessions.push({
-                    courseName: sub.courseId ? sub.courseId.title : 'كورس غير مسمى',
-                    teacherName: sub.teacherId ? sub.teacherId.name : 'غير محدد',
+                    courseName: sub.course ? sub.course.title : 'كورس غير مسمى',
+                    teacherName: sub.teacher ? sub.teacher.name : 'غير محدد',
                     date: session.date,
                     time: session.time,
                     status: session.status,
                     report: session.report,
-                    link: sub.teacherId.zoom_link
+                    link: sub.teacher?.zoom_link
                 });
             });
         });
 
-        // ترتيب الحصص من الأحدث للأقدم
         allSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        // 4. إرسال البيانات إلى صفحة EJS
         res.render('dashboard/student_profile', {
-            student: student,
-            subscriptions: subscriptions,
-            allSessions: allSessions,
-            // استخراج الحرف الأول للايقونة
+            student,
+            subscriptions,
+            allSessions,
             initials: student.name ? student.name.charAt(0) : 'S'
         });
-
     } catch (error) {
-        console.error(error);
         res.status(500).send('حدث خطأ في السيرفر');
     }
 };
+
 const updatePassword = async (req, res) => {
     try {
         const { currentPassword, newPassword, confirmPassword } = req.body;
-        const user = await User.findById(req.user._id);
+        const userRepository = AppDataSource.getRepository('User');
+        const user = await userRepository.findOne({ where: { id: req.user.id || req.user._id } });
 
-        if (!currentPassword || !newPassword || !confirmPassword) {
-            return res.status(400).json({ success: false, message: "يرجى ملء جميع الحقول المطلوبة." });
-        }
+        if (!currentPassword || !newPassword || !confirmPassword) return res.status(400).json({ success: false, message: "يرجى ملء كافة الحقول." });
+        if (newPassword !== confirmPassword) return res.status(400).json({ success: false, message: "غير متطابقين." });
+        if (newPassword.length < 6) return res.status(400).json({ success: false, message: "6 أحرف على الأقل." });
+        
+        if (!(await bcrypt.compare(currentPassword, user.password))) return res.status(400).json({ success: false, message: "كلمة المرور الحالية غير صحيحة." });
 
-        if (newPassword !== confirmPassword) {
-            return res.status(400).json({ success: false, message: "كلمة المرور الجديدة وتأكيدها غير متطابقين." });
-        }
-
-        if (newPassword.length < 6) {
-            return res.status(400).json({ success: false, message: "يجب أن تكون كلمة المرور الجديدة 6 أحرف على الأقل." });
-        }
-
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ success: false, message: "كلمة المرور الحالية غير صحيحة." });
-        }
-
-        user.password = newPassword;
-        await user.save();
+        user.password = await bcrypt.hash(newPassword, 10);
+        await userRepository.save(user);
 
         res.status(200).json({ success: true, message: "تم تغيير كلمة المرور بنجاح." });
     } catch (err) {
-        console.error("Update Password Error:", err);
-        res.status(500).json({ success: false, message: "حدث خطأ داخلي أثناء تغيير كلمة المرور." });
+        res.status(500).json({ success: false, message: "حدث خطأ." });
     }
 };
 
-const getStudentSessionsPage = async (req, res) => {
-  const userId = req.params.id;
-  // 1. جلب البيانات من قاعدة البيانات مع الـ Populates
-  const acceptedRequests = await Subscription.find({
-    studentId:userId,
-    status: "confirmed",
-  })
-    .populate({
-      path: "courseId",
-      populate: {
-        path: "category",
-        model: "Category",
-      },
-    })
-    .populate("studentId").populate("teacherId");
+const getStudentSessionsPageParams = async (req, res) => {
+    const userId = req.params.id;
+    const subscriptionRepository = AppDataSource.getRepository('Subscription');
+    const acceptedRequests = await subscriptionRepository.find({
+      where: { student: { id: parseInt(userId) }, status: "confirmed" },
+      relations: ["course", "course.category", "student", "teacher"]
+    });
+  
+    const userTimeZone = req.user.timezone || "Asia/Riyadh";
+    const today = DateTime.now().setZone(userTimeZone).toFormat("yyyy-MM-dd");
+  
+    const formattedBookings = acceptedRequests.map((sub) => {
+      const booking = { ...sub };
+      if (booking.sessions && Array.isArray(booking.sessions)) {
+        booking.sessions = booking.sessions.map((session) => {
+          const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
+                     .setZone(userTimeZone).setLocale('ar');
+          return {
+            ...session,
+            displayDate: dt.toFormat("yyyy-MM-dd"),
+            displayTime: dt.toFormat("hh:mm a"),
+            displayDay: dt.toFormat("cccc"),   
+            zoomLink: booking.teacher?.zoom_link,
+            isToday: dt.toFormat("yyyy-MM-dd") === today 
+          };
+        });
+      }
+      return booking;
+    });
+  
+    res.render("dashboard/student/my-sessions", { title: "حصصي المجدولة", bookings: formattedBookings });
+  };
 
-  // 2. تحديد المنطقة الزمنية للمستخدم (أو افتراضية إذا لم توجد)
-  const userTimeZone =  req.user.timezone || "Asia/Riyadh";
-
-  // 3. معالجة البيانات لتحويل توقيت كل جلسة (Session)
-  const formattedBookings = acceptedRequests.map((sub) => {
-    // تحويل وثيقة Mongoose إلى كائن عادي لنتمكن من التعديل عليه
-    const booking = sub.toObject();
-
-    if (booking.sessions && Array.isArray(booking.sessions)) {
-      booking.sessions = booking.sessions.map((session) => {
-        // تحويل التاريخ من UTC إلى المنطقة الزمنية للمستخدم باستخدام Luxon
-        const dt = DateTime.fromJSDate(new Date(session.utcDateAndTime), { zone: "utc" })
-                   .setZone(userTimeZone)
-                   .setLocale('ar'); // لجعل الوقت والتاريخ بالعربية
-console.log(booking.teacherId.zoom_link,'zoomLink');
-const today = DateTime.now().setZone(userTimeZone).toFormat("yyyy-MM-dd");
-     const sessionDate = dt.toFormat("yyyy-MM-dd");
-return {
-          ...session,
-          // إضافة حقول منسقة للعرض في الـ EJS
-          displayDate: dt.toFormat("yyyy-MM-dd"), // التاريخ: 2026-01-11
-          displayTime: dt.toFormat("hh:mm a"),   // الوقت: 01:15 م
-          displayDay: dt.toFormat("cccc"),   
-          zoomLink:booking.teacherId.zoom_link,
-          isToday: sessionDate === today    // اليوم: الأحد
-        };
-      });
-    }
-    return booking;
-  });
-console.log(formattedBookings.zoomLink, "formattedBookings");
-  // 4. إرسال البيانات المنسقة (formattedBookings) بدلاً من الأصلية
-  res.render("dashboard/student/my-sessions", {
-    title: "حصصي المجدولة",
-    bookings: formattedBookings, 
-  });
-};
 module.exports = {
   getStudentProfilePage,
-  getStudentSessionsPage,
+  getStudentSessionsPage: getStudentSessionsPageParams,
   getProfilePage,
   updatePassword,
   update_profile,
@@ -1077,34 +641,34 @@ module.exports = {
   getEnrolledSubscription,
   getRequestDetails,
   getSessionWaitingRoom,
-  getNearestSession, addStudent,
+  getNearestSession, 
+  addStudent,
   toggleStatus,
   deleteStudent,
   getAllCoursesForAdminAutoSubscription,
   getAutoAdminBookPlan,
-  // Temporary Debug Function
   debugExpireSubscription: async (req, res) => {
       try {
-          const sub = await Subscription.findOne({ studentId: req.user._id, status: 'confirmed' }).sort({ createdAt: -1 });
-          if (sub) {
-              // Set start date to 28 days ago (2 days left)
-              const oldDate = new Date();
-              oldDate.setDate(oldDate.getDate() - 28);
-              sub.startDate = oldDate;
-              
-              // Mark most sessions as completed
-              if (sub.sessions && sub.sessions.length > 2) {
-                  for(let i=0; i<sub.sessions.length-1; i++) {
-                      sub.sessions[i].status = 'completed';
-                  }
-              }
-              await sub.save();
-              res.redirect('/student/enrolled_subscription');
-          } else {
-              res.send('No confirmed subscription found to expire.');
-          }
+        const subscriptionRepository = AppDataSource.getRepository('Subscription');
+        const sub = await subscriptionRepository.findOne({ 
+            where: { student: { id: req.user.id || req.user._id }, status: 'confirmed' },
+            order: { createdAt: 'DESC' }
+        });
+        if (sub) {
+            const oldDate = new Date();
+            oldDate.setDate(oldDate.getDate() - 28);
+            sub.startDate = oldDate;
+            if (sub.sessions && sub.sessions.length > 2) {
+                for(let i=0; i<sub.sessions.length-1; i++) {
+                    sub.sessions[i].status = 'completed';
+                }
+            }
+            await subscriptionRepository.save(sub);
+            res.redirect('/student/enrolled_subscription');
+        } else {
+            res.send('No confirmed subscription found to expire.');
+        }
       } catch (err) {
-          console.error(err);
           res.send('Error expiring subscription');
       }
   }

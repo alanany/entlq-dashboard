@@ -1,53 +1,67 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/user_model');
-const SystemSettings = require('../models/SystemSettings');
+const { AppDataSource } = require('../config/database');
 
 const requireAuth = (req, res, next) => {
     const token = req.cookies.jwt;
 
-    // check json web token exists & is verified
     if (token) {
         jwt.verify(token, process.env.JWT_SECRET || '01115699209', (err, decodedToken) => {
             if (err) {
-                // إذا كان الرمز غير صالح: تحويل إلى صفحة تسجيل الدخول
                 console.log(err.message);
                 res.redirect('/');
             } else {
-                // ⭐️ إذا كان الرمز صالحاً: نمرر الطلب فقط (next())
-                console.log(decodedToken);
-                // ❌ تم حذف: res.redirect('/login');
-                next(); // ⭐️ هذا هو الإجراء الصحيح الوحيد ⭐️
+                next();
             }
         });
     } else {
-        // إذا لم يكن هناك رمز: تحويل إلى صفحة تسجيل الدخول
         res.redirect('/');
     }
 };
 
-// ... (دالة checkUser تبقى كما هي، فهي صحيحة) ...
 const checkUser = (req, res, next) => {
     const token = req.cookies.jwt;
+    const userRepository = AppDataSource.getRepository('User');
+    const systemSettingsRepository = AppDataSource.getRepository('SystemSettings');
+
     if (token) {
         jwt.verify(token, process.env.JWT_SECRET || '01115699209', async (err, decodedToken) => {
             if (err) {
                 res.locals.user = null;
                 next();
             } else {
-                let user = await User.findById(decodedToken.id).populate('academyId');
-                res.locals.user = user;
-                
-                // جلب إعدادات النظام وتوفيرها عالمياً للأكاديمية الحالية
-                let settings = await SystemSettings.findOne({ academyId: user.academyId });
-                if (!settings && user.academyId) {
-                    settings = await SystemSettings.create({ 
-                        academyId: user.academyId,
-                        academyName: user.academyId.name
+                let user;
+                try {
+                    user = await userRepository.findOne({ 
+                        where: { id: parseInt(decodedToken.id) }, 
+                        relations: ['academy'] 
                     });
+                } catch (e) {
+                    console.error("Error fetching user in checkUser:", e.message);
                 }
+
+                res.locals.user = user;
+                let settings = null;
+
+                if (user && user.academy) {
+                    req.user = user;
+                    req.user.academyId = user.academy.id; // Compatibility mapping 
+                    
+                    settings = await systemSettingsRepository.findOne({ 
+                        where: { academy: { id: user.academy.id } } 
+                    });
+                    if (!settings) {
+                        settings = systemSettingsRepository.create({ 
+                            academy: { id: user.academy.id },
+                            academyName: user.academy.name
+                        });
+                        await systemSettingsRepository.save(settings);
+                    }
+                } else if (user) {
+                    req.user = user;
+                }
+
                 res.locals.settings = settings || {};
 
-                // Helper to format image URLs
                 res.locals.getImageUrl = (imagePath, fallback = '/img/classes-1.jpg') => {
                     if (!imagePath || imagePath.trim() === '') return fallback;
                     if (imagePath.startsWith('http')) return imagePath;
@@ -57,8 +71,6 @@ const checkUser = (req, res, next) => {
                     return imagePath.startsWith('/') ? `${domain}${imagePath}` : `${domain}/${imagePath}`;
                 };
 
-                // ====== Helper لتنسيق العملة ======
-                // الاستخدام في EJS: <%= formatCurrency(booking.totalAmount) %>
                 res.locals.formatCurrency = (amount, opts = {}) => {
                     const s = settings || {};
                     const symbol   = opts.symbol   || s.currencySymbol  || s.currency || 'ر.س';
@@ -73,24 +85,16 @@ const checkUser = (req, res, next) => {
                     return position === 'before' ? `${symbol}${formatted}` : `${formatted} ${symbol}`;
                 };
 
-                // رمز العملة فقط (للاستخدام السريع في القوالب)
                 res.locals.currencySymbol = settings?.currencySymbol || settings?.currency || 'ر.س';
 
-                console.log(res.locals.user);
-                req.user = res.locals.user;
                 next();
             }
         });
     } else {
         res.locals.user = null;
-        // جلب إعدادات النظام حتى لغير المسجلين
-        SystemSettings.findOne().then(settings => {
-            if (!settings) return SystemSettings.create({});
-            return settings;
-        }).then(settings => {
-            res.locals.settings = settings;
+        systemSettingsRepository.findOne({ where: {} }).then(settings => {
+            res.locals.settings = settings || {};
             
-            // Helper to format image URLs
             res.locals.getImageUrl = (imagePath, fallback = '/img/classes-1.jpg') => {
                 if (!imagePath || imagePath.trim() === '') return fallback;
                 if (imagePath.startsWith('http')) return imagePath;
@@ -100,7 +104,6 @@ const checkUser = (req, res, next) => {
                 return imagePath.startsWith('/') ? `${domain}${imagePath}` : `${domain}/${imagePath}`;
             };
 
-            // ====== Helper لتنسيق العملة (للزوار غير المسجلين) ======
             res.locals.formatCurrency = (amount, opts = {}) => {
                 const s = settings || {};
                 const symbol   = opts.symbol   || s.currencySymbol  || s.currency || 'ر.س';
@@ -123,21 +126,17 @@ const checkUser = (req, res, next) => {
             res.locals.currencySymbol = 'ر.س';
             next();
         });
-        return;
     }
 };
+
 const requireAdmin = (req, res, next) => {
-    // 1. التأكد أولاً أن المستخدم مسجل دخول (بياناته موجودة في req.user)
     if (req.user) {
-        // 2. التحقق من رتبة المستخدم (أدمن أو مشرف)
         if (req.user.role === 'admin' || req.user.role === 'supervisor' || req.user.role === 'superadmin') {
-            next(); // مستخدم أدمن أو مشرف، اسمح له بالمرور
+            next();
         } else {
-            // مستخدم مسجل دخول ولكنه ليس أدمن أو مشرف
             res.status(403).send('غير مسموح لك بالدخول، هذه المنطقة للمسؤولين فقط');
         }
     } else {
-        // لا توجد بيانات مستخدم (غير مسجل دخول)
         res.redirect('/');
     }
 };

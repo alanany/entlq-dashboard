@@ -1,81 +1,96 @@
-// models/Booking.js
+const { EntitySchema } = require('typeorm');
 
-const mongoose = require('mongoose');
-
-const bookingSchema = new mongoose.Schema({
-    startDate: { type: Date }, // تاريخ بداية الكورس المؤكد
-    
-
-    // 💡 مصفوفة لتخزين الجدولة
-    sessions: [{
-        durationMinutes: { type: Number(), default:Number(this.selectedPriceOption)  },
-        date: { type: Date, required: true },
-        time: { type: String, required: true },
-          endtime: { type: String },
-        link: { type: String } ,
-        utcDateAndTime: { type: String },
-        attended: { type: Boolean, default: false },
-         isPaidByAdmin: { type: Boolean, default: false }, // أضف هذا الحقل هنا
-// تقرير أداء الطالب في هذه الحصة
-        report: {
-            level: { type: String, enum: ['A', 'B', 'C'] }, // التقييم (ممتاز، متوسط، ضعيف)
-            content: { type: String },                      // ما تم إنجازه
-            instructions: { type: String },                 // توجيهات للطالب
-            homeworkFile: { type: String },                 // اسم ملف الواجب المرفوع
-            submittedAt: { type: Date }                     // وقت إرسال التقرير
+module.exports = new EntitySchema({
+    name: 'Subscription',
+    tableName: 'subscriptions',
+    columns: {
+        id: {
+            primary: true,
+            type: 'int',
+            generated: true
         },
-
-        status: { type: String, enum: ['pending', 'completed', 'missed'], default: 'pending' }
-        // يمكنك إضافة رابط الجلسة هنا لاحقًا
-    }],
-    // مرجع لموديل الطالب/المستخدم
-    studentId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user', // افترض أن لديك موديل User
-        required: true
+        startDate: {
+            type: 'timestamp',
+            nullable: true
+        },
+        sessions: {
+            type: 'json',
+            nullable: true // Array of session objects (durationMinutes, date, time, link, etc.)
+        },
+        selectedPriceOption: {
+            type: 'varchar',
+            nullable: false
+        },
+        numberOfSessionsPerMonth: {
+            type: 'int',
+            nullable: false
+        },
+        totalAmount: {
+            type: 'decimal',
+            precision: 10,
+            scale: 2,
+            nullable: false
+        },
+        teacherHourlyRate: {
+            type: 'decimal',
+            precision: 10,
+            scale: 2,
+            default: 0
+        },
+        status: {
+            type: 'enum',
+            enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+            default: 'pending'
+        },
+        paymentDetails: {
+            type: 'json',
+            nullable: true // Stores { transactionId: String, method: String }
+        },
+        confirmedBy: {
+            type: 'varchar', // Admin or supervisor name
+            nullable: true
+        },
+        paymentScreenshot: {
+            type: 'varchar',
+            nullable: true
+        },
+        createdAt: {
+            type: 'timestamp',
+            createDate: true
+        },
+        updatedAt: {
+            type: 'timestamp',
+            updateDate: true
+        }
     },
-    // مرجع لموديل الكورس
-    courseId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Course',
-        required: true
-    },
-    // ID خيار التسعير المُختار من مصفوفة pricingOptions
-    selectedPriceOption: {
-        type: String,
-        required: true,
-      
-    },
-    numberOfSessionsPerMonth: { // العدد الإجمالي للحصص التي تم حجزها
-        type: Number,
-        required: true,
-        min: 1
-    },
-    totalAmount: { // المبلغ المدفوع
-        type: Number,
-        required: true,
-        min: 0
-    },
-    teacherId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user', // افترض أن لديك موديل User
-    },
-    teacherHourlyRate: {
-        type: Number,
-        default: 0
-    },
-    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy' },
-    status: { // حالة الحجز (بانتظار الدفع، مؤكد، ملغي، مكتمل)
-        type: String,
-        enum: ['pending', 'confirmed', 'cancelled', 'completed'],
-        default: 'pending'
-    },
-    paymentDetails: {
-        transactionId: String,
-        method: String
-    },
-    confirmedBy: { type: String }, // اسم المشرف أو الأدمن الذي قام بالتأكيد
-    paymentScreenshot: { type: String } // مسار صورة التحويل
-}, { timestamps: true });
-const Subscription = mongoose.model('Subscription', bookingSchema);
-module.exports = Subscription;
+    relations: {
+        student: {
+            target: 'User',
+            type: 'many-to-one',
+            joinColumn: { name: 'studentId' },
+            nullable: false,
+            onDelete: 'CASCADE'
+        },
+        course: {
+            target: 'Course',
+            type: 'many-to-one',
+            joinColumn: { name: 'courseId' },
+            nullable: false,
+            onDelete: 'CASCADE'
+        },
+        teacher: {
+            target: 'User',
+            type: 'many-to-one',
+            joinColumn: { name: 'teacherId' },
+            nullable: true,
+            onDelete: 'SET NULL'
+        },
+        academy: {
+            target: 'Academy',
+            type: 'many-to-one',
+            joinColumn: { name: 'academyId' },
+            nullable: true,
+            onDelete: 'CASCADE'
+        }
+    }
+});

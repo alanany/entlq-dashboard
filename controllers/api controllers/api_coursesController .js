@@ -1,12 +1,7 @@
-
-const Subscription = require("../../models/subscription_model");
 const { DateTime } = require("luxon");
-const Course = require("../../models/course_model");
-const User = require("../../models/user_model");
-const Category = require("../../models/category_model");
-const BlogPost = require("../../models/BlogPost");
-const mongoose = require("mongoose");
-const SystemSettings = require("../../models/SystemSettings");
+const { AppDataSource } = require('../../config/database');
+const { sendPushNotification } = require("../../utility/notificationService");
+
 const getapicourses = async (req, res) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
@@ -23,12 +18,14 @@ const getapicourses = async (req, res) => {
     });
   }
 
-  const courses = await Course.find({ academyId })
-    .populate('category')
-    .skip(skip)
-    .limit(limit);
+  const courseRepository = AppDataSource.getRepository('Course');
 
-  const total = await Course.countDocuments({ academyId });
+  const [courses, total] = await courseRepository.findAndCount({
+      where: { academy: { id: academyId } },
+      relations: ['category'],
+      skip,
+      take: limit
+  });
 
   res.status(200).json({
     statusCode: 200,
@@ -45,11 +42,16 @@ const getapicourses = async (req, res) => {
   });
 };
 
-const getapiCourseDetails =  async (req, res,next) => {
-    const { id } = req.params;
-console.log('Course ID:', id); // Debugging line to check the received ID
-  const academyId = req.user.academyId;
-  const course = await Course.findOne({ _id: id, academyId: academyId });
+const getapiCourseDetails = async (req, res, next) => {
+  const { id } = req.params;
+  console.log('Course ID:', id);
+
+  const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+  const courseRepository = AppDataSource.getRepository('Course');
+
+  const course = await courseRepository.findOne({ 
+      where: { id: parseInt(id), academy: { id: academyId } } 
+  });
 
   if (!course) {
     return res.status(404).json({ statusCode: 404, status: "fail", message: 'عذراً، لم يتم العثور على هذا الكورس في هذه الأكاديمية.' });
@@ -62,72 +64,63 @@ console.log('Course ID:', id); // Debugging line to check the received ID
     data: {
       course,   
     },  
-    });
-  };
-
-const apiCourseCheckout = async (req, res) => {
-    // 1. استخراج البيانات من جسم الطلب
- 
-console.log(req.body);
- const { 
-        courseId, 
-        numberOfSessionsPerMonth, 
-        selectedPriceOption, 
-        studentId,
-        totalAmount, // تم استقبالها بشكل صحيح من الواجهة الأمامية المصححة
-       
-    } = req.body; 
-    console.log(req.body);
-    try {
-        const request = await Subscription.create({ 
-            courseId,
-            numberOfSessionsPerMonth,
-            selectedPriceOption,
-            studentId,
-            totalAmount,
-            academyId: req.user.academyId
-                // يتم إدراج هيكل المنهج الدراسي مباشرة
-            // creator: req.user._id // (إذا كنت تستخدم مصادقة)
-        });
-console.log(request);
-        // 4. إرسال استجابة النجاح (عادةً ما يتم إرسال كائن الدورة الجديدة)
-        res.status(200).json({statusCode: 200,status: "success",data: request});
-
-    } catch (err) {
-        console.error(err);
-        // 5. معالجة أخطاء التحقق أو أخطاء قاعدة البيانات
-        res.status(400).json({ 
-            statusCode: 400,
-            status: "fail",
-            message: err
-        });
-    }
+  });
 };
 
+const apiCourseCheckout = async (req, res) => {
+  console.log(req.body);
+  const { 
+    courseId, 
+    numberOfSessionsPerMonth, 
+    selectedPriceOption, 
+    studentId,
+    totalAmount,
+  } = req.body; 
+
+  console.log(req.body);
+  try {
+    const subscriptionRepository = AppDataSource.getRepository('Subscription');
+    const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+
+    const request = subscriptionRepository.create({ 
+        course: { id: parseInt(courseId) },
+        numberOfSessionsPerMonth,
+        selectedPriceOption,
+        student: { id: parseInt(studentId) },
+        totalAmount,
+        academy: { id: parseInt(academyId) }
+    });
+
+    await subscriptionRepository.save(request);
+    console.log(request);
+
+    res.status(200).json({statusCode: 200, status: "success", data: request});
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ 
+        statusCode: 400,
+        status: "fail",
+        message: err.message || err
+    });
+  }
+};
 
 const getStudentSessionsPage = async (req, res) => {
   try {
     const userId = req.params.id;
+    const subscriptionRepository = AppDataSource.getRepository('Subscription');
 
-    const acceptedRequests = await Subscription.find({
-      studentId: userId,
-      status: "confirmed",
-    })
-      .populate({
-        path: "courseId",
-        populate: { path: "category", model: "Category" },
-      })
-      .populate("studentId")
-      .populate("teacherId");
+    const acceptedRequests = await subscriptionRepository.find({
+      where: { student: { id: parseInt(userId) }, status: "confirmed" },
+      relations: ["course", "course.category", "student", "teacher"]
+    });
 
     const userTimeZone = req.user?.timezone || "Asia/Riyadh";
-
-    const today = DateTime.now()
-      .setZone(userTimeZone)
-      .toFormat("yyyy-MM-dd");
+    const today = DateTime.now().setZone(userTimeZone).toFormat("yyyy-MM-dd");
 
     const formattedBookings = acceptedRequests.map((sub) => {
-      const booking = sub.toObject();
+      // Create a plain object manually or parse JSON if needed
+      const booking = { ...sub };
 
       booking.sessions = booking.sessions?.map((session) => {
         const dt = DateTime
@@ -142,7 +135,7 @@ const getStudentSessionsPage = async (req, res) => {
           displayDate: dt.toFormat("yyyy-MM-dd"),
           displayTime: dt.toFormat("hh:mm a"),
           displayDay: dt.toFormat("cccc"),
-          zoomLink: booking.teacherId?.zoom_link || null,
+          zoomLink: booking.teacher?.zoom_link || null,
           isToday: sessionDate === today,
         };
       });
@@ -155,9 +148,8 @@ const getStudentSessionsPage = async (req, res) => {
       status: "success",
       data: formattedBookings,
     });
-
   } catch (error) {
-
+    console.error(error);
     return res.status(500).json({
       statusCode: 500,
       status: "error",
@@ -166,22 +158,22 @@ const getStudentSessionsPage = async (req, res) => {
   }
 };
 
-const { sendPushNotification } = require("../../utility/notificationService");
 
 // --- Student Dashboard API Logic ---
 
 async function getNearestSession(studentId, userTimeZone) {
-  const subscriptions = await Subscription.find({
-    studentId: studentId,
-    status: "confirmed",
-  }).populate("courseId");
+  const subscriptionRepository = AppDataSource.getRepository('Subscription');
+  const subscriptions = await subscriptionRepository.find({
+    where: { student: { id: parseInt(studentId) }, status: "confirmed" },
+    relations: ["course"]
+  });
 
   let upcoming = [];
   const now = new Date();
   const tz = userTimeZone || "UTC";
 
   subscriptions.forEach((sub) => {
-    (sub.sessions || []).forEach((session) => {
+    (sub.sessions || []).forEach((session, index) => {
       const sessionStart = new Date(session.utcDateAndTime);
       const sessionEnd = new Date(sessionStart.getTime() + 60 * 60 * 1000);
 
@@ -191,15 +183,15 @@ async function getNearestSession(studentId, userTimeZone) {
           .setLocale('ar');
 
         upcoming.push({
-          bookingId: sub._id,
-          courseTitle: sub.courseId?.title,
+          bookingId: sub.id,
+          courseTitle: sub.course?.title,
           sessionDetails: {
             ...session,
             displayDate: dt.toFormat("yyyy-MM-dd"),
             displayTime: dt.toFormat("hh:mm a"),
             displayDay: dt.toFormat("cccc")
           },
-          sessionId: session._id,
+          sessionId: index, // Inner array index
           sessionEnd: sessionEnd,
           startTime: sessionStart
         });
@@ -213,36 +205,24 @@ async function getNearestSession(studentId, userTimeZone) {
 
 async function getStudentCourseDetails(studentId) {
   try {
-    const id = new mongoose.Types.ObjectId(studentId);
-    const result = await Subscription.aggregate([
-      { $match: { studentId: id, status: "confirmed" } },
-      {
-        $lookup: {
-          from: "courses",
-          localField: "courseId",
-          foreignField: "_id",
-          as: "courseInfo"
-        }
-      },
-      { $unwind: "$courseInfo" },
-      {
-        $project: {
-          _id: 0,
-          courseName: "$courseInfo.title",
-          numberOfSessionsPerMonth: 1,
-          pricePerSession: { $toDouble: "$selectedPriceOption" },
-          totalCalculatedPrice: {
-            $multiply: [
-              { $toDouble: "$selectedPriceOption" },
-              "$numberOfSessionsPerMonth"
-            ]
-          },
-          startDate: 1,
-          status: 1
-        }
-      }
-    ]);
-    return result[0];
+    const subscriptionRepository = AppDataSource.getRepository('Subscription');
+
+    const result = await subscriptionRepository.createQueryBuilder("sub")
+      .innerJoinAndSelect("sub.course", "course")
+      .where("sub.studentId = :studentId", { studentId: parseInt(studentId) })
+      .andWhere("sub.status = 'confirmed'")
+      .select([
+        "course.title AS courseName",
+        "sub.numberOfSessionsPerMonth AS numberOfSessionsPerMonth",
+        "CAST(sub.selectedPriceOption AS DECIMAL) AS pricePerSession",
+        "(CAST(sub.selectedPriceOption AS DECIMAL) * sub.numberOfSessionsPerMonth) AS totalCalculatedPrice",
+        "sub.startDate AS startDate",
+        "sub.status AS status"
+      ])
+      .getRawMany();
+      
+    // Assuming we want the first active matching block or multiple
+    return result.length > 0 ? result[0] : null;
   } catch (error) {
     console.error("Error calculating total for API:", error);
     return null;
@@ -251,46 +231,45 @@ async function getStudentCourseDetails(studentId) {
 
 async function getStudentStats(studentId) {
   try {
-    const id = new mongoose.Types.ObjectId(studentId);
-    const stats = await Subscription.aggregate([
-      { $match: { studentId: id, status: "confirmed" } },
-      { $unwind: "$sessions" },
-      {
-        $group: {
-          _id: "$studentId",
-          completedSessions: {
-            $sum: { $cond: [{ $eq: ["$sessions.status", "completed"] }, 1, 0] },
-          },
-          avgRating: {
-            $avg: {
-              $switch: {
-                branches: [
-                  { case: { $eq: ["$sessions.report.level", "A"] }, then: 5 },
-                  { case: { $eq: ["$sessions.report.level", "B"] }, then: 4 },
-                  { case: { $eq: ["$sessions.report.level", "C"] }, then: 3 }
-                ],
-                default: null 
-              }
-            }
-          },
-          totalMinutes: {
-            $sum: { $cond: [{ $eq: ["$sessions.status", "completed"] }, 60, 0] }
-          },
-          totalPlan: { $sum: 1 }
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          completedSessions: 1,
-          rating: { $ifNull: [{ $round: ["$avgRating", 1] }, 0] },
-          learningMinutes: 1,
-          totalPlan: 1,
-          learningHours: { $divide: ["$totalMinutes", 60] }
-        },
-      },
-    ]);
-    return stats.length > 0 ? stats[0] : { completedSessions: 0, rating: 0, learningMinutes: 0, totalPlan: 0 };
+    const subscriptionRepository = AppDataSource.getRepository('Subscription');
+    const subscriptions = await subscriptionRepository.find({ 
+        where: { student: { id: parseInt(studentId) }, status: "confirmed" } 
+    });
+
+    let completedSessions = 0;
+    let totalMinutes = 0;
+    let totalPlan = 0;
+    let totalScore = 0;
+    let ratingCount = 0;
+    
+    subscriptions.forEach(sub => {
+        if (sub.sessions) {
+            sub.sessions.forEach(sess => {
+                totalPlan++;
+                if (sess.status === 'completed') {
+                    completedSessions++;
+                    totalMinutes += 60;
+                }
+                if (sess.report && sess.report.level) {
+                    const levelToScore = { 'A': 5, 'B': 4, 'C': 3 };
+                    if (levelToScore[sess.report.level]) {
+                        totalScore += levelToScore[sess.report.level];
+                        ratingCount++;
+                    }
+                }
+            });
+        }
+    });
+    
+    const avgRating = ratingCount > 0 ? (totalScore / ratingCount) : 0;
+    
+    return {
+        completedSessions,
+        rating: parseFloat(avgRating.toFixed(1)),
+        learningMinutes: totalMinutes,
+        learningHours: parseFloat((totalMinutes / 60).toFixed(1)),
+        totalPlan
+    };
   } catch (error) {
     console.error("API Dashboard Stats Error:", error);
     return null;
@@ -299,13 +278,14 @@ async function getStudentStats(studentId) {
 
 const getStudentApiDashboard = async (req, res) => {
   try {
-    const studentId = req.user._id;
+    const studentId = req.user.id || req.user._id;
+    const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
     const nearestSession = await getNearestSession(studentId, req.user.timezone);
     const studentStats = await getStudentStats(studentId);
     const courseBookingDetails = await getStudentCourseDetails(studentId);
     
-    // جلب إعدادات الأكاديمية للحصول على رقم الواتساب
-    const settings = await SystemSettings.findOne({ academyId: req.user.academyId });
+    const settingsRepository = AppDataSource.getRepository('SystemSettings');
+    const settings = await settingsRepository.findOne({ where: { academy: { id: academyId } } });
     const whatsapp = settings?.socialLinks?.whatsapp || settings?.supportContact?.student || "";
 
     res.status(200).json({
@@ -329,22 +309,24 @@ const getStudentApiDashboard = async (req, res) => {
   }
 };
 
-// الدالة اللي كتبتها أنت بتهندل جلب التوكنات من الـ DB
 async function notifyUser(userId, content) {
-  console.log(userId,'user id');
-  const user = await User.findOne ({_id:userId});
-  console.log(user,'user');
-  if (!user || user.devices.length === 0) return;
+  console.log(userId, 'user id');
+  const userRepository = AppDataSource.getRepository('User');
+  const user = await userRepository.findOne({ where: { id: parseInt(userId) } });
+  
+  console.log(user, 'user');
+  if (!user || !user.devices || user.devices.length === 0) return;
 
-  const tokens = user.devices.map(device => device.fcmToken);
+  const tokens = user.devices.map(device => device.fcmToken).filter(Boolean);
 
-  // هنا بننادي على الـ Service اللي فوق
-  return await sendPushNotification(tokens, content);
+  if (tokens.length > 0) {
+    return await sendPushNotification(tokens, content);
+  }
 }
 
 const getAcademyInfo = async (req, res) => {
   try {
-    const academyId = req.user.academyId;
+    const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
     if (!academyId) {
       return res.status(400).json({
         statusCode: 400,
@@ -353,7 +335,8 @@ const getAcademyInfo = async (req, res) => {
       });
     }
 
-    const settings = await SystemSettings.findOne({ academyId });
+    const settingsRepository = AppDataSource.getRepository('SystemSettings');
+    const settings = await settingsRepository.findOne({ where: { academy: { id: parseInt(academyId) } } });
     
     if (!settings) {
       return res.status(404).json({
@@ -382,8 +365,10 @@ const getAcademyInfo = async (req, res) => {
 
 const getApiCategories = async (req, res) => {
   try {
-    const academyId = req.user.academyId;
-    const categories = await Category.find({ academyId });
+    const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+    const categoryRepository = AppDataSource.getRepository('Category');
+    const categories = await categoryRepository.find({ where: { academy: { id: parseInt(academyId) } } });
+
     res.status(200).json({
       statusCode: 200,
       status: "success",
@@ -400,8 +385,14 @@ const getApiCategories = async (req, res) => {
 
 const getApiBlogPosts = async (req, res) => {
   try {
-    const academyId = req.user.academyId;
-    const posts = await BlogPost.find({ academyId, isPublished: true }).sort({ createdAt: -1 });
+    const academyId = req.user.academyId || (req.user.academy && req.user.academy.id);
+    const blogPostRepository = AppDataSource.getRepository('BlogPost');
+    
+    const posts = await blogPostRepository.find({ 
+        where: { academy: { id: parseInt(academyId) }, isPublished: true },
+        order: { createdAt: 'DESC' }
+    });
+
     res.status(200).json({
       statusCode: 200,
       status: "success",

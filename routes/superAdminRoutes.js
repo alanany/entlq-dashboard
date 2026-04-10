@@ -4,6 +4,10 @@ const { requireAuth, requireSuperAdmin, checkUser } = require('../middleware/aut
 
 const router = Router();
 
+// Super Admin Setup (first-time only, protected by setup key)
+router.get('/superadmin/setup', academyController.getSuperAdminSetup);
+router.post('/superadmin/setup', academyController.createSuperAdmin);
+
 // Super Admin Login
 router.get('/superadmin/login', academyController.getSuperAdminLogin);
 

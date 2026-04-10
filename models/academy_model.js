@@ -1,33 +1,44 @@
-const mongoose = require('mongoose');
+const { EntitySchema } = require('typeorm');
 
-const academySchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Please enter academy name'],
-        unique: true
-    },
-    subdomain: {
-        type: String,
-        unique: true,
-        lowercase: true
-    },
-    logo: {
-        type: String
-    },
-    settings: {
-        primaryColor: { type: String, default: '#FE5D37' },
-        currency: { type: String, default: 'USD' }
-    },
-    status: {
-        type: String,
-        enum: ['active', 'suspended'],
-        default: 'active'
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
+module.exports = new EntitySchema({
+    name: 'Academy',
+    tableName: 'academies',
+    columns: {
+        id: {
+            primary: true,
+            type: 'int',
+            generated: true
+        },
+        name: {
+            type: 'varchar',
+            unique: true,
+            nullable: false
+        },
+        subdomain: {
+            type: 'varchar',
+            unique: true,
+            nullable: true
+        },
+        logo: {
+            type: 'varchar',
+            nullable: true
+        },
+        settings: {
+            type: 'json',
+            nullable: true // Will store { primaryColor: '#FE5D37', currency: 'USD' }
+        },
+        status: {
+            type: 'enum',
+            enum: ['active', 'suspended'],
+            default: 'active'
+        },
+        createdAt: {
+            type: 'timestamp',
+            createDate: true
+        },
+        updatedAt: {
+            type: 'timestamp',
+            updateDate: true
+        }
     }
 });
-
-const Academy = mongoose.model('Academy', academySchema);
-module.exports = Academy;

@@ -1,115 +1,115 @@
 const httpStatus = require("../utility/http_status");
 const AppError = require("../utility/app_error");
 const asyncWrapper = require("../middleware/async_wrapper");
-const { validationResult } = require("express-validator");
 const moment = require("moment");
-const customer = require("../models/customer_model.js");
-const { _pluralize } = require("mongoose");
+const { AppDataSource } = require('../config/database');
 
 // GET - Show Add User Form
 const addUser = asyncWrapper(async (req, res) => {
   console.log("User data:", req.body);
-
   res.render("/user/add.html", { errors: {}, formData: {} });
 });
 
 // POST - Create User
 const createUser = async (req, res, next) => {
-  const userId = req.user.id; // هنا ستكون موجودة
+  const userId = req.user.id;
   console.log("User user_id:", userId);
-req.body.userId = userId;
+  req.body.userId = userId;
+  
   try {
-    await customer.create(
-      req.body);
+    const customerRepository = AppDataSource.getRepository('Customer');
+    const customer = customerRepository.create(req.body);
+    await customerRepository.save(customer);
+    
     res.redirect("/");
   } catch (err) {
     console.log("User errors:", err);
-    // Mongoose validation errors
-    if (err && err.name === "MongooseError") {
-      console.log("Mongoose validation error:", err);
 
-      return res.redirect("/user/add.html", {
-        errors: err,
-        formData: req.body,
-      });
-    }
-
-    // Duplicate key (unique) error e.g. email already exists
-    if (err && (err.code === 11000 || err.code === 11001)) {
+    // Duplicate key (unique) error
+    if (err && (err.code === 'ER_DUP_ENTRY' || err.errno === 1062)) {
       console.log("Duplicate key error:", err);
-      const errors = {};
-      const key = Object.keys(err.keyValue || {})[0] || "email";
-      errors[key] = `${
-        key.charAt(0).toUpperCase() + key.slice(1)
-      } already exists`;
-      alert(errors[key]);
+      const errors = { general: "This record already exists" };
       return res.redirect("/user/add.html", { errors, formData: req.body });
     }
 
     // fallback
-    //return next(err);
+    return res.redirect("/user/add.html", {
+      errors: { message: err.message },
+      formData: req.body,
+    });
   }
 };
 
 const searchUser = asyncWrapper(async (req, res) => {
-  const search = req.body.title||"";
+  const search = req.body.title || "";
   console.log(search);
-    const userId = req.user.id;
-  const users = await customer.find({
- userId: userId,
-     $or: [
-      { firstName: new RegExp(search, "i") },
-      { lastName: new RegExp(search, "i") },
-      { email: new RegExp(search, "i") },
-    ],
-  });
+  const userId = req.user.id;
+  
+  const customerRepository = AppDataSource.getRepository('Customer');
+  
+  // Using query builder for advanced OR logic
+  const users = await customerRepository.createQueryBuilder("customer")
+    .where("customer.userId = :userId", { userId: userId.toString() })
+    .andWhere("(customer.firstName LIKE :search OR customer.lastName LIKE :search OR customer.email LIKE :search)", { search: `%${search}%` })
+    .getMany();
 
   console.log(users);
   res.render("user/search", { users: users, moment: moment });
 });
+
 const getSingleUser = asyncWrapper(async (req, res) => {
   const id = req.params.id;
-    const userId = req.user.id;
+  const userId = req.user.id;
+  const customerRepository = AppDataSource.getRepository('Customer');
 
-   const user = await customer.findOne(
-    { _id: id  ,userId: userId },
-  ); 
+  const user = await customerRepository.findOne({ where: { id: parseInt(id), userId: userId.toString() } }); 
   res.render("user/view", { user: user, moment: moment });
 });
 
 const getAllUsers = asyncWrapper(async (req, res) => {
-const userId = req.user.id;
-console.log(userId);
- const users = await customer.find(
-    { userId: userId },
-  );  res.render("index.ejs", { users: users, moment: moment });
+  const userId = req.user.id;
+  console.log(userId);
+  const customerRepository = AppDataSource.getRepository('Customer');
+  
+  const users = await customerRepository.find({ where: { userId: userId.toString() } });  
+  res.render("index.ejs", { users: users, moment: moment });
 });
 
 const deleteUser = asyncWrapper(async (req, res) => {
-   const id = req.params.id;
-    const userId = req.user.id;
+  const id = req.params.id;
+  const userId = req.user.id;
+  const customerRepository = AppDataSource.getRepository('Customer');
 
-  const result = await customer.findByIdAndDelete(    { _id: id  ,userId: userId },);
-  console.log("result", result);
-
+  const customer = await customerRepository.findOne({ where: { id: parseInt(id), userId: userId.toString() } });
+  if (customer) {
+    await customerRepository.remove(customer);
+  }
+  
   res.redirect("/");
 });
 
 const getupdateUser = asyncWrapper(async (req, res) => {
-    const id = req.params.id;
-    const userId = req.user.id;
+  const id = req.params.id;
+  const userId = req.user.id;
+  const customerRepository = AppDataSource.getRepository('Customer');
 
-  const user = await customer.findOne(    { _id: id  ,userId: userId },);
- console.log(user);
+  const user = await customerRepository.findOne({ where: { id: parseInt(id), userId: userId.toString() } });
+  console.log(user);
   res.render("user/edit", { user: user, moment: moment });
 });
 
 const updateUser = asyncWrapper(async (req, res) => {
-    const id = req.params.id;
-    const userId = req.user.id;
+  const id = req.params.id;
+  const userId = req.user.id;
+  const customerRepository = AppDataSource.getRepository('Customer');
 
-  const user = await customer.findByIdAndUpdate(    { _id: id  ,userId: userId }, req.body,{new:true} );
-  console.log(user);
+  let customer = await customerRepository.findOne({ where: { id: parseInt(id), userId: userId.toString() } });
+  if (customer) {
+    customer = customerRepository.merge(customer, req.body);
+    await customerRepository.save(customer);
+    console.log(customer);
+  }
+  
   res.redirect("/");
 });
 
