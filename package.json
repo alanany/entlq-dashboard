@@ -30,6 +30,12 @@
     "validator": "^13.1.1"
   },
   "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "npx typeorm migration:generate -d ./config/database.js ./migrations/AutoMigration",
+    "migration:run": "npx typeorm migration:run -d ./config/database.js",
+    "migration:revert": "npx typeorm migration:revert -d ./config/database.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

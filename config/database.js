@@ -8,13 +8,16 @@ const AppDataSource = new DataSource({
     username: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
     database: process.env.DB_NAME || "education_platform",
-    synchronize: true, // Will automatically update schema. Good for dev, dangerous for prod.
-    logging: false, // Set to true to view SQL queries in console
+    synchronize: process.env.NODE_ENV !== "production", // Auto-syncs only in development
+    logging: process.env.NODE_ENV !== "production",
     entities: [
-        __dirname + "/../models/*.js" // Will load EntitySchemas from models folder
+        __dirname + "/../models/*.js" 
     ],
-    migrations: [],
+    migrations: [
+        __dirname + "/../migrations/*.js"
+    ],
     subscribers: [],
 });
 
-module.exports = { AppDataSource };
+module.exports = AppDataSource;
+module.exports.AppDataSource = AppDataSource; // Keep backward compatibility for existing require imports
