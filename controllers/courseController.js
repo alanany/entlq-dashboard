@@ -196,11 +196,15 @@ const home_website_get = async(req, res) => {
 }
 
 const getLandingPage = (req, res) => {
-    if (req.user) return res.redirect('/dashboard');
+    // if (req.user) return res.redirect('/dashboard'); // Keep this if you want logged in users to skip the academy landing
     res.render('../views/website/landing', { user: req.user });
 };
 
 const getLandingPageForDashboard = (req, res) => res.render('../views/website/landing', { user: req.user });
+
+const getCompanyLanding = (req, res) => {
+    res.render('../views/website/company_landing', { user: req.user });
+};
 
 const allCourses_website_get = async(req, res) => {
     try {
@@ -846,5 +850,6 @@ module.exports = {
     getLandingPage, allCourses_website_get, getCourseDetails, checkout, confirmBookingPayment,
     getSubscriptionDetails, getScheduleSessions, postUpdateSessions, getManageSessionsLinks,
     postUpdateSessionsLinks, getManageStudents, markSessionAsComplete, getUpcomingSessions,
-    sendSessionNotification, adminSupervisorsPage, addSupervisor, updateSupervisor, deleteSupervisor
+    sendSessionNotification, adminSupervisorsPage, addSupervisor, updateSupervisor, deleteSupervisor,
+    getCompanyLanding
 };

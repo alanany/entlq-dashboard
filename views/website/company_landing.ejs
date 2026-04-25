@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>انطلق بلاس | منصة الإدارة التعليمية الشاملة</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- AOS Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        /* ==================== 
+           DESIGN SYSTEM & VARIABLES (Light Mode)
+           ==================== */
+        :root {
+            /* Premium Light Theme */
+            --bg-body: #f8fbfd;
+            --bg-surface: #ffffff;
+            --bg-surface-elevated: #ffffff;
+            --bg-surface-hover: #f1f5f9;
+            --border-glass: rgba(0, 0, 0, 0.08);
+            
+            /* Primary Brand Colors */
+            --primary: #4F46E5;       /* Indigo */
+            --primary-dark: #4338CA;
+            --secondary: #00cec9;     /* Cyan accent */
+            
+            /* Typography Colors */
+            --text-heading: #0f172a;  /* Slate 900 */
+            --text-body: #475569;     /* Slate 600 */
+            --text-muted: #94a3b8;    /* Slate 400 */
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, var(--primary), var(--secondary));
+            --gradient-text: linear-gradient(135deg, #0f172a, #334155);
+            
+            /* Effects */
+            --shadow-glow: 0 10px 30px rgba(79, 70, 229, 0.15);
+            --shadow-card: 0 20px 40px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ==================== 
+           GLOBAL STYLES 
+           ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-body);
+            line-height: 1.7;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Background Glow */
+        .ambient-glow {
+            position: fixed;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.08) 0%, rgba(248, 251, 253, 0) 70%);
+            top: -200px;
+            right: -200px;
+            z-index: -1;
+            pointer-events: none;
+            filter: blur(60px);
+        }
+        
+        .ambient-glow-2 {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 206, 201, 0.08) 0%, rgba(248, 251, 253, 0) 70%);
+            bottom: -100px;
+            left: -100px;
+            z-index: -1;
+            pointer-events: none;
+            filter: blur(60px);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--text-heading);
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        h2 { font-size: 2.5rem; margin-bottom: 1rem; }
+        
+        .text-gradient {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ==================== 
+           BUTTONS & UI ELEMENTS 
+           ==================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: #ffffff;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(79, 70, 229, 0.3);
+            background: var(--primary-dark);
+            color: #ffffff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: #ffffff;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1.2rem;
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 4rem;
+        }
+
+        .section-header p {
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            color: var(--text-body);
+        }
+
+        /* ==================== 
+           1. NAVBAR 
+           ==================== */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 1.5rem 0;
+            transition: var(--transition);
+        }
+
+        nav.scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-glass);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--text-heading);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 35px;
+            height: 35px;
+            background: var(--gradient-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-body);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* ==================== 
+           2. HERO SECTION 
+           ==================== */
+        .hero {
+            padding: 12rem 0 8rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero p {
+            font-size: 1.4rem;
+            max-width: 750px;
+            margin: 0 auto 3rem;
+            color: var(--text-body);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 4rem;
+        }
+        
+        .hero-mockup {
+            position: relative;
+            margin: 0 auto;
+            max-width: 1000px;
+            border-radius: 16px;
+            padding: 10px;
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-glass);
+            box-shadow: var(--shadow-glow);
+            transform: perspective(1000px) rotateX(5deg);
+            transition: transform 0.5s ease;
+        }
+        
+        .hero-mockup:hover {
+            transform: perspective(1000px) rotateX(0deg);
+        }
+        
+        .hero-mockup img {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+        }
+
+        /* ==================== 
+           3. PROBLEM SECTION 
+           ==================== */
+        .problem-section {
+            padding: 6rem 0;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-glass);
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .problem-card {
+            background: var(--bg-body);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-glass);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+        }
+
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: #EF4444; 
+        }
+
+        .problem-card i {
+            color: #EF4444;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ==================== 
+           4. SOLUTION & FEATURES 
+           ==================== */
+        .features-section {
+            padding: 8rem 0;
+        }
+
+        .feature-card {
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-glass);
+            padding: 2.5rem;
+            border-radius: 24px;
+            transition: var(--transition);
+            box-shadow: var(--shadow-card);
+        }
+
+        .feature-card:hover {
+            background: var(--bg-surface-hover);
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .feature-icon {
+            width: 65px;
+            height: 65px;
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        /* ==================== 
+           5. BENEFITS (Side-by-side) 
+           ==================== */
+        .benefits-section {
+            padding: 8rem 0;
+            background: var(--bg-surface);
+        }
+
+        .benefit-row {
+            display: flex;
+            align-items: center;
+            gap: 4rem;
+            margin-bottom: 6rem;
+        }
+
+        .benefit-row:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .benefit-content {
+            flex: 1;
+        }
+
+        .benefit-content ul {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .benefit-content li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .benefit-content li i {
+            color: var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+            padding: 8px;
+            border-radius: 50%;
+            font-size: 0.9rem;
+        }
+
+        .benefit-image {
+            flex: 1;
+            position: relative;
+        }
+
+        .benefit-image img {
+            width: 100%;
+            border-radius: 24px;
+            border: 1px solid var(--border-glass);
+            box-shadow: var(--shadow-card);
+        }
+
+        /* ==================== 
+           6. HOW IT WORKS 
+           ==================== */
+        .steps-section {
+            padding: 8rem 0;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3rem;
+            position: relative;
+        }
+
+        .steps-grid::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            right: 15%;
+            width: 70%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-glass), transparent);
+            z-index: -1;
+        }
+
+        .step-card {
+            text-align: center;
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-surface);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 0 auto 2rem;
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.2);
+        }
+
+        /* ==================== 
+           7. SOCIAL PROOF 
+           ==================== */
+        .testimonials {
+            padding: 8rem 0;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-glass);
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 5rem;
+            margin-bottom: 5rem;
+            border-bottom: 1px solid var(--border-glass);
+            padding-bottom: 4rem;
+        }
+
+        .stat-item h3 {
+            font-size: 3.5rem;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .review-card {
+            background: var(--bg-body);
+            padding: 3rem;
+            border-radius: 24px;
+            border: 1px solid var(--border-glass);
+            box-shadow: var(--shadow-card);
+        }
+
+        .stars {
+            color: #FBBF24;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .review-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: var(--text-heading);
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .reviewer {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .reviewer img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+
+        /* ==================== 
+           8. PRICING 
+           ==================== */
+        .pricing-section {
+            padding: 8rem 0;
+        }
+
+        .pricing-card {
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 3rem;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-card);
+        }
+
+        .pricing-card.popular {
+            background: linear-gradient(180deg, rgba(79, 70, 229, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+            border-color: rgba(79, 70, 229, 0.4);
+            transform: scale(1.05);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .price {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--text-heading);
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+        }
+
+        .price span {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .features-list {
+            list-style: none;
+            margin: 2rem 0;
+            flex: 1;
+        }
+
+        .features-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .features-list li i {
+            color: var(--primary);
+        }
+        
+        .pricing-card .btn {
+            width: 100%;
+        }
+
+        /* ==================== 
+           9. FAQ 
+           ==================== */
+        .faq-section {
+            padding: 6rem 0 10rem;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-glass);
+        }
+
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        details {
+            background: var(--bg-body);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        
+        details[open] {
+            border-color: var(--primary);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        summary {
+            padding: 1.5rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-heading);
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: '\f067'; /* Plus icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--primary);
+            transition: transform 0.3s ease;
+        }
+
+        details[open] summary::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-content {
+            padding: 0 1.5rem 1.5rem;
+            color: var(--text-body);
+            line-height: 1.8;
+        }
+
+        /* ==================== 
+           10. FINAL CTA 
+           ==================== */
+        .cta-section {
+            padding: 6rem 0;
+            margin-top: -4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .cta-box {
+            background: var(--gradient-primary);
+            border-radius: 32px;
+            padding: 5rem 3rem;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(79, 70, 229, 0.3);
+        }
+
+        .cta-box h2 {
+            color: #ffffff;
+            font-size: 3rem;
+        }
+
+        .cta-box p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 2.5rem;
+        }
+
+        .cta-box .btn {
+            background: #ffffff;
+            color: var(--primary);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .cta-box .btn:hover {
+            background: var(--bg-body);
+            color: var(--primary-dark);
+        }
+
+        /* ==================== 
+           11. FOOTER 
+           ==================== */
+        footer {
+            background: #f1f5f9;
+            padding: 5rem 0 2rem;
+            border-top: 1px solid var(--border-glass);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .footer-logo p {
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
+            color: var(--text-body);
+        }
+
+        .footer-title {
+            color: var(--text-heading);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: var(--text-body);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+            padding-right: 5px;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            h1.hero-title { font-size: 3.5rem; }
+            .benefit-row, .benefit-row:nth-child(even) { flex-direction: column; gap: 2rem; }
+            .steps-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .steps-grid::before { display: none; }
+            .pricing-card.popular { transform: none; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .stats-bar { flex-wrap: wrap; gap: 2rem; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; } /* Add hamburger menu for real prod */
+            .hero-buttons { flex-direction: column; }
+            .hero h1 { font-size: 2.8rem; }
+            h2 { font-size: 2rem; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .cta-box { padding: 3rem 1.5rem; }
+            .cta-box h2 { font-size: 2rem; }
+            .benefit-row { margin-bottom: 4rem; }
+        }
+
+        /* WhatsApp Floating Icon */
+        .whatsapp-float {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            bottom: 30px;
+            right: 30px;
+            background-color: #25d366;
+            color: #FFF;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 32px;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .whatsapp-float:hover {
+            transform: translateY(-5px);
+            color: #FFF;
+            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Background Effects -->
+    <div class="ambient-glow"></div>
+    <div class="ambient-glow-2"></div>
+
+    <!-- 1. Navbar -->
+    <nav id="navbar">
+        <div class="container nav-container">
+            <a href="/" class="logo">
+                <div class="logo-icon"><i class="fa-solid fa-shapes"></i></div>
+                انطلق بلاس
+            </a>
+            <div class="nav-links">
+                <a href="#features">المميزات</a>
+                <a href="#products">المنتجات</a>
+                <a href="#how-it-works">كيف يعمل</a>
+                <a href="#testimonials">آراء العملاء</a>
+                <a href="#pricing">الأسعار</a>
+                <a href="/academy" class="btn btn-outline" style="padding: 0.5rem 1.5rem; font-size: 0.95rem;">دخول الأكاديمية</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. Hero Section -->
+    <header class="hero">
+        <div class="container text-center">
+            <div class="hero-content" data-aos="fade-up">
+                <div class="badge"><i class="fa-solid fa-bolt" style="margin-left: 5px;"></i> التحديث الجديد 2.0 متاح الآن</div>
+                <h1>أرتقِ بتجربة أعمالك وأدر منظومتك <span class="text-gradient">بذكاء فائق</span></h1>
+                <p>انطلق بلاس المنصة المتكاملة التي تجمع بين إدارة العمليات، أتمتة المهام، وتحليل الأداء، مصممة للمؤسسات التي تبحث عن النمو المستدام دون فوضى الأنظمة المشتتة.</p>
+                <div class="hero-buttons">
+                    <a href="/academy" class="btn btn-primary">ابدأ تجربتك مجاناً <i class="fa-solid fa-arrow-left"></i></a>
+                    <a href="#demo" class="btn btn-outline"><i class="fa-solid fa-play"></i> شاهد طريقة العمل</a>
+                </div>
+            </div>
+            
+            <div class="hero-mockup" data-aos="fade-up" data-aos-delay="200">
+                <!-- Replace with actual software interface mockup -->
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80" alt="Entlq Plus Dashboard Interface" style="opacity: 1;">
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. Problem Section -->
+    <section class="problem-section">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2>لماذا تعاني مؤسستك من البطء؟</h2>
+                <p>الطرق التقليدية واستخدام عشرات التطبيقات يحجم من قدرتك على النمو</p>
+            </div>
+            <div class="grid-3">
+                <div class="problem-card" data-aos="fade-up" data-aos-delay="100">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <h3>تشتت البيانات</h3>
+                    <p>استخدام برامج متعددة للإدارة والتواصل والمبيعات يجعل استخراج التقارير المركزية أمراً شبه مستحيل ويؤدي لضياع البيانات.</p>
+                </div>
+                <div class="problem-card" data-aos="fade-up" data-aos-delay="200">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    <h3>هدر الوقت والجهد</h3>
+                    <p>فريقك يقضي ساعات طويلة في إدخال البيانات يدوياً وتكرار مهام الروتينية بدلاً من التركيز على تطوير الأعمال وخدمة العملاء.</p>
+                </div>
+                <div class="problem-card" data-aos="fade-up" data-aos-delay="300">
+                    <i class="fa-solid fa-chart-line" style="transform: scaleY(-1);"></i>
+                    <h3>صعوبة التوسع</h3>
+                    <p>النظم التقليدية تنهار مع زيادة عدد العملاء أو الفروع، مما يجعل تجربة التوسع كابوساً تشغيلياً مكلفاً ومعقداً.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Solution & Features Section -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <div class="badge">الحل الذكي</div>
+                <h2>وداعاً للفوضى.. أهلاً بـ انطلق بلاس</h2>
+                <p>منصة واحدة تغنيك عن كل التطبيقات العشوائية، تمنحك السيطرة الكاملة، وتضمن لك ولعملائك تجربة استثنائية.</p>
+            </div>
+            <div class="grid-3">
+                <div class="feature-card" data-aos="zoom-in">
+                    <div class="feature-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                    <h3>لوحة تحكم حية وذكية</h3>
+                    <p>راقب أداء مؤسستك لحظة بلحظة عبر تحليلات ورسوم بيانية دقيقة تساعدك على اتخاذ قرارات مبنية على الأرقام.</p>
+                </div>
+                <div class="feature-card" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="feature-icon"><i class="fa-solid fa-robot"></i></div>
+                    <h3>أتمتة سير العمل</h3>
+                    <p>دع النظام يقوم بالمهام الروتينية. رسائل تلقائية، فواتير دورية، وتسجيل آلي يوفر عليك آلاف الساعات.</p>
+                </div>
+                <div class="feature-card" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="feature-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <h3>إدارة مالية متكاملة</h3>
+                    <p>احكم سيطرتك على الإيرادات والمصروفات، أصدر فواتير احترافية واستقبل المدفوعات محلياً وعالمياً بكل يسر.</p>
+                </div>
+                <div class="feature-card" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="feature-icon"><i class="fa-solid fa-users-gear"></i></div>
+                    <h3>إدارة الصلاحيات والفِرق</h3>
+                    <p>حدد صلاحيات كل عضو في فريقك بدقة متناهية، وتابع إنتاجيتهم ونسب إنجازهم للمهام الموكلة إليهم.</p>
+                </div>
+                <div class="feature-card" data-aos="zoom-in" data-aos-delay="400">
+                    <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3>أمان وتشفير بنكي</h3>
+                    <p>بياناتك وبيانات عملائك محمية بأعلى بروتوكولات الأمان والتشفير العالمية المعمول بها في الأنظمة البنكية.</p>
+                </div>
+                <div class="feature-card" data-aos="zoom-in" data-aos-delay="500">
+                    <div class="feature-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+                    <h3>تطبيقات جوال مخصصة</h3>
+                    <p>ابق على اتصال دائم. نظام متجاوب بالكامل وتطبيقات iOS و Android تضع أعمالك في جيبك أينما كنت.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4.5. Products Section -->
+    <section id="products" style="padding: 8rem 0; background: var(--bg-surface-hover); border-top: 1px solid var(--border-glass);">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <div class="badge">أنظمتنا الأساسية</div>
+                <h2>منتجات انطلق بلاس</h2>
+                <p>صممنا مجموعة من الحلول المتخصصة لتلبي احتياجات كل شريحة في قطاع التعليم.</p>
+            </div>
+            <div class="grid-3">
+                <!-- Product 1 -->
+                <div class="feature-card" style="text-align: center; background: var(--bg-surface);" data-aos="fade-up" data-aos-delay="100">
+                    <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=600&q=80" alt="نظام الأكاديميات" style="width: 100%; border-radius: 16px; margin-bottom: 1.5rem; object-fit: cover; height: 180px;">
+                    <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">نظام إدارة الأكاديميات</h3>
+                    <p style="margin-bottom: 1.5rem; color: var(--text-body);">النظام الأقوى لحجز وإدارة حضور الطلاب والمدفوعات والمتابعة المستمرة للأكاديميات ومراكز الدروس.</p>
+                    <a href="/academy" class="btn btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem;">اكتشف النظام</a>
+                </div>
+                <!-- Product 2 -->
+                <div class="feature-card" style="text-align: center; background: var(--bg-surface);" data-aos="fade-up" data-aos-delay="200">
+                    <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=600&q=80" alt="نظام المدارس" style="width: 100%; border-radius: 16px; margin-bottom: 1.5rem; object-fit: cover; height: 180px;">
+                    <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">نظام إدارة المدارس</h3>
+                    <p style="margin-bottom: 1.5rem; color: var(--text-body);">حل شامل للمدارس يشمل شؤون الطلاب، الموارد البشرية، الغياب، والنتائج مع تطبيق خاص لأولياء الأمور.</p>
+                    <a href="#" class="btn btn-outline" style="width: 100%; padding: 0.8rem; font-size: 1rem; pointer-events: none; opacity: 0.7;">يُطلق قريباً</a>
+                </div>
+                <!-- Product 3 -->
+                <div class="feature-card" style="text-align: center; background: var(--bg-surface);" data-aos="fade-up" data-aos-delay="300">
+                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80" alt="نظام LMS" style="width: 100%; border-radius: 16px; margin-bottom: 1.5rem; object-fit: cover; height: 180px;">
+                    <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">نظام التعليم الإلكتروني</h3>
+                    <p style="margin-bottom: 1.5rem; color: var(--text-body);">منصة للتعلم عن بعد، الفصول الافتراضية، ومتابعة الواجبات والاختبارات التفاعلية أونلاين بالكامل.</p>
+                    <a href="#" class="btn btn-outline" style="width: 100%; padding: 0.8rem; font-size: 1rem; pointer-events: none; opacity: 0.7;">يُطلق قريباً</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Benefits Section -->
+    <section class="benefits-section">
+        <div class="container">
+            <div class="benefit-row" data-aos="fade-up">
+                <div class="benefit-content">
+                    <h2 class="text-gradient">ضاعف إنتاجيتك دون زيادة التكاليف</h2>
+                    <p>توقف عن الدفع مقابل أدوات لا تعمل معاً. انطلق بلاس يوحد عملياتك في بيئة واحدة متناغمة، مما يقلل مصاريفك التشغيلية ويزيد جودة مخرجاتك بشكل ملحوظ.</p>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> تقليص المصاريف الإدارية بنسبة 40%</li>
+                        <li><i class="fa-solid fa-check"></i> توفير أكثر من 20 ساعة عمل أسبوعياً</li>
+                        <li><i class="fa-solid fa-check"></i> تقليل الأخطاء البشرية القاتلة لصفر تقريباً</li>
+                    </ul>
+                </div>
+                <div class="benefit-image">
+                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80" alt="Productivity Boost">
+                </div>
+            </div>
+
+            <div class="benefit-row" data-aos="fade-up">
+                <div class="benefit-content">
+                    <h2 class="text-gradient">تجربة مستخدم لا مثيل لها لك ولعملائك</h2>
+                    <p>الواجهة المعقدة تقتل الإنتاجية. لذلك صممنا واجهات النظام لتكون بديهية وسهلة الاستخدام، فلن تحتاج لأشهر لتدريب فريقك؛ سيبدأ الجميع بالعمل من اليوم الأول.</p>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> دعم كامل للغة العربية والانجليزية (RTL & LTR)</li>
+                        <li><i class="fa-solid fa-check"></i> تنقل سريع واستجابة فورية (Zero-lag UI)</li>
+                        <li><i class="fa-solid fa-check"></i> بوابة عملاء ذاتية الخدمة ترفع مستوى رضاهم</li>
+                    </ul>
+                </div>
+                <div class="benefit-image">
+                    <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80" alt="User Experience">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. How It Works Section -->
+    <section id="how-it-works" class="steps-section">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2>التحول الرقمي أسهل مما تتخيل</h2>
+                <p>3 خطوات بسيطة فقط تفصلك عن نقل مؤسستك إلى المستوى الاحترافي القادم</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="step-number">1</div>
+                    <h3>سجل حسابك</h3>
+                    <p>بدون عقود معقدة أو إجراءات طويلة. أنشئ بيئة العمل الخاصة بك خلال أقل من دقيقتين وابدأ فوراً.</p>
+                </div>
+                <div class="step-card" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="step-number">2</div>
+                    <h3>خصص نظامك</h3>
+                    <p>أضف هويتك البصرية، استورد بياناتك بنقرة زر، وقم بإعطاء الصلاحيات المناسبة لفريق عملك.</p>
+                </div>
+                <div class="step-card" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="step-number">3</div>
+                    <h3>انطلق بثقة</h3>
+                    <p>كل شيء جاهز! أدر عملياتك بفاعلية، وراقب نمو أرقامك من خلال لوحة التحكم المركزية الخاصة بك.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. Social Proof Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="container">
+            <div class="stats-bar" data-aos="fade-up">
+                <div class="stat-item text-center">
+                    <h3>+50</h3>
+                    <p>مؤسسة تثق بنا</p>
+                </div>
+                <div class="stat-item text-center">
+                    <h3>20K+</h3>
+                    <p>طالب نشط</p>
+                </div>
+                <div class="stat-item text-center">
+                    <h3>99.9%</h3>
+                    <p>نسبة استقرار النظام</p>
+                </div>
+            </div>
+
+            <div class="section-header" data-aos="fade-up">
+                <h2>قصص نجاح ملهمة</h2>
+                <p>لا تأخذ بكلامنا فقط، استمع لما يقوله شركاء النجاح عن تجربتهم مع انطلق بلاس.</p>
+            </div>
+
+            <div class="grid-3">
+                <div class="review-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                    <p class="review-text">"منذ أن اعتمدنا نظام انطلق بلاس، تضاعفت قدرتنا التشغيلية لثلاثة أضعاف، وتخلصنا لأول مرة من الخطأ البشري في الإدارة المالية."</p>
+                    <div class="reviewer">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80" alt="Customer">
+                        <div>
+                            <h4 style="font-size: 1.1rem; margin-bottom: 0;">أحمد صالح</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">المدير التنفيذي لشركة أفق</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                    <p class="review-text">"واجهة النظام مذهلة! استطعنا تدريب فريق العمل بالكامل في يوم واحد فقط. دعمهم الفني يتجاوب في دقائق."</p>
+                    <div class="reviewer">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80" alt="Customer">
+                        <div>
+                            <h4 style="font-size: 1.1rem; margin-bottom: 0;">سارة عبد الله</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">مديرة عمليات، أكاديمية رواد</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></div>
+                    <p class="review-text">"ميزة الأتمتة وفرت علينا توظيف شخصين إضافيين! النظام يقوم بالتسويق والتنبيهات المادية تلقائياً.. استثمار لا يُعوض الصراحة."</p>
+                    <div class="reviewer">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80" alt="Customer">
+                        <div>
+                            <h4 style="font-size: 1.1rem; margin-bottom: 0;">م. خالد حسن</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">مؤسس منصة إبداع</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. Pricing Section -->
+    <section id="pricing" class="pricing-section">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2>استثمر في نمو أعمالك</h2>
+                <p>باقات تسعير شفافة تنمو مع تقدم مؤسستك، بدون مفاجآت أو رسوم خفية.</p>
+            </div>
+            
+            <div class="grid-3">
+                <!-- Basic Plan -->
+                <div class="pricing-card" data-aos="fade-up" data-aos-delay="100">
+                    <h3>البداية</h3>
+                    <p>مثالي للشركات الناشئة والمراكز الصغيرة.</p>
+                    <div class="price">مجانًا <span>/ للأبد</span></div>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> إدارة حتى 50 مستخدم</li>
+                        <li><i class="fa-solid fa-check"></i> نظام فواتير أساسي</li>
+                        <li><i class="fa-solid fa-check"></i> دعم فني بالبريد</li>
+                        <li style="opacity: 0.4;"><i class="fa-solid fa-xmark"></i> الأتمتة المتقدمة</li>
+                        <li style="opacity: 0.4;"><i class="fa-solid fa-xmark"></i> علامة تجارية مخصصة</li>
+                    </ul>
+                    <a href="/academy" class="btn btn-outline">ابدأ الآن مجاناً</a>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="pricing-card popular" data-aos="fade-up" data-aos-delay="200">
+                    <div class="badge" style="width: max-content; margin: 0 auto 1rem; display: block;">الأكثر طلباً ومبيعاً</div>
+                    <h3>الاحترافية</h3>
+                    <p>للمؤسسات الطموحة التي تبحث عن النمو السريع.</p>
+                    <div class="price">$49 <span>/ شهرياً</span></div>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> مستخدمين وعملاء لا محدود</li>
+                        <li><i class="fa-solid fa-check"></i> أتمتة كاملة للعمليات</li>
+                        <li><i class="fa-solid fa-check"></i> لوحات تحكم متقدمة</li>
+                        <li><i class="fa-solid fa-check"></i> تخصيص بهويتك البصرية الكاملة</li>
+                        <li><i class="fa-solid fa-check"></i> دعم فني مخصص (VIP) 24/7</li>
+                    </ul>
+                    <a href="/academy" class="btn btn-primary">اشترك بالخطة الاحترافية</a>
+                </div>
+
+                <!-- Enterprise Plan -->
+                <div class="pricing-card" data-aos="fade-up" data-aos-delay="300">
+                    <h3>المؤسسات</h3>
+                    <p>حلول ضخمة تناسب الشركات الكبرى والجهات المتعددة.</p>
+                    <div class="price">مخصص </div>
+                    <ul class="features-list">
+                        <li><i class="fa-solid fa-check"></i> كل ميزات باقة الاحترافية</li>
+                        <li><i class="fa-solid fa-check"></i> مدير حساب مخصص لك</li>
+                        <li><i class="fa-solid fa-check"></i> استضافة سحابية مستقلة (Private)</li>
+                        <li><i class="fa-solid fa-check"></i> الربط البرمجي (API) المتقدم</li>
+                        <li><i class="fa-solid fa-check"></i> عقود مستوى الخدمة (SLA)</li>
+                    </ul>
+                    <a href="#" class="btn btn-outline">تواصل للمبيعات</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2>الأسئلة الشائعة</h2>
+                <p>كل ما يدور بذهنك، قمنا بالإجابة عليه لمساعدتك في اتخاذ القرار.</p>
+            </div>
+            
+            <div class="faq-container" data-aos="fade-up">
+                <details open>
+                    <summary>هل توجد رسوم إعداد أو تركيب مخفية؟</summary>
+                    <div class="faq-content">
+                        إطلاقاً. نحن نؤمن بالشفافية التامة، الاشتراك الشهري أو السنوي يغطي جميع تكاليف النظام والتحديثات المستقبلية دون أي رسوم مخفية إضافية.
+                    </div>
+                </details>
+                <details>
+                    <summary>هل استطيع استيراد بياناتي القديمة من أنظمة أخرى؟</summary>
+                    <div class="faq-content">
+                        نعم بالتأكيد. نوفر أداة استيراد ذكية تتيح لك رفع ملفات Excel أو CSV لنقل بيانات العملاء والموظفين بضغطة زر. وإذا واجهت مشكلة، فريقنا مستعد للقيام بذلك نيابة عنك.
+                    </div>
+                </details>
+                <details>
+                    <summary>ما مدى أمان بياناتي على خوادمكم؟</summary>
+                    <div class="faq-content">
+                        الأمان هو أولويتنا القصوى. نستخدم خوادم بمواصفات أمنية بنكية مع تشفير بمستوى 256-bit AES لكافة البيانات، بالاضافة الى أخذ نسخ احتياطية جغرافية بشكل يومي لضمان عدم ضياع أي معلومة.
+                    </div>
+                </details>
+                <details>
+                    <summary>هل يمكنني ترقية أو إلغاء اشتراكي في أي وقت؟</summary>
+                    <div class="faq-content">
+                        نعم! يمكنك الترقية للخطة الأعلى في أي وقت ليتم تفعيل الميزات فوراً، كما يمكنك إلغاء اشتراكك وقتما تشاء دون أي التزامات تعاقدية معقدة.
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- 10. Final CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-box" data-aos="zoom-in">
+                <h2>مستعد لقيادة التغيير في مؤسستك؟</h2>
+                <p>انضم إلى مئات الشركات التي تحولت رقمياً وتحكمت في نموها مع انطلق بلاس. ابدأ الآن وادخل عصراً جديداً من الإدارة.</p>
+                <a href="/academy" class="btn">احجز نسختك المجانية الآن <i class="fa-solid fa-rocket"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 11. Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-logo">
+                    <a href="/" class="logo">
+                        <div class="logo-icon"><i class="fa-solid fa-shapes"></i></div>
+                        انطلق بلاس
+                    </a>
+                    <p class="text-body">صُنع بشغف لتمكين المؤسسات والشركات من رقمنة عملياتهم وتحقيق الكفاءة القصوى بتكنولوجيا العصر الثقة.</p>
+                    <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                        <a href="#" style="color: var(--text-muted); font-size: 1.2rem;"><i class="fa-brands fa-x-twitter"></i></a>
+                        <a href="#" style="color: var(--text-muted); font-size: 1.2rem;"><i class="fa-brands fa-linkedin"></i></a>
+                        <a href="#" style="color: var(--text-muted); font-size: 1.2rem;"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="footer-title">المنتج</h3>
+                    <ul class="footer-links">
+                        <li><a href="#features">المميزات الأساسية</a></li>
+                        <li><a href="#pricing">الأسعار والخطط</a></li>
+                        <li><a href="#">تحديثات النظام (Changelog)</a></li>
+                        <li><a href="#">الأمان والخصوصية</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="footer-title">الشركة</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">عن انطلق</a></li>
+                        <li><a href="#">الوظائف المتاحة</a></li>
+                        <li><a href="#">تواصل معنا</a></li>
+                        <li><a href="#">شركاء النجاح</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="footer-title">المصادر والدعم</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">مركز المساعدة (Help Center)</a></li>
+                        <li><a href="#">المدونة التقنية</a></li>
+                        <li><a href="#">توثيق الـ API</a></li>
+                        <li><a href="#">حالة الخوادم (Status)</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2026 جميع الحقوق محفوظة لشركة انطلق للحلول التعليمية المتكاملة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Icon -->
+    <!-- يمكنك تغيير الرقم أدناه إلى رقم الواتس الرسمي الخاص بالشركة (مع كود الدولة مثل 20 أو 966) -->
+    <a href="https://wa.me/201000000000" target="_blank" class="whatsapp-float" aria-label="تواصل معنا عبر واتساب">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS Animations
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
+        // Sticky Navbar Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+</html>

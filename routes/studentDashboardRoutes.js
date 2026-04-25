@@ -3,7 +3,8 @@ const { checkUser, requireAuth } = require('../middleware/authMiddleware');
 const courseController = require('../controllers/courseController');
 const studentdashboardRoutes = Router();
 const studentController = require('../controllers/studentController');
-studentdashboardRoutes.get('/', checkUser, courseController.getLandingPage);
+studentdashboardRoutes.get('/', checkUser, courseController.getCompanyLanding);
+studentdashboardRoutes.get('/academy', checkUser, courseController.getLandingPage);
 studentdashboardRoutes.get('/landing', checkUser, courseController.getLandingPageForDashboard);
 
 studentdashboardRoutes.get('/dashboard',requireAuth,checkUser, studentController.getstudentDashboard);
