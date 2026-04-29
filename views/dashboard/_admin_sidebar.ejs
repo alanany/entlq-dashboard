@@ -146,7 +146,15 @@
     </div>
     
     <div class="sidebar-menu">
-        <a href="/" class="nav-link-admin <%= currentPage === 'home' ? 'active' : '' %>">
+        <% 
+            let homePath = '/';
+            if (user && user.role === 'superadmin') homePath = '/superadmin';
+            else if (user && user.role === 'admin') homePath = '/admin';
+            else if (user && user.role === 'supervisor') homePath = '/supervisor';
+            else if (user && user.role === 'teacher') homePath = '/teacher/home';
+            else if (user && user.role === 'student') homePath = '/dashboard';
+        %>
+        <a href="<%= homePath %>" class="nav-link-admin <%= currentPage === 'home' ? 'active' : '' %>">
             <i class="fas fa-home"></i>
             <span><%= t('home') %></span>
         </a>

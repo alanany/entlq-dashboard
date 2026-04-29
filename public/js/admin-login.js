@@ -72,10 +72,17 @@
                 showToast("تم تسجيل الدخول بنجاح! جاري التحويل...", 'success'); 
                 const result = await response.json();
                 setTimeout(() => {
-                    if (result.role === 'superadmin') {
+                    const role = result.role;
+                    if (role === 'superadmin') {
                         window.location.href = '/superadmin';
+                    } else if (role === 'admin') {
+                        window.location.href = '/admin';
+                    } else if (role === 'supervisor') {
+                        window.location.href = '/supervisor';
+                    } else if (role === 'teacher') {
+                        window.location.href = '/teacher/home';
                     } else {
-                        window.location.href = '/';
+                        window.location.href = '/dashboard';
                     }
                 }, 1000);
             } catch (error) {

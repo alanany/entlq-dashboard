@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await axios.post('/student/login', userData);
             showToast(translations.login_success, 'success'); 
-            setTimeout(() => window.location.href = '/', 1000);
+            setTimeout(() => window.location.href = '/dashboard', 1000);
         } catch (error) {
             stopLoading();
             const msg = error.response?.data?.error || translations.login_failed;
